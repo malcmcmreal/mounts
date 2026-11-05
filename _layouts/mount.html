@@ -132,15 +132,29 @@ layout: default
       {% for f in site.static_files %}{% if f.path contains folder %}
         {% assign ext = f.extname | downcase %}
         {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
+        {% assign hr = st.hires[f.name] %}
         <figure>
-          <a href="{{ f.path | relative_url }}" title="Open full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
-          <figcaption>{{ f.name }} <span class="muted">· tap to open full size</span></figcaption>
+          <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
+          <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span></figcaption>
+          {% if hr %}
+          <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
+            <span class="hires-icon" aria-hidden="true">&#8681;</span>
+            <span><strong>Hi-res download</strong>
+              <small>{% if hr.label %}{{ hr.label }}{% else %}{{ hr.url | split: "/" | slice: 2 | first }}{% endif %}</small></span>
+          </a>
+          {% if repo != "" %}<button type="button" class="link-btn small hires-edit" data-add-entry="hires" data-file="{{ f.name }}">Update link</button>{% endif %}
+          {% elsif repo != "" %}
+          <button type="button" class="hires hires-add" data-add-entry="hires" data-file="{{ f.name }}">
+            <span class="hires-icon" aria-hidden="true">+</span>
+            <span><strong>Add hi-res download link</strong><small>e.g. a Mediaflux share link</small></span>
+          </button>
+          {% endif %}
         </figure>
         {% endcase %}
       {% endif %}{% endfor %}
     </div>
     {% else %}
-    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map (JPG or PNG).</p>
+    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map preview (JPG or PNG); you can then link a hi-res download under it.</p>
     {% endif %}
   </section>
 
@@ -284,7 +298,8 @@ layout: default
 {% if repo != "" %}
 <script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
-<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "fields": {"year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
+{% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
+<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
 {% endif %}

@@ -12,6 +12,7 @@
       <div class="chips" id="log-types" role="tablist">
         <label><input type="radio" name="type" value="sample" checked><span>Edit / link sample</span></label>
         <label><input type="radio" name="type" value="details"><span>Mount details</span></label>
+        <label><input type="radio" name="type" value="hires"><span>Hi-res link</span></label>
         <label><input type="radio" name="type" value="note"><span>Note</span></label>
       </div>
 
@@ -81,6 +82,20 @@
             <label class="grow">Correct value <input name="value"></label>
           </div>
         </div>
+      </fieldset>
+
+      <!-- Hi-res download link -->
+      <fieldset data-for="hires" hidden>
+        <label>Map or image <select name="hires_file"></select></label>
+        <p class="hint" id="log-hires-current"></p>
+        <label class="check" id="log-hires-remove-row" hidden><input type="checkbox" name="hires_remove"> Remove the hi-res link</label>
+        <div id="log-hires-fields">
+          <label>Download link <input name="hires_url" type="url" placeholder="https://… (e.g. a Mediaflux share link)"></label>
+          <label>Description <span class="muted">(optional)</span>
+            <input name="hires_label" placeholder="e.g. Full-resolution TIFF, 480 MB (Mediaflux)"></label>
+        </div>
+        <p class="hint">The page shows the image you uploaded as the preview, with a Hi-res download button underneath.
+          If the link changes later, add a new link here; the newest one is used.</p>
       </fieldset>
 
       <fieldset>

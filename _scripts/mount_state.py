@@ -6,7 +6,7 @@ Everything that happens later is a separate dated entry file in _data/log/<ID>/,
 
     date: "2027-02-02 14:30"
     by: "M. McMillan"
-    type: sample            # sample | prep | analysis | location | detail | note
+    type: sample            # sample | prep | analysis | location | detail | hires | note
     sample: "EX-002"        # sample entries: the sample's current ID
     id: "MM26-02"           #   optional new ID (rename); new: true adds a sample
     earthbank: 748265       #   optional EarthBank link (unlink: true removes it)
@@ -103,6 +103,9 @@ def describe(e):
     if t == "detail":
         f = text(e.get("field"))
         return f"{DETAIL_LABELS.get(f, f)} set to {text(e.get('value'))}"
+    if t == "hires":
+        f = text(e.get("file"))
+        return f"Hi-res link removed for {f}" if not text(e.get("url")) else f"Hi-res download linked for {f}"
     if t == "note":
         return "Note added"
     return t or "Entry"
@@ -123,7 +126,7 @@ def build():
             "text": f"Mount created with {len(samples)} sample{'s' if len(samples) != 1 else ''}"
                     + (f" ({', '.join(s['id'] for s in samples)})" if 0 < len(samples) <= 6 else ""),
         }]
-        analyses, notes = [], []
+        analyses, notes, hires = [], [], {}
 
         def find(sid):
             for s in samples:
@@ -167,6 +170,11 @@ def build():
                     fields[key] = text(e.get("detail"))
             elif t == "location" and text(e.get("storage")):
                 fields["storage"] = text(e.get("storage"))
+            elif t == "hires" and text(e.get("file")):
+                if text(e.get("url")):
+                    hires[text(e.get("file"))] = {k: text(e.get(k)) for k in ("url", "label", "date", "by") if text(e.get(k))}
+                else:
+                    hires.pop(text(e.get("file")), None)
             elif t == "detail" and text(e.get("field")) in DETAIL_FIELDS:
                 fields[text(e.get("field"))] = text(e.get("value"))
             item = {k: v for k, v in e.items() if not k.startswith("_") and v not in (None, "")}
@@ -182,7 +190,7 @@ def build():
         state[mid] = dict(
             {k: v for k, v in fields.items() if v not in (None, "")},
             samples=current, timeline=timeline, entries=len(timeline) - 1,
-            analyses=list(reversed(analyses)), notes=notes)
+            analyses=list(reversed(analyses)), notes=notes, hires=hires)
 
     out = os.path.join(ROOT, "_data", "mountstate.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)

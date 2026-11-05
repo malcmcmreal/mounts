@@ -247,3 +247,17 @@ ul.plain li { margin: 0 0 .2rem; }
 .upload-list li.bad .mono { text-decoration: line-through; color: var(--muted); }
 .upload-list .error { color: var(--error); }
 .upload-list .icon-btn { font-size: 1.2rem; }
+
+/* Hi-res download under each map */
+.hires { display: flex; align-items: center; gap: .7rem; width: 100%; margin-top: .6rem; padding: .65rem .85rem;
+  border: 1px solid var(--link); border-radius: 8px; background: rgba(190, 81, 3, .12); color: var(--ink);
+  text-decoration: none; font: inherit; text-align: left; cursor: pointer; }
+.hires:hover { background: rgba(190, 81, 3, .22); color: var(--ink); }
+.hires strong { display: block; font-size: .95rem; }
+.hires small { display: block; color: var(--muted); font-size: .8rem; word-break: break-all; }
+.hires-icon { flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--link); color: #fff; font-size: 1.1rem; font-weight: 700; }
+.hires-add { border-style: dashed; border-color: var(--line); background: none; }
+.hires-add .hires-icon { background: var(--raised); color: var(--muted); }
+.hires-add:hover { border-color: var(--link); background: none; }
+.hires-edit { margin-top: .3rem; }

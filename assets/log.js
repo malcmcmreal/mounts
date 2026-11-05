@@ -27,11 +27,13 @@
   function tab() { return form.querySelector('input[name=type]:checked').value; }
 
   // ---------- open ----------
-  // Buttons: data-add-entry="sample" | "details" | "note" (optionally data-sample="<ID>")
+  // Buttons: data-add-entry="sample" | "details" | "hires" | "note"
+  // (optionally data-sample="<ID>" or data-file="<image name>")
+  var images = state.images || [], hires = state.hires || {};
   document.querySelectorAll('[data-add-entry]').forEach(function (b) {
-    b.addEventListener('click', function () { open(b.dataset.addEntry || 'sample', b.dataset.sample); });
+    b.addEventListener('click', function () { open(b.dataset.addEntry || 'sample', b.dataset.sample, b.dataset.file); });
   });
-  function open(which, sampleId) {
+  function open(which, sampleId, fileName) {
     form.reset();
     dlg.querySelector('.dialog-foot [data-close]').textContent = 'Cancel';
     f.sample_pick.innerHTML = samples.map(function (s, i) {
@@ -41,13 +43,17 @@
     for (var i = 0; i < samples.length; i++) if (!samples[i].earthbank) { pick = i; break; }
     if (sampleId) samples.forEach(function (s, k) { if (String(s.id) === sampleId) pick = k; });
     f.sample_pick.value = samples.length ? String(pick) : NEW;
+    f.hires_file.innerHTML = images.length ? images.map(function (n) {
+      return '<option value="' + esc(n) + '">' + esc(n) + (hires[n] ? ' · has a link' : '') + '</option>';
+    }).join('') : '<option value="">No images uploaded yet</option>';
+    if (fileName) f.hires_file.value = fileName;
     form.querySelector('input[name=type][value="' + which + '"]').checked = true;
     var d = new Date();
     f.date.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
     try { f.by.value = localStorage.getItem('mounts.by') || ''; } catch (e) {}
     if (!f.by.value && window.GH && GH.user) f.by.value = GH.user.name;
     setNextLabel();
-    showTab(); sampleChanged(); whatChanged(); showStep(1);
+    showTab(); sampleChanged(); whatChanged(); hiresChanged(); showStep(1);
     dlg.showModal();
   }
   window.openMountHistory = open;
@@ -142,6 +148,17 @@
   qBox.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(search, 150); });
   results.addEventListener('change', function (e) { chosen = +e.target.value; f.earthbank.value = chosen; });
 
+  // ---------- Hi-res link ----------
+  f.hires_file.addEventListener('change', hiresChanged);
+  f.hires_remove.addEventListener('change', function () { document.getElementById('log-hires-fields').hidden = f.hires_remove.checked; });
+  function hiresChanged() {
+    var h = hires[f.hires_file.value];
+    document.getElementById('log-hires-current').textContent = h ? 'Current link: ' + h.url : 'No hi-res link yet.';
+    document.getElementById('log-hires-remove-row').hidden = !h;
+    f.hires_remove.checked = false; document.getElementById('log-hires-fields').hidden = false;
+    f.hires_url.value = ''; f.hires_label.value = h && h.label ? h.label : '';
+  }
+
   // ---------- Mount details ----------
   f.what.addEventListener('change', whatChanged);
   f.field.addEventListener('change', function () { f.value.value = current[f.field.value] != null ? current[f.field.value] : ''; });
@@ -204,6 +221,15 @@
         kind = 'detail';
         if (!val('value')) problem = 'Enter the correct value.';
         lines.push('type: detail', 'field: ' + f.field.value, 'value: ' + q(val('value')));
+      }
+    } else if (t === 'hires') {
+      if (!val('hires_file')) problem = 'Upload the map image first (Add files), then add its hi-res link.';
+      lines.push('type: hires', 'file: ' + q(val('hires_file')));
+      if (f.hires_remove.checked) lines.push('url: ""');
+      else {
+        if (!/^https?:\/\/\S+$/i.test(val('hires_url'))) problem = 'Paste the full download link, starting with https://';
+        lines.push('url: ' + q(val('hires_url')));
+        if (val('hires_label')) lines.push('label: ' + q(val('hires_label')));
       }
     } else {
       if (!val('note')) problem = 'Write the note.';
