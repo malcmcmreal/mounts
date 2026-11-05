@@ -182,6 +182,27 @@ layout: default
     {% endif %}
   </section>
 
+  {% if st %}
+  <section class="card history" id="history">
+    <div class="card-head">
+      <h2>History</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">+ Add</button>{% endif %}
+    </div>
+    {% assign tl = st.timeline | reverse %}
+    <ol class="timeline">
+      {% for t in tl %}
+      <li class="tl-{{ t.type }}"{% if forloop.index > 3 %} hidden data-more{% endif %}>
+        <time>{% if t.date.size > 7 %}{{ t.date | date: "%-d %b %Y" }}{% else %}{{ t.date }}{% endif %}</time>
+        <span class="tl-text">{{ t.text }}{% if t.earthbank %}{% assign k = t.earthbank | append: "" %}{% if eb.samples[k] %} <span class="muted">({{ eb.samples[k].name }})</span>{% endif %}{% endif %}{% if t.link %} · <a href="{{ t.link }}" target="_blank" rel="noopener">link</a>{% endif %}</span>
+        {% if t.by %}<span class="tl-by">{{ t.by }}</span>{% endif %}
+        {% if t.note %}<p class="tl-note">{{ t.note }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% if tl.size > 3 %}<button type="button" class="link-btn small" id="history-more">Show all {{ tl.size }} entries</button>{% endif %}
+  </section>
+  {% endif %}
+
   {% if has_eb %}
   <section class="card earthbank" id="earthbank">
     <h2>EarthBank</h2>
@@ -273,26 +294,6 @@ layout: default
     <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
     <div class="codes"></div>
   </section>
-  {% if st %}
-  <section class="card history" id="history">
-    <div class="card-head">
-      <h2>History</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">+ Add</button>{% endif %}
-    </div>
-    {% assign tl = st.timeline | reverse %}
-    <ol class="timeline">
-      {% for t in tl %}
-      <li class="tl-{{ t.type }}"{% if forloop.index > 3 %} hidden data-more{% endif %}>
-        <time>{% if t.date.size > 7 %}{{ t.date | date: "%-d %b %Y" }}{% else %}{{ t.date }}{% endif %}</time>
-        <span class="tl-text">{{ t.text }}{% if t.earthbank %}{% assign k = t.earthbank | append: "" %}{% if eb.samples[k] %} <span class="muted">({{ eb.samples[k].name }})</span>{% endif %}{% endif %}{% if t.link %} · <a href="{{ t.link }}" target="_blank" rel="noopener">link</a>{% endif %}</span>
-        {% if t.by %}<span class="tl-by">{{ t.by }}</span>{% endif %}
-        {% if t.note %}<p class="tl-note">{{ t.note }}</p>{% endif %}
-      </li>
-      {% endfor %}
-    </ol>
-    {% if tl.size > 3 %}<button type="button" class="link-btn small" id="history-more">Show all {{ tl.size }} entries</button>{% endif %}
-  </section>
-  {% endif %}
 </article>
 
 {% if repo != "" %}
