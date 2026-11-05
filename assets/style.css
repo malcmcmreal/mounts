@@ -187,7 +187,7 @@ kbd { font-family: var(--mono); font-size: .8em; padding: .05rem .3rem; border: 
 .menu-list a:hover, .menu-list button:hover { background: var(--card); color: var(--ink); }
 
 /* History */
-.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
+.card-head { display: flex; justify-content: flex-start; gap: .75rem; align-items: center; margin-bottom: .75rem; }
 .card-head h2 { margin: 0; }
 .timeline { list-style: none; margin: 0; padding: 0; }
 .timeline li { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .2rem 1rem; padding: .45rem 0;
@@ -210,3 +210,14 @@ kbd { font-family: var(--mono); font-size: .8em; padding: .05rem .3rem; border: 
 .chips input:focus-visible + span { outline: 2px solid var(--link); }
 .dialog label.check { display: flex !important; gap: .5rem; align-items: center; color: var(--ink); }
 .dialog label.check input { width: auto; margin: 0; }
+ul.plain { list-style: none; margin: 0; padding: 0; }
+ul.plain li { margin: 0 0 .2rem; }
+.notes-body > :first-child { margin-top: 0; }
+.notes-body > :last-child { margin-bottom: 0; }
+.note-list { list-style: none; margin: .75rem 0 0; padding: 0; }
+.note-list li { padding: .6rem 0; border-top: 1px solid var(--line); }
+.note-list p { margin: 0 0 .2rem; }
+.eb-box { border: 1px solid var(--line); border-radius: 8px; padding: .75rem .9rem .1rem; margin-top: .25rem; }
+.eb-box-head { margin: 0 0 .6rem; font-size: .9rem; }
+#log-types { margin-bottom: 1.1rem; }
+.dialog select { appearance: auto; }

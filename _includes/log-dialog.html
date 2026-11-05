@@ -9,75 +9,78 @@
     </div>
 
     <div class="dialog-body" id="log-step-form">
-      <fieldset>
-        <legend>What happened?</legend>
-        <div class="chips" id="log-types">
-          <label><input type="radio" name="type" value="link" checked><span>Linked to EarthBank</span></label>
-          <label><input type="radio" name="type" value="prep"><span>Preparation</span></label>
-          <label><input type="radio" name="type" value="analysis"><span>Analysis</span></label>
-          <label><input type="radio" name="type" value="location"><span>Moved</span></label>
-          <label><input type="radio" name="type" value="add-sample"><span>Sample added</span></label>
-          <label><input type="radio" name="type" value="remove-sample"><span>Sample removed</span></label>
-          <label><input type="radio" name="type" value="note"><span>Note</span></label>
-        </div>
-      </fieldset>
+      <div class="chips" id="log-types" role="tablist">
+        <label><input type="radio" name="type" value="sample" checked><span>Edit / link sample</span></label>
+        <label><input type="radio" name="type" value="details"><span>Mount details</span></label>
+        <label><input type="radio" name="type" value="note"><span>Note</span></label>
+      </div>
 
-      <!-- Linked to EarthBank -->
-      <fieldset data-for="link">
-        <label>Sample in this mount <select name="link_sample"></select></label>
-        <p class="hint" id="log-current-link"></p>
-        <label class="check"><input type="checkbox" name="unlink"> Remove this sample's EarthBank link instead</label>
-        <div id="log-eb">
-          <label>Find the EarthBank sample <input id="log-q" type="search" autocomplete="off" placeholder="Sample name or place"></label>
-          <p class="hint" id="log-eb-status"></p>
-          <div class="pick-results" id="log-eb-results"></div>
-          <label class="narrow">Or type an EarthBank sample ID <input name="earthbank" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
-        </div>
-      </fieldset>
-
-      <!-- Preparation -->
-      <fieldset data-for="prep" hidden>
+      <!-- Edit / link sample -->
+      <fieldset data-for="sample">
+        <label>Sample <select name="sample_pick"></select></label>
         <div class="row">
-          <label>Step
-            <select name="step">
-              <option value="polish">Polished</option>
-              <option value="etch">Etched</option>
-              <option value="coat">Coated</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label class="grow">Details <input name="detail" placeholder="e.g. 1 µm diamond, 5 min"></label>
+          <label class="grow">Sample ID <input name="sample_id" class="mono" autocomplete="off"></label>
+          <label class="grow">Position in the mount <input name="position" placeholder="e.g. top left"></label>
+        </div>
+        <p class="hint" id="log-rename-hint" hidden>Renaming keeps the old ID in the history.</p>
+        <div class="eb-box">
+          <p class="eb-box-head"><strong>EarthBank</strong> <span class="muted" id="log-current-link"></span></p>
+          <label class="check" id="log-unlink-row" hidden><input type="checkbox" name="unlink"> Remove the EarthBank link</label>
+          <div id="log-eb">
+            <label>Find the EarthBank sample <input id="log-q" type="search" autocomplete="off" placeholder="Sample name or place"></label>
+            <p class="hint" id="log-eb-status"></p>
+            <div class="pick-results" id="log-eb-results"></div>
+            <label class="narrow">Or type an EarthBank sample ID <input name="earthbank" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
+          </div>
         </div>
       </fieldset>
 
-      <!-- Analysis -->
-      <fieldset data-for="analysis" hidden>
-        <div class="row">
-          <label class="grow">Technique <input name="technique" list="techniques" placeholder="e.g. Fission track (LA-ICP-MS)"></label>
-          <label class="grow">Instrument <input name="instrument" placeholder="e.g. Agilent 7900"></label>
+      <!-- Mount details -->
+      <fieldset data-for="details" hidden>
+        <label>What happened?
+          <select name="what">
+            <option value="polish">Polished</option>
+            <option value="etch">Etched</option>
+            <option value="coat">Coated</option>
+            <option value="other">Other preparation</option>
+            <option value="analysis">Analysed</option>
+            <option value="location">Moved</option>
+            <option value="detail">Correct a detail</option>
+          </select>
+        </label>
+        <div data-what="polish etch coat other">
+          <label>Details <input name="detail" placeholder="e.g. 1 µm diamond, 5 min"></label>
         </div>
-        <label>Samples analysed <input name="samples" placeholder="e.g. all, or EX-001, EX-002"></label>
-        <label>Link to data (optional) <input name="link" type="url" placeholder="e.g. EarthBank data package or DOI"></label>
-      </fieldset>
-
-      <!-- Moved -->
-      <fieldset data-for="location" hidden>
-        <label>New location <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
-      </fieldset>
-
-      <!-- Sample added -->
-      <fieldset data-for="add-sample" hidden>
-        <div class="row">
-          <label class="grow">Sample ID <input name="new_sample" class="mono" placeholder="e.g. MM26-04"></label>
-          <label class="grow">Position in the mount <input name="position" placeholder="e.g. bottom left"></label>
+        <div data-what="analysis" hidden>
+          <div class="row">
+            <label class="grow">Technique <input name="technique" list="techniques" placeholder="e.g. Fission track (LA-ICP-MS)"></label>
+            <label class="grow">Instrument <input name="instrument" placeholder="e.g. Agilent 7900"></label>
+          </div>
+          <label>Samples analysed <input name="samples" placeholder="e.g. all, or EX-001, EX-002"></label>
+          <label>Link to data (optional) <input name="link" type="url" placeholder="e.g. EarthBank data package or DOI"></label>
         </div>
-        <p class="hint">You can link it to EarthBank with a separate entry later.</p>
-      </fieldset>
-
-      <!-- Sample removed -->
-      <fieldset data-for="remove-sample" hidden>
-        <label>Sample <select name="remove_sample"></select></label>
-        <p class="hint">The sample stays in the history; it's just no longer listed as being in the mount.</p>
+        <div data-what="location" hidden>
+          <label>New location <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
+        </div>
+        <div data-what="detail" hidden>
+          <div class="row">
+            <label>Detail
+              <select name="field">
+                <option value="year">Year made</option>
+                <option value="created_by">Made by</option>
+                <option value="affiliation">Affiliation</option>
+                <option value="mount_format">Mount format</option>
+                <option value="resin">Resin / epoxy</option>
+                <option value="minerals">Minerals</option>
+                <option value="polish">Polish</option>
+                <option value="etch">Etching</option>
+                <option value="coating">Coating</option>
+                <option value="storage">Stored at</option>
+              </select>
+            </label>
+            <label class="grow">Correct value <input name="value"></label>
+          </div>
+        </div>
       </fieldset>
 
       <fieldset>
@@ -85,7 +88,7 @@
           <label>Date <input name="date" type="date"></label>
           <label class="grow">By <input name="by" placeholder="Your name"></label>
         </div>
-        <label>Note <span class="muted" id="log-note-opt">(optional)</span>
+        <label><span id="log-note-label">Comment <span class="muted">(optional)</span></span>
           <textarea name="note" rows="2" placeholder="Anything worth recording"></textarea></label>
       </fieldset>
       <p class="hint error" id="log-error"></p>
@@ -96,7 +99,7 @@
       <ol class="steps">
         <li>Click <strong>Create entry on GitHub</strong>.</li>
         <li>On GitHub, click the green <strong>Commit changes…</strong> button, then <strong>Commit changes</strong> again.</li>
-        <li>Wait 1–2 minutes and refresh this page. The entry appears in the history and the mount's details update.</li>
+        <li>Wait 1–2 minutes and refresh this page. The mount's page updates and the entry appears in the history.</li>
       </ol>
       <details>
         <summary>Show the entry</summary>

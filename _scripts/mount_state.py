@@ -6,9 +6,10 @@ Everything that happens later is a separate dated entry file in _data/log/<ID>/,
 
     date: "2027-02-02 14:30"
     by: "M. McMillan"
-    type: link              # link | unlink | add-sample | remove-sample | prep | analysis | location | note
-    sample: "EX-002"
-    earthbank: 748265
+    type: sample            # sample | prep | analysis | location | detail | note
+    sample: "EX-002"        # sample entries: the sample's current ID
+    id: "MM26-02"           #   optional new ID (rename); new: true adds a sample
+    earthbank: 748265       #   optional EarthBank link (unlink: true removes it)
     note: "optional free text"
 
 This script (run before the site is built) applies the entries in date order and writes
@@ -54,9 +55,29 @@ def load_entries(mount_id):
     return out
 
 
+DETAIL_FIELDS = ["year", "created_by", "affiliation", "mount_format", "resin", "minerals",
+                 "polish", "etch", "coating", "storage"]
+DETAIL_LABELS = {"year": "Year made", "created_by": "Made by", "affiliation": "Affiliation",
+                 "mount_format": "Mount format", "resin": "Resin / epoxy", "minerals": "Minerals",
+                 "polish": "Polish", "etch": "Etching", "coating": "Coating", "storage": "Stored at"}
+
+
 def describe(e):
     """One-line summary for the timeline."""
     t, s = e.get("type"), text(e.get("sample"))
+    if t == "sample":
+        new_id = text(e.get("id"))
+        if e.get("new"):
+            parts = [f"Sample {new_id or s} added"]
+        else:
+            parts = [f"{s} renamed to {new_id}" if new_id and new_id != s else s]
+        if text(e.get("position")):
+            parts.append(f"position: {text(e.get('position'))}")
+        if e.get("earthbank"):
+            parts.append(f"linked to EarthBank sample {e.get('earthbank')}")
+        if e.get("unlink"):
+            parts.append("EarthBank link removed")
+        return "; ".join(parts)
     if t == "link":
         return f"{s} linked to EarthBank sample {e.get('earthbank')}"
     if t == "unlink":
@@ -68,7 +89,7 @@ def describe(e):
         return f"Sample {s} removed"
     if t == "prep":
         step = {"polish": "Polished", "etch": "Etched", "coat": "Coated"}.get(
-            text(e.get("step")).lower(), text(e.get("step")).capitalize() or "Preparation")
+            text(e.get("step")).lower(), "Preparation")
         d = text(e.get("detail"))
         return f"{step}: {d}" if d else step
     if t == "analysis":
@@ -79,8 +100,11 @@ def describe(e):
         return line
     if t == "location":
         return f"Moved to {text(e.get('storage'))}"
+    if t == "detail":
+        f = text(e.get("field"))
+        return f"{DETAIL_LABELS.get(f, f)} set to {text(e.get('value'))}"
     if t == "note":
-        return "Note"
+        return "Note added"
     return t or "Entry"
 
 
@@ -90,31 +114,48 @@ def build():
         page = front_matter(path)
         mid = text(page.get("mount_id")) or os.path.basename(os.path.dirname(path))
         samples = [dict(s) for s in (page.get("samples") or []) if isinstance(s, dict)]
-        fields = {k: page.get(k) for k in ("polish", "etch", "coating", "storage")}
+        for s in samples:
+            s["id"] = text(s.get("id"))
+        fields = {k: page.get(k) for k in DETAIL_FIELDS}
         created = text(page.get("created")) or text(page.get("year"))
         timeline = [{
             "date": created, "by": text(page.get("created_by")), "type": "created",
             "text": f"Mount created with {len(samples)} sample{'s' if len(samples) != 1 else ''}"
-                    + (f" ({', '.join(text(s.get('id')) for s in samples)})" if 0 < len(samples) <= 6 else ""),
+                    + (f" ({', '.join(s['id'] for s in samples)})" if 0 < len(samples) <= 6 else ""),
         }]
+        analyses, notes = [], []
 
         def find(sid):
             for s in samples:
-                if text(s.get("id")) == sid and not s.get("_removed"):
+                if s.get("id") == sid and not s.get("_removed"):
                     return s
             return None
 
         for e in load_entries(mid):
             t, sid = e.get("type"), text(e.get("sample"))
-            if t == "link" and find(sid) and e.get("earthbank"):
+            if t == "sample":
+                s = find(sid)
+                if s is None:
+                    s = {"id": sid}
+                    samples.append(s)
+                new_id = text(e.get("id"))
+                if new_id and new_id != s["id"]:
+                    s.setdefault("was", []).append(s["id"])
+                    s["id"] = new_id
+                if text(e.get("position")):
+                    s["position"] = text(e.get("position"))
+                if e.get("unlink"):
+                    s.pop("earthbank", None)
+                if e.get("earthbank"):
+                    s["earthbank"] = int(e["earthbank"])
+            elif t == "link" and find(sid) and e.get("earthbank"):
                 find(sid)["earthbank"] = int(e["earthbank"])
             elif t == "unlink" and find(sid):
                 find(sid).pop("earthbank", None)
             elif t == "add-sample" and sid and not find(sid):
                 new = {"id": sid}
-                for k in ("position", "notes"):
-                    if text(e.get(k)):
-                        new[k] = text(e.get(k))
+                if text(e.get("position")):
+                    new["position"] = text(e.get("position"))
                 if e.get("earthbank"):
                     new["earthbank"] = int(e["earthbank"])
                 samples.append(new)
@@ -126,15 +167,22 @@ def build():
                     fields[key] = text(e.get("detail"))
             elif t == "location" and text(e.get("storage")):
                 fields["storage"] = text(e.get("storage"))
+            elif t == "detail" and text(e.get("field")) in DETAIL_FIELDS:
+                fields[text(e.get("field"))] = text(e.get("value"))
             item = {k: v for k, v in e.items() if not k.startswith("_") and v not in (None, "")}
             item["text"] = describe(e)
             item["file"] = e["_file"]
             timeline.append(item)
+            if t == "analysis":
+                analyses.append(item)
+            if t == "note" and text(e.get("note")):
+                notes.append(item)
 
         current = [{k: v for k, v in s.items() if k != "_removed"} for s in samples if not s.get("_removed")]
         state[mid] = dict(
             {k: v for k, v in fields.items() if v not in (None, "")},
-            samples=current, timeline=timeline, entries=len(timeline) - 1)
+            samples=current, timeline=timeline, entries=len(timeline) - 1,
+            analyses=list(reversed(analyses)), notes=notes)
 
     out = os.path.join(ROOT, "_data", "mountstate.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)

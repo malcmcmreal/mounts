@@ -14,10 +14,7 @@ layout: default
 {% comment %} Current state = original page + history entries (see _scripts/mount_state.py) {% endcomment %}
 {% assign st = site.data.mountstate[page.mount_id] %}
 {% if st %}{% assign samples = st.samples %}{% else %}{% assign samples = page.samples %}{% endif %}
-{% assign cur_polish = st.polish | default: page.polish %}
-{% assign cur_etch = st.etch | default: page.etch %}
-{% assign cur_coating = st.coating | default: page.coating %}
-{% assign cur_storage = st.storage | default: page.storage %}
+{% if st %}{% assign cur = st %}{% else %}{% assign cur = page %}{% endif %}
 {% assign eb_ids = samples | map: "earthbank" | compact %}
 {% if eb_ids.size > 0 %}{% assign has_eb = true %}{% else %}{% assign has_eb = false %}{% endif %}
 
@@ -32,7 +29,6 @@ layout: default
     </div>
     {% if repo != "" %}
     <div class="actions">
-      <button type="button" class="btn primary" data-add-entry>Add to history</button>
       <a class="btn" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}">Add files</a>
       <details class="menu">
         <summary class="btn" aria-label="More actions" title="More actions">&middot;&middot;&middot;</summary>
@@ -48,19 +44,27 @@ layout: default
 
   <div class="grid">
     <section class="card">
-      <h2>Mount details</h2>
+      <div class="card-head">
+        <h2>Mount details</h2>
+        {% if repo != "" %}<button type="button" class="btn small" data-add-entry="details">Add &amp; edit</button>{% endif %}
+      </div>
       <dl class="facts">
         <dt>Number of samples</dt><dd>{{ samples | size }}</dd>
-        {% if page.year %}<dt>Year made</dt><dd>{{ page.year }}</dd>{% endif %}
-        {% if page.created_by %}<dt>Made by</dt><dd>{{ page.created_by }}</dd>{% endif %}
-        {% if page.affiliation %}<dt>Affiliation</dt><dd>{{ page.affiliation }}</dd>{% endif %}
-        {% if page.mount_format %}<dt>Mount format</dt><dd>{{ page.mount_format }}</dd>{% endif %}
-        {% if page.resin %}<dt>Resin / epoxy</dt><dd>{{ page.resin }}</dd>{% endif %}
-        {% if page.minerals %}<dt>Minerals</dt><dd>{{ page.minerals }}</dd>{% endif %}
-        {% if cur_polish %}<dt>Polish</dt><dd>{{ cur_polish }}</dd>{% endif %}
-        {% if cur_etch %}<dt>Etching</dt><dd>{{ cur_etch }}</dd>{% endif %}
-        {% if cur_coating %}<dt>Coating</dt><dd>{{ cur_coating }}</dd>{% endif %}
-        {% if cur_storage %}<dt>Stored at</dt><dd>{{ cur_storage }}</dd>{% endif %}
+        {% if cur.year %}<dt>Year made</dt><dd>{{ cur.year }}</dd>{% endif %}
+        {% if cur.created_by %}<dt>Made by</dt><dd>{{ cur.created_by }}</dd>{% endif %}
+        {% if cur.affiliation %}<dt>Affiliation</dt><dd>{{ cur.affiliation }}</dd>{% endif %}
+        {% if cur.mount_format %}<dt>Mount format</dt><dd>{{ cur.mount_format }}</dd>{% endif %}
+        {% if cur.resin %}<dt>Resin / epoxy</dt><dd>{{ cur.resin }}</dd>{% endif %}
+        {% if cur.minerals %}<dt>Minerals</dt><dd>{{ cur.minerals }}</dd>{% endif %}
+        {% if cur.polish %}<dt>Polish</dt><dd>{{ cur.polish }}</dd>{% endif %}
+        {% if cur.etch %}<dt>Etching</dt><dd>{{ cur.etch }}</dd>{% endif %}
+        {% if cur.coating %}<dt>Coating</dt><dd>{{ cur.coating }}</dd>{% endif %}
+        {% if cur.storage %}<dt>Stored at</dt><dd>{{ cur.storage }}</dd>{% endif %}
+        {% if st.analyses.size > 0 %}<dt>Analyses</dt><dd><ul class="plain">
+          {% for a in st.analyses limit: 3 %}<li>{{ a.technique }}{% if a.instrument %}, {{ a.instrument }}{% endif %}
+            <span class="muted">· {{ a.date | date: "%-d %b %Y" }}</span>{% if a.link %} · <a href="{{ a.link }}" target="_blank" rel="noopener">data</a>{% endif %}</li>{% endfor %}
+          {% if st.analyses.size > 3 %}<li class="muted"><a href="#history">{{ st.analyses.size | minus: 3 }} more in the history</a></li>{% endif %}
+        </ul></dd>{% endif %}
       </dl>
     </section>
 
@@ -74,13 +78,16 @@ layout: default
   </div>
 
   <section class="card">
-    <h2>Samples</h2>
+    <div class="card-head">
+      <h2>Samples</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">Edit &amp; link</button>{% endif %}
+    </div>
     <div class="table-scroll">
     <table>
       <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
       <tbody>
         {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td class="mono">{{ s.id }}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td>
+        <tr><td>{{ forloop.index }}</td><td><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td>
           {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="https://app.ausgeochem.org/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
         </tr>
         {% endfor %}
@@ -89,32 +96,21 @@ layout: default
     </div>
   </section>
 
-  {% if st %}
-  <section class="card history" id="history">
-    <div class="card-head">
-      <h2>History</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-add-entry>+ Add</button>{% endif %}
-    </div>
-    {% assign tl = st.timeline | reverse %}
-    <ol class="timeline">
-      {% for t in tl %}
-      <li class="tl-{{ t.type }}"{% if forloop.index > 3 %} hidden data-more{% endif %}>
-        <time>{% if t.date.size > 7 %}{{ t.date | date: "%-d %b %Y" }}{% else %}{{ t.date }}{% endif %}</time>
-        <span class="tl-text">{{ t.text }}{% if t.type == "link" %}{% assign k = t.earthbank | append: "" %}{% if eb.samples[k] %} <span class="muted">({{ eb.samples[k].name }})</span>{% endif %}{% endif %}{% if t.link %} · <a href="{{ t.link }}" target="_blank" rel="noopener">link</a>{% endif %}</span>
-        {% if t.by %}<span class="tl-by">{{ t.by }}</span>{% endif %}
-        {% if t.note %}<p class="tl-note">{{ t.note }}</p>{% endif %}
-      </li>
-      {% endfor %}
-    </ol>
-    {% if tl.size > 3 %}<button type="button" class="link-btn small" id="history-more">Show all {{ tl.size }} entries</button>{% endif %}
-  </section>
-  {% endif %}
-
   {% assign notes = content | strip %}
-  {% if notes != "" %}
+  {% if notes != "" or st.notes.size > 0 or repo != "" %}
   <section class="card notes">
-    <h2>Notes</h2>
-    {{ content }}
+    <div class="card-head">
+      <h2>Notes</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="note">+ Add</button>{% endif %}
+    </div>
+    {% if notes != "" %}<div class="notes-body">{{ content }}</div>{% endif %}
+    {% if st.notes.size > 0 %}
+    <ul class="note-list">
+      {% for n in st.notes %}<li><p class="pre">{{ n.note }}</p>
+        <span class="muted small">{{ n.date | date: "%-d %b %Y" }}{% if n.by %} · {{ n.by }}{% endif %}</span></li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if notes == "" and st.notes.size == 0 %}<p class="muted small">No notes yet.</p>{% endif %}
   </section>
   {% endif %}
 
@@ -261,12 +257,32 @@ layout: default
     <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
     <div class="codes"></div>
   </section>
+  {% if st %}
+  <section class="card history" id="history">
+    <div class="card-head">
+      <h2>History</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">+ Add</button>{% endif %}
+    </div>
+    {% assign tl = st.timeline | reverse %}
+    <ol class="timeline">
+      {% for t in tl %}
+      <li class="tl-{{ t.type }}"{% if forloop.index > 3 %} hidden data-more{% endif %}>
+        <time>{% if t.date.size > 7 %}{{ t.date | date: "%-d %b %Y" }}{% else %}{{ t.date }}{% endif %}</time>
+        <span class="tl-text">{{ t.text }}{% if t.earthbank %}{% assign k = t.earthbank | append: "" %}{% if eb.samples[k] %} <span class="muted">({{ eb.samples[k].name }})</span>{% endif %}{% endif %}{% if t.link %} · <a href="{{ t.link }}" target="_blank" rel="noopener">link</a>{% endif %}</span>
+        {% if t.by %}<span class="tl-by">{{ t.by }}</span>{% endif %}
+        {% if t.note %}<p class="tl-note">{{ t.note }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% if tl.size > 3 %}<button type="button" class="link-btn small" id="history-more">Show all {{ tl.size }} entries</button>{% endif %}
+  </section>
+  {% endif %}
 </article>
 
 {% if repo != "" %}
 <script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
-<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}}</script>
+<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "fields": {"year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% endif %}
 
