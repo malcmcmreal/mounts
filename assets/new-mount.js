@@ -54,6 +54,7 @@
       row.dataset.orig = JSON.stringify(s);
       row.querySelector('[data-k=id]').value = s.id != null ? s.id : '';
       row.querySelector('[data-k=position]').value = s.position || '';
+      row.querySelector('[data-k=separates]').value = s.separates || '';
       if (s.earthbank) linkRow(row, String(s.earthbank), null, null);
     });
     showStep(1);
@@ -205,6 +206,7 @@
         '<input data-k="position" placeholder="Where in the mount (e.g. top left, row 1)">' +
         '<button type="button" class="btn small eb-btn">EarthBank…</button>' +
         '<button type="button" class="icon-btn row-del" title="Remove this sample" aria-label="Remove this sample">&times;</button>' +
+        '<input data-k="separates" class="sep-input" placeholder="Separates location (where the remaining mineral separate is kept)">' +
         '<div class="eb-tag" hidden></div>';
       rowsBox.appendChild(div);
     }
@@ -371,7 +373,7 @@
   // ---------- build the page text ----------
   function q(s) { return JSON.stringify(String(s)); } // safe YAML string
   var MANAGED = ['layout', 'mount_id', 'permalink', 'samples'].concat(FIELDS);
-  var ROW_KEYS = ['id', 'position', 'earthbank'];
+  var ROW_KEYS = ['id', 'position', 'separates', 'earthbank'];
   function yamlValue(v) {
     return typeof v === 'number' || typeof v === 'boolean' ? String(v) : q(v);
   }
@@ -393,6 +395,8 @@
       var pos = r.querySelector('[data-k=position]').value.trim();
       lines.push('  - id: ' + q(sid));
       if (pos) lines.push('    position: ' + q(pos));
+      var sep = r.querySelector('[data-k=separates]').value.trim();
+      if (sep) lines.push('    separates: ' + q(sep));
       if (r.dataset.eb) lines.push('    earthbank: ' + r.dataset.eb);
       // keep anything else recorded for this sample (e.g. notes)
       var orig = {};

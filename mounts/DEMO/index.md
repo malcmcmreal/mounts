@@ -17,12 +17,15 @@ storage: "Example lab, drawer 1"
 samples:
   - id: "EX-001"
     position: "Top left"
+    separates: "Example lab separates store, cabinet 1, vial 1"
     earthbank: 14915452
   - id: "EX-002"
     position: "Top right"
+    separates: "Example lab separates store, cabinet 1, vial 2"
     earthbank: 748265
   - id: "EX-003"
     position: "Bottom centre"
+    separates: "Example lab separates store, cabinet 1, vial 3"
     notes: "Durango apatite age standard"
 ---
 This is an **example mount** showing how a mount page looks. You can delete the whole `mounts/DEMO` folder once you've added your own mounts.

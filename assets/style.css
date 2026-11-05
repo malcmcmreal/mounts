@@ -344,3 +344,6 @@ ul.plain li { margin: 0 0 .2rem; }
 .mount-group[open] > summary::before { transform: rotate(90deg); }
 .mg-count { font-weight: 400; font-size: .82rem; color: var(--muted); }
 .mount-group .mount-list { margin-top: .6rem; }
+.sample-row .sep-input { grid-column: 2 / -1; font-size: .85rem; }
+td.separates { font-size: .9rem; }
+#custom-id-row .check { flex: 1 1 100%; max-width: none; }

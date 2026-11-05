@@ -81,6 +81,7 @@
     var s = picked();
     f.sample_id.value = s ? s.id : '';
     f.position.value = s ? (s.position || '') : '';
+    f.separates.value = s ? (s.separates || '') : '';
     f.sample_id.placeholder = s ? '' : 'e.g. MM26-04';
     document.getElementById('log-current-link').textContent = s && s.earthbank
       ? '· currently linked to sample ' + s.earthbank + '. Pick another to re-link.'
@@ -187,6 +188,7 @@
         else if (samples.some(function (x) { return String(x.id) === id; })) problem = 'A sample with that ID is already in the mount.';
         lines.push('sample: ' + q(id), 'new: true');
         if (val('position')) lines.push('position: ' + q(val('position')));
+        if (val('separates')) lines.push('separates: ' + q(val('separates')));
       } else {
         var changed = false;
         lines.push('sample: ' + q(s.id));
@@ -196,6 +198,7 @@
           lines.push('id: ' + q(id)); changed = true;
         }
         if (val('position') !== (s.position || '')) { lines.push('position: ' + q(val('position'))); changed = true; }
+        if (val('separates') !== (s.separates || '')) { lines.push('separates: ' + q(val('separates'))); changed = true; }
         if (f.unlink.checked) { lines.push('unlink: true'); changed = true; }
         if (ebId && !f.unlink.checked && +ebId !== s.earthbank) changed = true;
         if (!changed && !(ebId && !f.unlink.checked) && !problem) problem = 'Nothing has changed for this sample.';

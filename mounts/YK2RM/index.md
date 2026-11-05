@@ -17,18 +17,23 @@ storage: "Monash thermochronology lab, shelf B"
 samples:
   - id: "MorrisonCK"
     position: "top left"
+    separates: "Monash separates store, box 12, vial 1"
     earthbank: 40838316
   - id: "KR0724"
     position: "top right"
+    separates: "Monash separates store, box 12, vial 2"
     earthbank: 40838317
   - id: "KR0723"
     position: "bottom left"
+    separates: "Monash separates store, box 12, vial 3"
     earthbank: 40838318
   - id: "KR0722"
     position: "bottom right"
+    separates: "Monash separates store, box 12, vial 4"
     earthbank: 40838319
   - id: "KR0721"
     position: "centre"
+    separates: "Monash separates store, box 12, vial 5"
     earthbank: 40838320
 ---
 Example mount with real EarthBank samples, made up to show how the catalogue looks. Delete the mounts/YK2RM folder and _data/log/YK2RM when you no longer need it.

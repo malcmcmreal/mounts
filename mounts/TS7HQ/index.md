@@ -16,21 +16,27 @@ storage: "Adelaide geochronology lab, box 7"
 samples:
   - id: "TS99"
     position: "top left"
+    separates: "Adelaide separates room, rack C, vial 1"
     earthbank: 3950251
   - id: "TS98"
     position: "top right"
+    separates: "Adelaide separates room, rack C, vial 2"
     earthbank: 3950252
   - id: "TS97"
     position: "bottom left"
+    separates: "Adelaide separates room, rack C, vial 3"
     earthbank: 3950253
   - id: "TS96"
     position: "bottom right"
+    separates: "Adelaide separates room, rack C, vial 4"
     earthbank: 3950254
   - id: "TS95"
     position: "centre"
+    separates: "Adelaide separates room, rack C, vial 5"
     earthbank: 3950255
   - id: "TS94"
     position: "lower centre"
+    separates: "Adelaide separates room, rack C, vial 6"
     earthbank: 3950256
 ---
 Example mount with real EarthBank samples, made up to show how the catalogue looks. Delete the mounts/TS7HQ folder and _data/log/TS7HQ when you no longer need it.

@@ -17,12 +17,15 @@ storage: "Curtin JdL Centre, drawer 2"
 samples:
   - id: "OMC13"
     position: "top left"
+    separates: "Curtin separates store, cabinet 4, vial 1"
     earthbank: 10647585
   - id: "KRG42"
     position: "top right"
+    separates: "Curtin separates store, cabinet 4, vial 2"
     earthbank: 10647587
   - id: "SH09"
     position: "bottom"
+    separates: "Curtin separates store, cabinet 4, vial 3"
     earthbank: 10647591
 ---
 Example mount with real EarthBank samples, made up to show how the catalogue looks. Delete the mounts/JP4KA folder and _data/log/JP4KA when you no longer need it.

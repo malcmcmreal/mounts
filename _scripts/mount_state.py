@@ -73,6 +73,8 @@ def describe(e):
             parts = [f"{s} renamed to {new_id}" if new_id and new_id != s else s]
         if text(e.get("position")):
             parts.append(f"position: {text(e.get('position'))}")
+        if e.get("separates") is not None:
+            parts.append(f"separates: {text(e.get('separates'))}" if text(e.get("separates")) else "separates location cleared")
         if e.get("earthbank"):
             parts.append(f"linked to EarthBank sample {e.get('earthbank')}")
         if e.get("unlink"):
@@ -150,6 +152,11 @@ def build():
                     s["id"] = new_id
                 if text(e.get("position")):
                     s["position"] = text(e.get("position"))
+                if e.get("separates") is not None:
+                    if text(e.get("separates")):
+                        s["separates"] = text(e.get("separates"))
+                    else:
+                        s.pop("separates", None)
                 if e.get("unlink"):
                     s.pop("earthbank", None)
                 if e.get("earthbank"):

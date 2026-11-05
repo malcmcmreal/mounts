@@ -87,10 +87,10 @@ layout: default
     </div>
     <div class="table-scroll">
     <table>
-      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Separates location</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
       <tbody>
         {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td>
+        <tr><td>{{ forloop.index }}</td><td><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{{ s.separates }}</td>
           {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="https://app.ausgeochem.org/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
         </tr>
         {% endfor %}
