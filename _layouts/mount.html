@@ -1,0 +1,133 @@
+---
+layout: default
+---
+{% assign folder = page.path | remove: "index.md" | prepend: "/" %}
+{% assign repo = site.github.repository_nwo | default: "" %}
+{% assign branch = site.github.source.branch | default: "main" %}
+{% if site.qr_base and site.qr_base != "" %}
+  {% assign qr_text = site.qr_base | append: "/" | append: page.mount_id %}
+{% else %}
+  {% assign qr_text = page.url | absolute_url %}
+{% endif %}
+
+<article class="mount">
+  <p class="crumb"><a href="{{ '/' | relative_url }}">&larr; All mounts</a></p>
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Sample mount</p>
+      <h1 class="mono">{{ page.mount_id }}</h1>
+      {% if page.minerals %}<p class="lede">{{ page.minerals }}</p>{% endif %}
+    </div>
+    {% if repo != "" %}
+    <div class="actions">
+      <a class="btn" href="https://github.com/{{ repo }}/edit/{{ branch }}/{{ page.path }}">Edit details</a>
+      <a class="btn" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}">Add files</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Mount details</h2>
+      <dl class="facts">
+        <dt>Number of samples</dt><dd>{{ page.samples | size }}</dd>
+        {% if page.year %}<dt>Year made</dt><dd>{{ page.year }}</dd>{% endif %}
+        {% if page.created_by %}<dt>Made by</dt><dd>{{ page.created_by }}</dd>{% endif %}
+        {% if page.affiliation %}<dt>Affiliation</dt><dd>{{ page.affiliation }}</dd>{% endif %}
+        {% if page.mount_format %}<dt>Mount format</dt><dd>{{ page.mount_format }}</dd>{% endif %}
+        {% if page.resin %}<dt>Resin / epoxy</dt><dd>{{ page.resin }}</dd>{% endif %}
+        {% if page.minerals %}<dt>Minerals</dt><dd>{{ page.minerals }}</dd>{% endif %}
+        {% if page.polish %}<dt>Polish</dt><dd>{{ page.polish }}</dd>{% endif %}
+        {% if page.etch %}<dt>Etching</dt><dd>{{ page.etch }}</dd>{% endif %}
+        {% if page.coating %}<dt>Coating</dt><dd>{{ page.coating }}</dd>{% endif %}
+        {% if page.storage %}<dt>Stored at</dt><dd>{{ page.storage }}</dd>{% endif %}
+      </dl>
+    </section>
+
+    <aside class="card qr-card">
+      <h2>QR code</h2>
+      <div id="qr" class="qr" data-text="{{ qr_text }}"></div>
+      <p class="mono small break">{{ qr_text }}</p>
+      <p class="muted small" id="qr-info"></p>
+      <button type="button" class="btn small" id="qr-download">Download QR (SVG)</button>
+    </aside>
+  </div>
+
+  <section class="card">
+    <h2>Samples</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for s in page.samples %}
+        <tr><td>{{ forloop.index }}</td><td class="mono">{{ s.id }}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  {% assign has_images = false %}{% assign has_files = false %}
+  {% for f in site.static_files %}{% if f.path contains folder %}
+    {% assign ext = f.extname | downcase %}
+    {% case ext %}
+      {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign has_images = true %}
+      {% else %}{% assign has_files = true %}
+    {% endcase %}
+  {% endif %}{% endfor %}
+
+  <section class="card">
+    <h2>Maps and images</h2>
+    {% if has_images %}
+    <div class="gallery">
+      {% for f in site.static_files %}{% if f.path contains folder %}
+        {% assign ext = f.extname | downcase %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
+        <figure>
+          <a href="{{ f.path | relative_url }}" title="Open full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
+          <figcaption>{{ f.name }} <span class="muted">· tap to open full size</span></figcaption>
+        </figure>
+        {% endcase %}
+      {% endif %}{% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map (JPG or PNG).</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Data files</h2>
+    {% if has_files %}
+    <ul class="files">
+      {% for f in site.static_files %}{% if f.path contains folder %}
+        {% assign ext = f.extname | downcase %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% else %}
+        <li>
+          <div class="file-line">
+            <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
+            <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
+            {% endif %}
+          </div>
+          <div class="preview" hidden></div>
+        </li>
+        {% endcase %}
+      {% endif %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">No data files yet. Use <strong>Add files</strong> to upload CSV or text files.</p>
+    {% endif %}
+  </section>
+
+  {% assign notes = content | strip %}
+  {% if notes != "" %}
+  <section class="card notes">
+    <h2>Notes</h2>
+    {{ content }}
+  </section>
+  {% endif %}
+</article>
+
+<script src="{{ '/assets/qrcode.js' | relative_url }}"></script>
+<script src="{{ '/assets/mount.js' | relative_url }}"></script>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.mount_id %}{{ page.mount_id }} · {% endif %}{{ site.title }}</title>
+  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+    </div>
+  </header>
+  <main class="wrap">
+    {{ content }}
+  </main>
+</body>
+</html>

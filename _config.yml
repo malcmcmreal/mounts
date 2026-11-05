@@ -1,0 +1,24 @@
+# =============================================================
+#  SETTINGS YOU CAN CHANGE
+# =============================================================
+
+# Name shown at the top of every page
+title: Sample Mount Catalogue
+
+# One line shown under the title on the home page
+description: Epoxy grain mounts with maps, sample details and data
+
+# Pre-fills the "Affiliation" box in the New mount form
+default_affiliation: University of Melbourne
+
+# The short address printed in the QR codes.
+# Leave this as "" until you have your own domain.
+# Then set it to something like "HTTP://XTL.AU" (all capitals
+# keeps the QR code as small as possible).
+qr_base: ""
+
+# =============================================================
+#  LEAVE EVERYTHING BELOW AS IT IS
+# =============================================================
+exclude:
+  - README.md

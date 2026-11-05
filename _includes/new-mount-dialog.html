@@ -1,0 +1,102 @@
+{% assign mounts = site.pages | where: "layout", "mount" %}
+<dialog id="new-mount" class="dialog"
+  data-repo="{{ site.github.repository_nwo | default: '' }}"
+  data-branch="{{ site.github.source.branch | default: 'main' }}"
+  data-site="{{ '/' | absolute_url }}"
+  data-existing='{{ mounts | map: "mount_id" | jsonify }}'>
+
+  <form id="new-mount-form" method="dialog" novalidate>
+    <div class="dialog-head">
+      <h2>New mount</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
+    </div>
+
+    <div class="dialog-body" id="step-form">
+      <fieldset>
+        <legend>Mount</legend>
+        <div class="row">
+          <label class="grow">Mount ID *
+            <span class="inline">
+              <input name="mount_id" required autocomplete="off" placeholder="e.g. A7K3" class="mono">
+              <button type="button" class="btn small" id="suggest-id">Suggest one</button>
+            </span>
+            <small id="id-msg" class="hint">Capital letters, numbers and hyphens only. Shorter IDs make smaller QR codes.</small>
+          </label>
+        </div>
+        <div class="row">
+          <label>Year made <input name="year" type="number" min="1900" max="2100"></label>
+          <label class="grow">Made by <input name="created_by" placeholder="Name"></label>
+        </div>
+        <label>Affiliation <input name="affiliation" value="{{ site.default_affiliation }}"></label>
+        <div class="row">
+          <label class="grow">Mount format
+            <input name="mount_format" list="formats" placeholder="e.g. 25 mm round">
+          </label>
+          <label class="grow">Resin / epoxy
+            <input name="resin" placeholder="e.g. Struers EpoFix">
+          </label>
+        </div>
+        <label>Minerals mounted <input name="minerals" placeholder="e.g. Apatite, zircon"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Preparation</legend>
+        <label>Polish <input name="polish" list="polishes" placeholder="e.g. 9, 3, 1 µm diamond; final 0.04 µm colloidal silica"></label>
+        <label>Etching <input name="etch" placeholder="e.g. 5.5 M HNO₃, 20 s at 21 °C"></label>
+        <label>Coating <input name="coating" list="coatings" placeholder="e.g. Carbon, ~20 nm"></label>
+        <label>Where the mount is stored <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Samples in this mount</legend>
+        <label class="narrow">Number of samples
+          <input name="n_samples" type="number" min="1" max="50" value="1">
+        </label>
+        <div id="sample-rows"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Notes</legend>
+        <textarea name="notes" rows="3" placeholder="Anything else worth recording (optional)"></textarea>
+      </fieldset>
+    </div>
+
+    <div class="dialog-body" id="step-done" hidden>
+      <p><strong>Almost done.</strong> Clicking the button below opens GitHub in a new tab with the page for
+        <span class="mono" id="done-id"></span> already filled in.</p>
+      <ol class="steps">
+        <li>Click <strong>Create page on GitHub</strong> below.</li>
+        <li>On GitHub, click the green <strong>Commit changes…</strong> button (top right), then <strong>Commit changes</strong> again.</li>
+        <li>Wait 1–2 minutes and refresh this page. The new mount appears in the list.</li>
+        <li>Open the mount's page and use <strong>Add files</strong> to upload the map image and data files.</li>
+      </ol>
+      <p id="no-repo-msg" class="warn" hidden>The site can't tell which GitHub repository it lives in (this happens when it's viewed outside GitHub Pages).
+        Copy the text below and create the file <span class="mono" id="done-path"></span> by hand.</p>
+      <details>
+        <summary>Show the page text that will be created</summary>
+        <textarea id="yaml-out" rows="14" readonly class="mono"></textarea>
+        <button type="button" class="btn small" id="copy-yaml">Copy text</button>
+      </details>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="button" class="btn" id="back-btn" hidden>Back</button>
+      <button type="submit" class="btn primary" id="next-btn">Next</button>
+      <a class="btn primary" id="github-btn" target="_blank" rel="noopener" hidden>Create page on GitHub</a>
+    </div>
+  </form>
+
+  <datalist id="formats">
+    <option value="25 mm round"><option value="1 inch round"><option value="30 mm round">
+    <option value="Thin section"><option value="Teflon mount">
+  </datalist>
+  <datalist id="polishes">
+    <option value="9, 3, 1 µm diamond"><option value="1 µm diamond">
+    <option value="0.25 µm diamond"><option value="Final 0.04 µm colloidal silica">
+  </datalist>
+  <datalist id="coatings">
+    <option value="None"><option value="Carbon, ~20 nm"><option value="Gold"><option value="Platinum">
+  </datalist>
+</dialog>
+<script src="{{ '/assets/new-mount.js' | relative_url }}"></script>

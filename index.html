@@ -1,0 +1,57 @@
+---
+layout: default
+---
+{% assign mounts = site.pages | where: "layout", "mount" | sort: "mount_id" %}
+{% assign repo = site.github.repository_nwo | default: "" %}
+{% assign branch = site.github.source.branch | default: "main" %}
+
+<div class="page-head">
+  <div>
+    <h1>{{ site.title }}</h1>
+    <p class="lede">{{ site.description }}</p>
+  </div>
+  <button type="button" id="new-mount-btn" class="btn primary">+ New mount</button>
+</div>
+
+<input id="filter" class="filter" type="search" placeholder="Search by mount ID, sample ID, person or year">
+
+<div class="table-scroll">
+<table class="mount-table" id="mount-table">
+  <thead>
+    <tr><th>Mount ID</th><th>Samples</th><th>Sample IDs</th><th>Minerals</th><th>Year</th><th>Created by</th></tr>
+  </thead>
+  <tbody>
+    {% for m in mounts %}
+    <tr>
+      <td class="mono"><a href="{{ m.url | relative_url }}">{{ m.mount_id }}</a></td>
+      <td>{{ m.samples | size }}</td>
+      <td>{{ m.samples | map: "id" | join: ", " }}</td>
+      <td>{{ m.minerals }}</td>
+      <td>{{ m.year }}</td>
+      <td>{{ m.created_by }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p id="no-results" class="muted" hidden>No mounts match that search.</p>
+<p class="muted count">{{ mounts | size }} mount{% if mounts.size != 1 %}s{% endif %} in the catalogue.</p>
+
+{% include new-mount-dialog.html %}
+
+<script>
+  // Simple search filter for the table
+  (function () {
+    var input = document.getElementById('filter');
+    var rows = document.querySelectorAll('#mount-table tbody tr');
+    var none = document.getElementById('no-results');
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), shown = 0;
+      rows.forEach(function (r) {
+        var hit = r.textContent.toLowerCase().indexOf(q) !== -1;
+        r.hidden = !hit; if (hit) shown++;
+      });
+      none.hidden = shown !== 0;
+    });
+  })();
+</script>
