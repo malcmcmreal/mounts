@@ -261,3 +261,4 @@ ul.plain li { margin: 0 0 .2rem; }
 .hires-add .hires-icon { background: var(--raised); color: var(--muted); }
 .hires-add:hover { border-color: var(--link); background: none; }
 .hires-edit { margin-top: .3rem; }
+.warn-text { color: var(--warn) !important; }

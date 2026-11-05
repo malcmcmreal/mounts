@@ -19,11 +19,14 @@
         <div class="row">
           <label class="grow">Mount ID *
             <span class="inline">
-              <input name="mount_id" required autocomplete="off" placeholder="e.g. A7K3" class="mono">
+              <input name="mount_id" required autocomplete="off" placeholder="e.g. A7K3M" class="mono" maxlength="5">
               <button type="button" class="btn small" id="suggest-id">Suggest one</button>
             </span>
-            <small id="id-msg" class="hint">Capital letters, numbers and hyphens only. Shorter IDs make smaller QR codes.</small>
+            <small id="id-msg" class="hint"></small>
           </label>
+        </div>
+        <div class="row" id="custom-id-row">
+          <label class="check"><input type="checkbox" name="custom_id"> Use a custom mount ID that doesn't follow the standard</label>
         </div>
         <div class="row">
           <label>Year made <input name="year" type="number" min="1900" max="2100"></label>

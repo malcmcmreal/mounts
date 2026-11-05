@@ -12,7 +12,7 @@
 
   var idInput = form.elements.mount_id;
   var idMsg = document.getElementById('id-msg');
-  var defaultHint = idMsg.textContent;
+  var defaultHint = '';
   var rowsBox = document.getElementById('sample-rows');
   var stepForm = document.getElementById('step-form');
   var stepDone = document.getElementById('step-done');
@@ -90,6 +90,8 @@
     document.getElementById('dlg-title').textContent = e ? 'Edit mount ' + editing.id : 'New mount';
     idInput.readOnly = e;
     document.getElementById('suggest-id').hidden = e;
+    document.getElementById('custom-id-row').hidden = e;
+    if (!e) { customBox.checked = false; applyMode(); }
     editMsg.hidden = true;
     idMsg.className = 'hint';
     idMsg.textContent = e ? 'The mount ID can\'t be changed, because printed QR codes point to it.' : defaultHint;
@@ -124,33 +126,66 @@
   });
 
   // ---------- mount ID ----------
-  var SAFE = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // no 0/O or 1/I lookalikes
+  // Standard IDs: exactly 5 characters from capitals and numbers without the lookalikes
+  // 0/O and 1/I, plus hyphens. With "HTTP://<domain>/" in front this keeps the
+  // standard QR code at its smallest size (21x21). A custom ID needs the box ticked.
+  var SAFE = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  var STANDARD = /^[2-9A-HJ-NP-Z-]{5}$/;
+  var LEN = 5;
+  var customBox = form.elements.custom_id;
+  defaultHint = 'Exactly 5 characters: capital letters, numbers and hyphens, without O, I, 0 or 1. ' +
+    'This keeps the QR code at its smallest size.';
+  idMsg.textContent = defaultHint;
+  function isCustom() { return customBox.checked; }
+  function taken(v) {
+    v = v.toUpperCase();
+    return existing.some(function (x) { return String(x).toUpperCase() === v; });
+  }
   document.getElementById('suggest-id').addEventListener('click', function () {
     var id;
     do {
       id = '';
-      for (var i = 0; i < 4; i++) id += SAFE[Math.floor(Math.random() * SAFE.length)];
-    } while (existing.indexOf(id) !== -1);
+      for (var i = 0; i < LEN; i++) id += SAFE[Math.floor(Math.random() * SAFE.length)];
+    } while (taken(id));
+    customBox.checked = false;
+    applyMode();
     idInput.value = id;
     checkId();
   });
+  customBox.addEventListener('change', function () { applyMode(); checkId(); });
+  function applyMode() {
+    idInput.maxLength = isCustom() ? 40 : LEN;
+    idInput.placeholder = isCustom() ? 'Any ID' : 'e.g. A7K3M';
+    if (!isCustom()) idInput.value = idInput.value.toUpperCase().slice(0, LEN);
+  }
   idInput.addEventListener('input', function () {
     var pos = idInput.selectionStart;
-    idInput.value = idInput.value.toUpperCase().replace(/\s+/g, '-');
+    var v = idInput.value.replace(/\s+/g, '-');
+    idInput.value = isCustom() ? v : v.toUpperCase();
     idInput.setSelectionRange(pos, pos);
     checkId();
   });
   function checkId() {
-    var v = idInput.value.trim();
-    var problem = '';
     if (editing) return true;
+    var v = idInput.value.trim();
+    var problem = '', note = '';
     if (!v) problem = 'Please enter a mount ID.';
-    else if (!/^[A-Z0-9-]+$/.test(v)) problem = 'Only capital letters, numbers and hyphens are allowed.';
-    else if (existing.indexOf(v) !== -1) problem = 'A mount with this ID already exists.';
-    idMsg.textContent = problem || (v.length > 6
-      ? 'OK, but IDs longer than about 6 characters make the QR code bigger.'
-      : defaultHint);
-    idMsg.className = problem ? 'hint error' : 'hint';
+    else if (taken(v)) problem = 'A mount with this ID already exists.';
+    else if (isCustom()) {
+      if (!/^[A-Za-z0-9_-]+$/.test(v)) problem = 'Use letters, numbers, hyphens and underscores only (it becomes part of the web address).';
+      else if (!STANDARD.test(v)) note = 'Custom ID: ' +
+        (/[a-z_]/.test(v) ? 'lowercase letters and underscores make the QR code noticeably bigger. ' : '') +
+        (v.length > LEN ? 'IDs longer than ' + LEN + ' characters make the QR code bigger. ' : '') +
+        'Make sure the QR code still fits your mount.';
+    } else {
+      var bad = v.replace(/[2-9A-HJ-NP-Z-]/g, '');
+      if (bad) problem = 'Not allowed in a standard ID: ' + bad.split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(' ') +
+        (/[01OI]/.test(bad) ? ' (0, 1, O and I are left out because they look alike)' : '') +
+        '. Tick "custom mount ID" below to use it anyway.';
+      else if (v.length !== LEN) problem = 'A standard ID is exactly ' + LEN + ' characters (this one has ' + v.length + ').';
+    }
+    idMsg.textContent = problem || note || defaultHint;
+    idMsg.className = problem ? 'hint error' : note ? 'hint warn-text' : 'hint';
     return !problem;
   }
 
