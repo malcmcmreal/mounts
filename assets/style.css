@@ -65,7 +65,7 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color:
 .qr svg { width: 100%; max-width: 200px; height: auto; display: block; margin: 0 auto; }
 .qr-card p { margin: .5rem 0; }
 
-.gallery { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.gallery { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
 .gallery figure { margin: 0; }
 .gallery img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); }
 .gallery figcaption { font-size: .85rem; margin-top: .35rem; }
@@ -130,7 +130,7 @@ details textarea { margin: .5rem 0; font-size: .8rem; }
 summary { cursor: pointer; color: var(--link); }
 
 /* Codes section */
-.codes { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.codes { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); }
 .code { margin: 0; border: 1px solid var(--line); border-radius: 8px; padding: .9rem; display: flex; flex-direction: column; }
 .code.wide { grid-column: 1 / -1; }
 .code-img { background: #fff; border-radius: 6px; padding: .6rem; display: flex; align-items: center; justify-content: center; height: 170px; margin-bottom: .75rem; }
@@ -145,7 +145,7 @@ summary { cursor: pointer; color: var(--link); }
 
 /* EarthBank section */
 .eb-map { height: 340px; border-radius: 8px; border: 1px solid var(--line); margin-bottom: .4rem; background: var(--bg); }
-.eb-samples { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); margin-top: 1rem; }
+.eb-samples { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); margin-top: 1rem; }
 .eb-sample, .eb-pkg { border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1rem; }
 .eb-sample h3 { font-size: 1rem; margin: 0 0 .5rem; }
 .eb-sample .facts { gap: .3rem 1rem; }
