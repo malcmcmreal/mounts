@@ -1,0 +1,71 @@
+<dialog id="layout-dialog" class="dialog dialog-wide"
+  data-repo="{{ site.github.repository_nwo | default: '' }}"
+  data-branch="{{ site.github.source.branch | default: 'main' }}"
+  data-format="{{ cur.mount_format | escape }}">
+  <form id="lay-form" method="dialog" novalidate onsubmit="return false">
+    <div class="dialog-head">
+      <h2>Mount layout · {{ page.mount_id }}</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
+    </div>
+
+    <div class="dialog-body" id="lay-step-edit">
+      <div class="lay-top">
+        <div class="lay-tools" id="lay-tools" role="toolbar">
+          <button type="button" class="btn small" data-tool="select" title="Select and move (drag)">Select</button>
+          <button type="button" class="btn small" data-tool="region" title="Draw a sample region">▭ Region</button>
+          <button type="button" class="btn small" data-tool="fid" title="Place a fiducial marker">⌖ Fiducial</button>
+          <button type="button" class="btn small" data-tool="note" title="Add a text note">T Note</button>
+          <span class="lay-sep"></span>
+          <button type="button" class="btn small" id="lay-undo" title="Undo (Ctrl/⌘ Z)">Undo</button>
+          <button type="button" class="btn small" id="lay-auto" title="Place one region per sample in a grid">Place all samples</button>
+          <button type="button" class="btn small" id="lay-clear" title="Remove all regions, fiducials and notes">Clear</button>
+        </div>
+        <div class="lay-settings">
+          <label>Mount
+            <select name="shape"><option value="round">Round</option><option value="rect">Rectangular</option></select></label>
+          <label><span id="lay-w-label">Diameter (mm)</span> <input name="lw" type="number" min="3" max="200" step="0.5"></label>
+          <label id="lay-h-row">Height (mm) <input name="lh" type="number" min="3" max="200" step="0.5"></label>
+          <label class="check"><input type="checkbox" name="orient"> Orientation mark</label>
+          <label class="check"><input type="checkbox" name="snap"> Snap to 0.5 mm</label>
+          <label class="check"><input type="checkbox" name="grid"> 1 mm grid</label>
+        </div>
+      </div>
+      <p class="hint" id="lay-hint"></p>
+      <div class="lay-main">
+        <div class="lay-stage" id="lay-stage"></div>
+        <aside class="lay-side">
+          <div id="lay-props"></div>
+          <div id="lay-lists"></div>
+        </aside>
+      </div>
+      <p class="hint error" id="lay-error"></p>
+    </div>
+
+    <div class="dialog-body" id="lay-step-done" hidden>
+      <div class="saved" id="lay-saved" hidden>
+        <span aria-hidden="true">✓</span>
+        <div><strong>Saved.</strong> The layout appears on the page in about a minute; refresh it to see it.</div>
+      </div>
+      <div id="lay-gh">
+        <p><strong>Almost done.</strong> Clicking the button below opens GitHub with the layout already written.</p>
+        <ol class="steps">
+          <li>Click <strong>Create entry on GitHub</strong>.</li>
+          <li>On GitHub, click <strong>Commit changes…</strong>, then <strong>Commit changes</strong> again.</li>
+          <li>Wait 1–2 minutes and refresh this page.</li>
+        </ol>
+      </div>
+      <details><summary>Show the entry</summary><textarea id="lay-out" rows="6" readonly class="mono"></textarea></details>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn small" data-lay-dl="svg">Download SVG</button>
+      <button type="button" class="btn small" data-lay-dl="png">PNG</button>
+      <span class="grow"></span>
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="button" class="btn" id="lay-back" hidden>Back</button>
+      <button type="button" class="btn primary" id="lay-save">Next</button>
+      <a class="btn primary" id="lay-github" target="_blank" rel="noopener" hidden>Create entry on GitHub</a>
+    </div>
+  </form>
+  <datalist id="lay-samples">{% for s in samples %}<option value="{{ s.id | escape }}">{% endfor %}</datalist>
+</dialog>
