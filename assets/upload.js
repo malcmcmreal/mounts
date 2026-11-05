@@ -1,0 +1,103 @@
+// Mount page: drag-and-drop file uploads straight to the repository (when signed in).
+// Signed out, the "Add files" button opens GitHub's own upload page instead.
+(function () {
+  var link = document.getElementById('add-files');
+  var dlg = document.getElementById('upload-dialog');
+  if (!link || !dlg) return;
+  var folder = link.dataset.folder;                 // e.g. "mounts/DEMO/"
+  var mountId = link.dataset.mount;
+  var existing = [];
+  try { existing = JSON.parse(link.dataset.existing || '[]'); } catch (e) {}
+  var input = document.getElementById('upload-input'), drop = document.getElementById('upload-drop');
+  var list = document.getElementById('upload-list'), btn = document.getElementById('upload-btn');
+  var errBox = document.getElementById('upload-error'), saved = document.getElementById('upload-saved');
+  var cancel = dlg.querySelector('.dialog-foot [data-close]');
+  var MAX = 25 * 1024 * 1024, BIG_IMAGE = 5 * 1024 * 1024;
+  var files = [];
+
+  link.addEventListener('click', function (e) {
+    if (!(window.GH && GH.canWrite())) return;      // follow the link to GitHub
+    e.preventDefault();
+    files = []; render(); errBox.textContent = ''; saved.hidden = true;
+    drop.hidden = false; cancel.textContent = 'Cancel';
+    dlg.showModal();
+  });
+  dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { dlg.close(); }); });
+
+  // Letters, numbers, hyphens, underscores and dots only (the README's advice, applied automatically)
+  function safeName(name) {
+    var dot = name.lastIndexOf('.');
+    var base = dot > 0 ? name.slice(0, dot) : name, ext = dot > 0 ? name.slice(dot).toLowerCase() : '';
+    base = base.normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '_').replace(/[^A-Za-z0-9._-]/g, '')
+      .replace(/_+/g, '_').replace(/^[._-]+|[._-]+$/g, '') || 'file';
+    return base + ext.replace(/[^a-z0-9.]/g, '');
+  }
+  function sizeText(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function add(fileList) {
+    Array.prototype.forEach.call(fileList, function (file) {
+      var name = safeName(file.name), ext = (name.match(/\.[^.]+$/) || [''])[0];
+      var item = { file: file, name: name, problem: '', warn: '' };
+      if (/^\.(md|markdown|html?)$/.test(ext)) item.problem = 'Pages can\'t be uploaded here (the site would turn them into pages). Rename to .txt to keep it as a file.';
+      else if (file.size > MAX) item.problem = 'Larger than 25 MB, which GitHub won\'t accept from a browser.';
+      else if (/^\.tiff?$/.test(ext)) item.warn = 'Browsers can\'t show TIFF images, so it will be listed as a data file. Upload a JPG or PNG copy to show it as a map.';
+      else if (/^\.(jpe?g|png|gif|webp)$/.test(ext) && file.size > BIG_IMAGE) item.warn = 'Large image; it may load slowly on phones.';
+      if (name !== file.name) item.warn = (item.warn ? item.warn + ' ' : '') + 'Saved as ' + name + '.';
+      if (existing.indexOf(name) !== -1) item.warn = (item.warn ? item.warn + ' ' : '') + 'Replaces the existing file with this name.';
+      files = files.filter(function (f) { return f.name !== name; });
+      files.push(item);
+    });
+    render();
+  }
+  function render() {
+    list.innerHTML = files.map(function (f, i) {
+      return '<li class="' + (f.problem ? 'bad' : '') + '"><span class="mono">' + esc(f.name) + '</span> <span class="muted small">' +
+        sizeText(f.file.size) + '</span><button type="button" class="icon-btn" data-remove="' + i + '" aria-label="Remove">&times;</button>' +
+        (f.problem ? '<small class="error">' + esc(f.problem) + '</small>' : f.warn ? '<small class="muted">' + esc(f.warn) + '</small>' : '') + '</li>';
+    }).join('');
+    var ok = files.filter(function (f) { return !f.problem; }).length;
+    btn.disabled = !ok;
+    btn.textContent = ok ? 'Upload ' + ok + ' file' + (ok === 1 ? '' : 's') : 'Upload';
+  }
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-remove]');
+    if (b) { files.splice(+b.dataset.remove, 1); render(); }
+  });
+  input.addEventListener('change', function () { add(input.files); input.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) { add(e.dataTransfer.files); });
+
+  function readBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(',')[1] || ''); };
+      r.onerror = function () { reject(new Error('Couldn\'t read ' + file.name)); };
+      r.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('upload-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var todo = files.filter(function (f) { return !f.problem; });
+    if (!todo.length) return;
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading…'; errBox.textContent = '';
+    Promise.all(todo.map(function (f) {
+      return readBase64(f.file).then(function (b64) { return { path: folder + f.name, base64: b64 }; });
+    })).then(function (out) {
+      return GH.commit(out, 'Add ' + out.length + ' file' + (out.length === 1 ? '' : 's') + ' to ' + mountId);
+    }).then(function () {
+      todo.forEach(function (f) { if (existing.indexOf(f.name) === -1) existing.push(f.name); });
+      document.getElementById('upload-saved-text').textContent =
+        todo.length + ' file' + (todo.length === 1 ? '' : 's') + ' saved. They appear on this page in about a minute; refresh it to see them.';
+      saved.hidden = false; files = []; render(); drop.hidden = true; cancel.textContent = 'Close';
+    }).catch(function (err) {
+      errBox.textContent = err.message; render();
+    });
+  });
+})();

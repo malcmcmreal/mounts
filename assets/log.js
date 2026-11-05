@@ -33,6 +33,7 @@
   });
   function open(which, sampleId) {
     form.reset();
+    dlg.querySelector('.dialog-foot [data-close]').textContent = 'Cancel';
     f.sample_pick.innerHTML = samples.map(function (s, i) {
       return '<option value="' + i + '">' + esc(s.id) + (s.earthbank ? ' · EarthBank ' + s.earthbank : ' · not linked') + '</option>';
     }).join('') + '<option value="' + NEW + '">+ New sample…</option>';
@@ -44,6 +45,8 @@
     var d = new Date();
     f.date.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
     try { f.by.value = localStorage.getItem('mounts.by') || ''; } catch (e) {}
+    if (!f.by.value && window.GH && GH.user) f.by.value = GH.user.name;
+    setNextLabel();
     showTab(); sampleChanged(); whatChanged(); showStep(1);
     dlg.showModal();
   }
@@ -213,6 +216,9 @@
   }
 
   // ---------- steps ----------
+  function direct() { return window.GH && GH.canWrite(); }
+  function setNextLabel() { nextBtn.textContent = direct() ? 'Save' : 'Next'; }
+  document.addEventListener('gh-auth', setNextLabel);
   function showStep(n) {
     stepForm.hidden = n !== 1; stepDone.hidden = n !== 2;
     nextBtn.hidden = n !== 1; backBtn.hidden = n !== 2; ghBtn.hidden = n !== 2;
@@ -226,6 +232,23 @@
     errBox.textContent = '';
     try { if (val('by')) localStorage.setItem('mounts.by', val('by')); } catch (err) {}
     document.getElementById('log-out').value = entry.text;
+    if (direct()) {
+      nextBtn.disabled = true;
+      nextBtn.innerHTML = '<span class="spinner"></span> Saving…';
+      GH.commit([{ path: entry.path, text: entry.text }], 'History: ' + mountId + ' (' + entry.kind + ')')
+        .then(function () {
+          document.getElementById('log-saved').hidden = false;
+          document.getElementById('log-gh').hidden = true;
+          showStep(2);
+          ghBtn.hidden = true; backBtn.hidden = true;
+          dlg.querySelector('.dialog-foot [data-close]').textContent = 'Close';
+        })
+        .catch(function (err) { errBox.textContent = err.message; })
+        .then(function () { nextBtn.disabled = false; setNextLabel(); });
+      return;
+    }
+    document.getElementById('log-saved').hidden = true;
+    document.getElementById('log-gh').hidden = false;
     ghBtn.href = 'https://github.com/' + repo + '/new/' + branch + '?filename=' + encodeURIComponent(entry.path) +
       '&value=' + encodeURIComponent(entry.text) +
       '&message=' + encodeURIComponent('History: ' + mountId + ' (' + entry.kind + ')');

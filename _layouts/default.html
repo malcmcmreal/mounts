@@ -5,11 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page.mount_id %}{{ page.mount_id }} · {% endif %}{{ site.title }}</title>
   <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+  <meta name="mounts-auth" content="{{ site.auth_url }}">
+  <meta name="mounts-repo" content="{{ site.github.repository_nwo }}">
+  <meta name="mounts-branch" content="{{ site.github.source.branch | default: 'main' }}">
+  <script src="{{ '/assets/github.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
       <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+      <div id="gh-auth" class="gh-auth"></div>
     </div>
   </header>
   <main class="wrap">

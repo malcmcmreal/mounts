@@ -221,3 +221,29 @@ ul.plain li { margin: 0 0 .2rem; }
 .eb-box-head { margin: 0 0 .6rem; font-size: .9rem; }
 #log-types { margin-bottom: 1.1rem; }
 .dialog select { appearance: auto; }
+
+/* Sign in */
+.site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.gh-auth .menu-list { min-width: 260px; }
+.gh-user { display: flex; align-items: center; gap: .45rem; cursor: pointer; list-style: none; font-size: .9rem; color: var(--ink); }
+.gh-user::-webkit-details-marker { display: none; }
+.gh-user img { width: 24px; height: 24px; border-radius: 50%; }
+.menu-note { margin: .3rem .6rem .5rem; font-size: .82rem; color: var(--muted); }
+.tag { font-size: .72rem; padding: .05rem .4rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+.saved { display: flex; gap: .6rem; align-items: flex-start; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--raised); }
+.saved strong { display: block; }
+.spinner { display: inline-block; width: .9em; height: .9em; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Upload dialog */
+.drop { display: flex !important; flex-direction: column; align-items: center; gap: .3rem; text-align: center; padding: 2rem 1rem !important;
+  border: 2px dashed var(--line); border-radius: 10px; cursor: pointer; color: var(--ink) !important; }
+.drop.over { border-color: var(--link); background: var(--raised); }
+.drop small { color: var(--muted); max-width: 32rem; }
+.link-like { color: var(--link); text-decoration: underline; }
+.upload-list { list-style: none; margin: 1rem 0 0; padding: 0; }
+.upload-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 0 .6rem; align-items: center; padding: .45rem 0; border-bottom: 1px solid var(--line); }
+.upload-list li small { grid-column: 1 / -1; }
+.upload-list li.bad .mono { text-decoration: line-through; color: var(--muted); }
+.upload-list .error { color: var(--error); }
+.upload-list .icon-btn { font-size: 1.2rem; }

@@ -95,12 +95,18 @@
     </div>
 
     <div class="dialog-body" id="log-step-done" hidden>
+      <div class="saved" id="log-saved" hidden>
+        <span aria-hidden="true">✓</span>
+        <div><strong>Saved.</strong> The page updates in about a minute; refresh it to see the change.</div>
+      </div>
+      <div id="log-gh">
       <p><strong>Almost done.</strong> Clicking the button below opens GitHub with the entry already written.</p>
       <ol class="steps">
         <li>Click <strong>Create entry on GitHub</strong>.</li>
         <li>On GitHub, click the green <strong>Commit changes…</strong> button, then <strong>Commit changes</strong> again.</li>
         <li>Wait 1–2 minutes and refresh this page. The mount's page updates and the entry appears in the history.</li>
       </ol>
+      </div>
       <details>
         <summary>Show the entry</summary>
         <textarea id="log-out" rows="9" readonly class="mono"></textarea>

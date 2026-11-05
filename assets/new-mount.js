@@ -96,6 +96,9 @@
   }
 
   function loadFile(path) {
+    if (window.GH && GH.canWrite()) {
+      return GH.getFile(path).then(function (f) { if (!f) throw new Error('missing'); return f.text; });
+    }
     // GitHub's API gives the latest version straight away (raw files can be cached for minutes)
     return fetch('https://api.github.com/repos/' + repo + '/contents/' + path + '?ref=' + branch, {
       headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store'
@@ -381,12 +384,48 @@
     return lines.join('\n') + '\n';
   }
 
+  // ---------- saving straight to the repository (when signed in) ----------
+  function direct() { return window.GH && GH.canWrite(); }
+  function setNextLabel() { nextBtn.textContent = direct() ? (editing ? 'Save' : 'Create mount') : 'Next'; }
+  document.addEventListener('gh-auth', setNextLabel);
+  function saveDirect(id, path, text) {
+    if (editing && !editing.text) {
+      idMsg.className = 'hint error';
+      idMsg.textContent = 'The current page couldn\'t be loaded from GitHub, so saving could lose its notes. Close this and try again.';
+      return;
+    }
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = '<span class="spinner"></span> Saving…';
+    (editing ? Promise.resolve(null) : GH.getFile(path)).then(function (exists) {
+      if (exists) throw new Error('A mount called ' + id + ' already exists in the repository.');
+      return GH.commit([{ path: path, text: text }], (editing ? 'Correct mount ' : 'Add mount ') + id);
+    }).then(function () {
+      var url = (dlg.dataset.site || '/') + id + '/';
+      document.getElementById('done-saved-text').innerHTML = editing
+        ? 'The page updates in about a minute; refresh it to see the change.'
+        : 'The new page will be at <a href="' + url + '">' + url + '</a> in about a minute. ' +
+          'Upload its map and data files there with <strong>Add files</strong>.';
+      document.getElementById('done-saved').hidden = false;
+      document.getElementById('done-new').hidden = true;
+      document.getElementById('done-edit').hidden = true;
+      if (!editing) existing.push(id);
+      showStep(2);
+      ghBtn.hidden = true; backBtn.hidden = true;
+      cancelBtn.textContent = 'Close';
+    }).catch(function (err) {
+      idMsg.className = 'hint error';
+      idMsg.textContent = err.message;
+      idInput.scrollIntoView({ block: 'center' });
+    }).then(function () { nextBtn.disabled = false; setNextLabel(); });
+  }
+
   // ---------- steps ----------
   var cancelBtn = dlg.querySelector('.dialog-foot [data-close]');
   function showStep(n) {
     stepForm.hidden = n !== 1; stepDone.hidden = n !== 2; stepPicker.hidden = n !== 3;
     nextBtn.hidden = n !== 1; backBtn.hidden = n !== 2; ghBtn.hidden = n !== 2 || !repo;
     pickBack.hidden = pickUse.hidden = n !== 3; cancelBtn.hidden = n === 3;
+    if (n === 1) { cancelBtn.textContent = 'Cancel'; setNextLabel(); }
   }
   backBtn.addEventListener('click', function () { showStep(1); });
 
@@ -402,8 +441,13 @@
     document.getElementById('done-edit-id').textContent = id;
     document.getElementById('done-path').textContent = path;
     document.getElementById('no-repo-msg').hidden = !!repo;
+    document.getElementById('done-saved').hidden = true;
     document.getElementById('done-new').hidden = !!editing;
     document.getElementById('done-edit').hidden = !editing;
+    if (direct()) {
+      saveDirect(id, path, text);
+      return;
+    }
     document.getElementById('copy-msg').textContent = '';
     if (repo) {
       ghBtn.href = editing

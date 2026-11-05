@@ -29,7 +29,9 @@ layout: default
     </div>
     {% if repo != "" %}
     <div class="actions">
-      <a class="btn" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}">Add files</a>
+      {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
+      <a class="btn" id="add-files" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}"
+        data-folder="{{ folder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ folder_files | jsonify }}'>Add files</a>
       <details class="menu">
         <summary class="btn" aria-label="More actions" title="More actions">&middot;&middot;&middot;</summary>
         <div class="menu-list">
@@ -284,6 +286,7 @@ layout: default
 {% include new-mount-dialog.html %}
 <script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "fields": {"year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
+{% include upload-dialog.html %}
 {% endif %}
 
 {% if has_eb and eb %}
