@@ -150,6 +150,18 @@ def doi_url(v):
     return "https://doi.org/" + v
 
 
+def ident_url(v):
+    """IGSNs come as DOIs (10.xxxx/...), old-style handles (10273/...) or bare codes."""
+    if not v:
+        return None
+    v = v.strip()
+    if re.match(r"^(https?://|doi:)", v, re.I) or v.startswith("10."):
+        return doi_url(v)
+    if "/" in v:
+        return "https://hdl.handle.net/" + v
+    return "https://igsn.org/" + v
+
+
 def sample_details(h, points):
     s = h.get("sampleDTO") or {}
     loc = h.get("locationDTO") or {}
@@ -184,7 +196,7 @@ def sample_details(h, points):
         "name": s.get("name"),
         "url": f"{WEB}/show/sample/{sid}",
         "igsn": ident,
-        "igsn_url": doi_url(ident),
+        "igsn_url": ident_url(ident),
         "description": s.get("description"),
         "material": s.get("materialName"),
         "kind": s.get("sampleKindName"),

@@ -106,7 +106,7 @@ layout: default
           {% if e.age %}<dt>Rock unit age</dt><dd>{{ e.age }}</dd>{% endif %}
           {% if e.collected %}<dt>Collected</dt><dd>{{ e.collected | slice: 0, 10 }}</dd>{% endif %}
           {% if e.location.name or e.location.lat %}<dt>Location</dt><dd>
-            {{ e.location.name }}{% if e.location.country %}, {{ e.location.country }}{% endif %}
+            {% if e.location.name %}{{ e.location.name }}{% if e.location.country %}, {% endif %}{% endif %}{{ e.location.country }}
             {% if e.location.body %}<strong>On {{ e.location.body }}</strong>{% endif %}
             {% if e.location.lat %}<br><span class="mono">{{ e.location.lat }}, {{ e.location.lon }}</span>
               {% unless e.location.body %}· <a href="https://www.openstreetmap.org/?mlat={{ e.location.lat }}&amp;mlon={{ e.location.lon }}#map=12/{{ e.location.lat }}/{{ e.location.lon }}" target="_blank" rel="noopener">map</a>{% endunless %}{% endif %}
