@@ -74,6 +74,34 @@ layout: default
     </div>
   </section>
 
+  {% assign has_images = false %}{% assign has_files = false %}
+  {% for f in site.static_files %}{% if f.path contains folder %}
+    {% assign ext = f.extname | downcase %}
+    {% case ext %}
+      {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign has_images = true %}
+      {% else %}{% assign has_files = true %}
+    {% endcase %}
+  {% endif %}{% endfor %}
+
+  <section class="card">
+    <h2>Sample maps and images</h2>
+    {% if has_images %}
+    <div class="gallery">
+      {% for f in site.static_files %}{% if f.path contains folder %}
+        {% assign ext = f.extname | downcase %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
+        <figure>
+          <a href="{{ f.path | relative_url }}" title="Open full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
+          <figcaption>{{ f.name }} <span class="muted">· tap to open full size</span></figcaption>
+        </figure>
+        {% endcase %}
+      {% endif %}{% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map (JPG or PNG).</p>
+    {% endif %}
+  </section>
+
   {% if has_eb %}
   <section class="card earthbank" id="earthbank">
     <h2>EarthBank</h2>
@@ -159,34 +187,6 @@ layout: default
     {% endif %}
   </section>
   {% endif %}
-
-  {% assign has_images = false %}{% assign has_files = false %}
-  {% for f in site.static_files %}{% if f.path contains folder %}
-    {% assign ext = f.extname | downcase %}
-    {% case ext %}
-      {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign has_images = true %}
-      {% else %}{% assign has_files = true %}
-    {% endcase %}
-  {% endif %}{% endfor %}
-
-  <section class="card">
-    <h2>Maps and images</h2>
-    {% if has_images %}
-    <div class="gallery">
-      {% for f in site.static_files %}{% if f.path contains folder %}
-        {% assign ext = f.extname | downcase %}
-        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
-        <figure>
-          <a href="{{ f.path | relative_url }}" title="Open full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
-          <figcaption>{{ f.name }} <span class="muted">· tap to open full size</span></figcaption>
-        </figure>
-        {% endcase %}
-      {% endif %}{% endfor %}
-    </div>
-    {% else %}
-    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map (JPG or PNG).</p>
-    {% endif %}
-  </section>
 
   <section class="card">
     <h2>Data files</h2>
