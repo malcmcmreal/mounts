@@ -1,0 +1,95 @@
+# Builds and publishes the website, with EarthBank data added.
+#
+# - Every change to the repo: fetch details for EarthBank-linked samples, then build and publish.
+# - Every day: the same, so EarthBank changes show up.
+# - Every Sunday (or when run by hand with "Refresh the EarthBank sample list" ticked, or
+#   when the list doesn't exist yet): also rebuild the EarthBank search list used by the
+#   New mount form (~40 minutes). When that finishes, the site is published again.
+#
+# Requires Settings → Pages → Source: "GitHub Actions".
+
+name: Build site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "30 16 * * *"   # daily, 3:30 am Melbourne
+    - cron: "30 15 * * 6"   # weekly list refresh, Sunday 2:30 am Melbourne
+  workflow_dispatch:
+    inputs:
+      refresh_index:
+        description: "Refresh the EarthBank sample list (takes ~40 minutes)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  actions: write
+
+jobs:
+  earthbank-list:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: earthbank-list
+      cancel-in-progress: false
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide whether to rebuild the sample list
+        id: need
+        run: |
+          if [ ! -f assets/earthbank/samples.json ] \
+             || [ "${{ github.event.schedule }}" = "30 15 * * 6" ] \
+             || [ "${{ inputs.refresh_index }}" = "true" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download the EarthBank sample list
+        if: steps.need.outputs.run == 'yes'
+        run: python3 _scripts/earthbank.py index
+      - name: Save it to the repo
+        if: steps.need.outputs.run == 'yes'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/earthbank/samples.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update EarthBank sample list"
+          git pull --rebase origin main
+          git push
+          # Publish the site again so the new list goes live
+          gh workflow run site.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fetch EarthBank details for linked samples
+        continue-on-error: true
+        run: python3 _scripts/earthbank.py details
+      - uses: actions/configure-pages@v5
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

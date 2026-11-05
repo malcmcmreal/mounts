@@ -3,7 +3,8 @@
   data-repo="{{ site.github.repository_nwo | default: '' }}"
   data-branch="{{ site.github.source.branch | default: 'main' }}"
   data-site="{{ '/' | absolute_url }}"
-  data-existing='{{ mounts | map: "mount_id" | jsonify }}'>
+  data-existing='{{ mounts | map: "mount_id" | jsonify }}'
+  data-earthbank-list="{{ '/assets/earthbank/samples.json' | relative_url }}">
 
   <form id="new-mount-form" method="dialog" novalidate>
     <div class="dialog-head">
@@ -52,6 +53,8 @@
         <label class="narrow">Number of samples
           <input name="n_samples" type="number" min="1" max="50" value="1">
         </label>
+        <p class="hint">Type sample IDs directly, or click <strong>EarthBank…</strong> on a row to search EarthBank and link the sample.
+          Linked samples show their EarthBank details and location on the mount's page.</p>
         <div id="sample-rows"></div>
       </fieldset>
 
@@ -59,6 +62,19 @@
         <legend>Notes</legend>
         <textarea name="notes" rows="3" placeholder="Anything else worth recording (optional)"></textarea>
       </fieldset>
+    </div>
+
+    <div class="dialog-body" id="step-picker" hidden>
+      <p class="small muted">Search public EarthBank samples. Tick one or more and click <strong>Use selected</strong>.
+        They fill the sample rows starting at row <span id="pick-row"></span>, adding rows if needed.</p>
+      <div class="row">
+        <label class="grow">Sample name or place <input id="pick-q" type="search" autocomplete="off" placeholder="e.g. Durango"></label>
+        <label class="grow">Data package <select id="pick-pkg"><option value="">All data packages</option></select></label>
+      </div>
+      <p id="pick-status" class="hint"></p>
+      <div id="pick-results" class="pick-results"></div>
+      <label class="narrow">Or type an EarthBank sample ID
+        <input id="pick-manual" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
     </div>
 
     <div class="dialog-body" id="step-done" hidden>
@@ -83,6 +99,8 @@
       <button type="button" class="btn" data-close>Cancel</button>
       <button type="button" class="btn" id="back-btn" hidden>Back</button>
       <button type="submit" class="btn primary" id="next-btn">Next</button>
+      <button type="button" class="btn" id="pick-back" hidden>Back to the form</button>
+      <button type="button" class="btn primary" id="pick-use" hidden>Use selected</button>
       <a class="btn primary" id="github-btn" target="_blank" rel="noopener" hidden>Create page on GitHub</a>
     </div>
   </form>

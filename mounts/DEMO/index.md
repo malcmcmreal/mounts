@@ -15,10 +15,12 @@ storage: "Example lab, drawer 1"
 samples:
   - id: "EX-001"
     position: "Top left"
+    earthbank: 14915452
   - id: "EX-002"
     position: "Top right"
   - id: "EX-003"
     position: "Bottom centre"
     notes: "Durango apatite age standard"
+    earthbank: 27446860
 ---
 This is an **example mount** showing how a mount page looks. You can delete the whole `mounts/DEMO` folder once you've added your own mounts.

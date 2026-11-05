@@ -10,6 +10,10 @@ layout: default
   {% assign qr_text = page.url | absolute_url %}
 {% endif %}
 
+{% assign eb = site.data.earthbank %}
+{% assign eb_ids = page.samples | map: "earthbank" | compact %}
+{% if eb_ids.size > 0 %}{% assign has_eb = true %}{% else %}{% assign has_eb = false %}{% endif %}
+
 <article class="mount">
   <p class="crumb"><a href="{{ '/' | relative_url }}">&larr; All mounts</a></p>
 
@@ -58,15 +62,102 @@ layout: default
     <h2>Samples</h2>
     <div class="table-scroll">
     <table>
-      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th></tr></thead>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
       <tbody>
         {% for s in page.samples %}
-        <tr><td>{{ forloop.index }}</td><td class="mono">{{ s.id }}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td></tr>
+        <tr><td>{{ forloop.index }}</td><td class="mono">{{ s.id }}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td>
+          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="https://app.ausgeochem.org/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
+        </tr>
         {% endfor %}
       </tbody>
     </table>
     </div>
   </section>
+
+  {% if has_eb %}
+  <section class="card earthbank" id="earthbank">
+    <h2>EarthBank</h2>
+    {% if eb %}
+    {% assign markers = "" | split: "" %}
+    {% assign pkg_ids = "" %}
+    {% for s in page.samples %}{% if s.earthbank %}
+      {% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}
+      {% if e.location.lat and e.location.lon %}{% assign markers = markers | push: e %}{% endif %}
+      {% if e.package %}{% assign pkg_ids = pkg_ids | append: "," | append: e.package %}{% endif %}
+    {% endif %}{% endfor %}
+
+    {% if markers.size > 0 %}
+    <div id="eb-map" class="eb-map" data-points='[{% for e in markers %}{"name":{{ e.name | jsonify }},"lat":{{ e.location.lat }},"lon":{{ e.location.lon }},"url":{{ e.url | jsonify }},"place":{{ e.location.name | default: "" | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}]'></div>
+    <p class="muted small">Where the samples in this mount were collected. Click a marker for the EarthBank sample.</p>
+    {% endif %}
+
+    <div class="eb-samples">
+    {% for s in page.samples %}{% if s.earthbank %}
+      {% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}
+      <article class="eb-sample" id="eb-{{ key }}">
+        {% if e %}
+        <h3><a href="{{ e.url }}" target="_blank" rel="noopener" class="break">{{ e.name }}</a>
+          {% if e.name != s.id %}<span class="muted small">(mount sample {{ s.id }})</span>{% endif %}</h3>
+        {% if e.description %}<p class="small">{{ e.description }}</p>{% endif %}
+        <dl class="facts small">
+          <dt>EarthBank ID</dt><dd><a href="{{ e.url }}" target="_blank" rel="noopener" class="mono">{{ e.id }}</a></dd>
+          {% if e.igsn %}<dt>IGSN / DOI</dt><dd><a href="{{ e.igsn_url }}" target="_blank" rel="noopener" class="mono">{{ e.igsn }}</a></dd>{% endif %}
+          {% if e.material or e.kind %}<dt>Material</dt><dd>{{ e.material }}{% if e.material and e.kind %} · {% endif %}{{ e.kind }}{% if e.method %} ({{ e.method | downcase }}){% endif %}</dd>{% endif %}
+          {% if e.age %}<dt>Rock unit age</dt><dd>{{ e.age }}</dd>{% endif %}
+          {% if e.collected %}<dt>Collected</dt><dd>{{ e.collected | slice: 0, 10 }}</dd>{% endif %}
+          {% if e.location.name or e.location.lat %}<dt>Location</dt><dd>
+            {{ e.location.name }}{% if e.location.country %}, {{ e.location.country }}{% endif %}
+            {% if e.location.lat %}<br><span class="mono">{{ e.location.lat }}, {{ e.location.lon }}</span>
+              · <a href="https://www.openstreetmap.org/?mlat={{ e.location.lat }}&amp;mlon={{ e.location.lon }}#map=12/{{ e.location.lat }}/{{ e.location.lon }}" target="_blank" rel="noopener">map</a>{% endif %}
+            {% if e.location.kind %}<br><span class="muted">{{ e.location.kind }}</span>{% endif %}</dd>{% endif %}
+          {% if e.elevation %}<dt>Elevation</dt><dd>{{ e.elevation }} m</dd>{% endif %}
+          {% if e.package %}{% assign pk = e.package | append: "" %}{% assign p = eb.packages[pk] %}
+            <dt>Data package</dt><dd><a href="#eb-pkg-{{ pk }}">{{ p.name | default: pk }}</a></dd>{% endif %}
+          {% if e.data %}<dt>Data in EarthBank</dt><dd>{% for d in e.data %}{{ d[0] }} ({{ d[1] }}){% unless forloop.last %}, {% endunless %}{% endfor %}</dd>{% endif %}
+          {% if e.people %}<dt>People</dt><dd>{% for person in e.people %}{{ person.name }}{% if person.orcid %} <a href="{{ person.orcid }}" target="_blank" rel="noopener" class="orcid" title="ORCID">iD</a>{% endif %}{% unless forloop.last %}, {% endunless %}{% endfor %}</dd>{% endif %}
+          {% if e.archive.name %}<dt>Archive</dt><dd>{% if e.archive.url %}<a href="{{ e.archive.url }}" target="_blank" rel="noopener">{{ e.archive.name }}</a>{% else %}{{ e.archive.name }}{% endif %}</dd>{% endif %}
+        </dl>
+        {% if e.literature %}
+        <p class="small eb-sub">Publications</p>
+        <ul class="small eb-list">{% for l in e.literature %}<li>{{ l.text }}{% if l.journal %}, <em>{{ l.journal }}</em>{% endif %}
+          {% if l.doi %} · <a href="{{ l.doi }}" target="_blank" rel="noopener">DOI</a>{% elsif l.url %} · <a href="{{ l.url }}" target="_blank" rel="noopener">link</a>{% endif %}</li>{% endfor %}</ul>
+        {% endif %}
+        {% else %}
+        <h3 class="mono">{{ s.id }}</h3>
+        <p class="small muted">EarthBank sample <a href="https://app.ausgeochem.org/show/sample/{{ key }}" target="_blank" rel="noopener" class="mono">{{ key }}</a>
+          wasn't found in EarthBank's public data. Check the ID, or the sample may be private.</p>
+        {% endif %}
+      </article>
+    {% endif %}{% endfor %}
+    </div>
+
+    {% assign pkg_list = pkg_ids | split: "," | uniq %}
+    {% if pkg_list.size > 0 %}
+    <h3 class="eb-h">Data packages</h3>
+    {% for pk in pkg_list %}{% if pk != "" %}{% assign p = eb.packages[pk] %}{% if p %}
+      <article class="eb-pkg" id="eb-pkg-{{ pk }}">
+        <p><a href="{{ p.url }}" target="_blank" rel="noopener"><strong>{{ p.name }}</strong></a></p>
+        <dl class="facts small">
+          {% if p.doi %}<dt>Dataset DOI</dt><dd><a href="{{ p.doi }}" target="_blank" rel="noopener">{{ p.doi | remove: "https://doi.org/" }}</a></dd>{% endif %}
+          {% if p.publications %}<dt>Publication{% if p.publications.size > 1 %}s{% endif %}</dt><dd>{% for d in p.publications %}<a href="{{ d }}" target="_blank" rel="noopener">{{ d | remove: "https://doi.org/" }}</a>{% unless forloop.last %}<br>{% endunless %}{% endfor %}</dd>{% endif %}
+          {% if p.institution %}<dt>Institution</dt><dd>{{ p.institution }}</dd>{% endif %}
+          {% if p.samples %}<dt>Samples in package</dt><dd>{{ p.samples }}</dd>{% endif %}
+          {% if p.license %}<dt>Licence</dt><dd>{{ p.license }}</dd>{% endif %}
+          {% if p.related %}<dt>Related data</dt><dd><a href="{{ p.related }}" target="_blank" rel="noopener" class="break">{{ p.related }}</a></dd>{% endif %}
+        </dl>
+        {% if p.cite %}<p class="small"><span class="muted">How to cite:</span> {{ p.cite }}</p>{% endif %}
+        {% if p.description %}<details class="small"><summary>Description</summary><p class="pre">{{ p.description }}</p></details>{% endif %}
+      </article>
+    {% endif %}{% endif %}{% endfor %}
+    {% endif %}
+
+    <p class="muted small eb-foot">From <a href="https://www.auscope.org.au/earthbank" target="_blank" rel="noopener">AuScope EarthBank</a>
+      public data, updated {{ eb.updated | date: "%-d %b %Y" }}. Some EarthBank pages (such as data packages) may ask you to sign in.</p>
+    {% else %}
+    <p class="muted small">EarthBank details couldn't be loaded when the site was last built. They'll appear after the next build.</p>
+    {% endif %}
+  </section>
+  {% endif %}
 
   {% assign has_images = false %}{% assign has_files = false %}
   {% for f in site.static_files %}{% if f.path contains folder %}
@@ -135,6 +226,11 @@ layout: default
   {% endif %}
 </article>
 
+{% if has_eb and eb %}
+<link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">
+<script src="{{ '/assets/leaflet/leaflet.js' | relative_url }}"></script>
+<script src="{{ '/assets/earthbank-map.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% endif %}
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
