@@ -72,6 +72,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - name: Work out each mount's current state from its timeline
+        continue-on-error: true
+        run: |
+          pip install --quiet pyyaml
+          python3 _scripts/mount_state.py
       - name: Fetch EarthBank details for linked samples
         continue-on-error: true
         run: python3 _scripts/earthbank.py details

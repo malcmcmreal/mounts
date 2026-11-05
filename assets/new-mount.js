@@ -340,6 +340,10 @@
   function buildText(id) {
     var f = form.elements;
     var lines = ['---', 'layout: mount', 'mount_id: ' + q(id), 'permalink: /' + id + '/'];
+    if (!editing) {
+      var d = new Date();
+      lines.push('created: "' + d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + '"');
+    }
     FIELDS.forEach(function (k) {
       var v = (f[k].value || '').trim();
       if (!v) return;

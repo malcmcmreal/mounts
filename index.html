@@ -22,10 +22,12 @@ layout: default
   </thead>
   <tbody>
     {% for m in mounts %}
+    {% assign st = site.data.mountstate[m.mount_id] %}
+    {% if st %}{% assign ms = st.samples %}{% else %}{% assign ms = m.samples %}{% endif %}
     <tr>
       <td class="mono"><a href="{{ m.url | relative_url }}">{{ m.mount_id }}</a></td>
-      <td>{{ m.samples | size }}</td>
-      <td>{{ m.samples | map: "id" | join: ", " }}</td>
+      <td>{{ ms | size }}</td>
+      <td>{{ ms | map: "id" | join: ", " }}</td>
       <td>{{ m.minerals }}</td>
       <td>{{ m.year }}</td>
       <td>{{ m.created_by }}</td>

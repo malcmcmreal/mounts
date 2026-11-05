@@ -1,0 +1,120 @@
+<dialog id="log-dialog" class="dialog"
+  data-repo="{{ site.github.repository_nwo | default: '' }}"
+  data-branch="{{ site.github.source.branch | default: 'main' }}"
+  data-earthbank-list="{{ '/assets/earthbank/samples.json' | relative_url }}">
+  <form id="log-form" method="dialog" novalidate>
+    <div class="dialog-head">
+      <h2>Add to history</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
+    </div>
+
+    <div class="dialog-body" id="log-step-form">
+      <fieldset>
+        <legend>What happened?</legend>
+        <div class="chips" id="log-types">
+          <label><input type="radio" name="type" value="link" checked><span>Linked to EarthBank</span></label>
+          <label><input type="radio" name="type" value="prep"><span>Preparation</span></label>
+          <label><input type="radio" name="type" value="analysis"><span>Analysis</span></label>
+          <label><input type="radio" name="type" value="location"><span>Moved</span></label>
+          <label><input type="radio" name="type" value="add-sample"><span>Sample added</span></label>
+          <label><input type="radio" name="type" value="remove-sample"><span>Sample removed</span></label>
+          <label><input type="radio" name="type" value="note"><span>Note</span></label>
+        </div>
+      </fieldset>
+
+      <!-- Linked to EarthBank -->
+      <fieldset data-for="link">
+        <label>Sample in this mount <select name="link_sample"></select></label>
+        <p class="hint" id="log-current-link"></p>
+        <label class="check"><input type="checkbox" name="unlink"> Remove this sample's EarthBank link instead</label>
+        <div id="log-eb">
+          <label>Find the EarthBank sample <input id="log-q" type="search" autocomplete="off" placeholder="Sample name or place"></label>
+          <p class="hint" id="log-eb-status"></p>
+          <div class="pick-results" id="log-eb-results"></div>
+          <label class="narrow">Or type an EarthBank sample ID <input name="earthbank" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
+        </div>
+      </fieldset>
+
+      <!-- Preparation -->
+      <fieldset data-for="prep" hidden>
+        <div class="row">
+          <label>Step
+            <select name="step">
+              <option value="polish">Polished</option>
+              <option value="etch">Etched</option>
+              <option value="coat">Coated</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="grow">Details <input name="detail" placeholder="e.g. 1 µm diamond, 5 min"></label>
+        </div>
+      </fieldset>
+
+      <!-- Analysis -->
+      <fieldset data-for="analysis" hidden>
+        <div class="row">
+          <label class="grow">Technique <input name="technique" list="techniques" placeholder="e.g. Fission track (LA-ICP-MS)"></label>
+          <label class="grow">Instrument <input name="instrument" placeholder="e.g. Agilent 7900"></label>
+        </div>
+        <label>Samples analysed <input name="samples" placeholder="e.g. all, or EX-001, EX-002"></label>
+        <label>Link to data (optional) <input name="link" type="url" placeholder="e.g. EarthBank data package or DOI"></label>
+      </fieldset>
+
+      <!-- Moved -->
+      <fieldset data-for="location" hidden>
+        <label>New location <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
+      </fieldset>
+
+      <!-- Sample added -->
+      <fieldset data-for="add-sample" hidden>
+        <div class="row">
+          <label class="grow">Sample ID <input name="new_sample" class="mono" placeholder="e.g. MM26-04"></label>
+          <label class="grow">Position in the mount <input name="position" placeholder="e.g. bottom left"></label>
+        </div>
+        <p class="hint">You can link it to EarthBank with a separate entry later.</p>
+      </fieldset>
+
+      <!-- Sample removed -->
+      <fieldset data-for="remove-sample" hidden>
+        <label>Sample <select name="remove_sample"></select></label>
+        <p class="hint">The sample stays in the history; it's just no longer listed as being in the mount.</p>
+      </fieldset>
+
+      <fieldset>
+        <div class="row">
+          <label>Date <input name="date" type="date"></label>
+          <label class="grow">By <input name="by" placeholder="Your name"></label>
+        </div>
+        <label>Note <span class="muted" id="log-note-opt">(optional)</span>
+          <textarea name="note" rows="2" placeholder="Anything worth recording"></textarea></label>
+      </fieldset>
+      <p class="hint error" id="log-error"></p>
+    </div>
+
+    <div class="dialog-body" id="log-step-done" hidden>
+      <p><strong>Almost done.</strong> Clicking the button below opens GitHub with the entry already written.</p>
+      <ol class="steps">
+        <li>Click <strong>Create entry on GitHub</strong>.</li>
+        <li>On GitHub, click the green <strong>Commit changes…</strong> button, then <strong>Commit changes</strong> again.</li>
+        <li>Wait 1–2 minutes and refresh this page. The entry appears in the history and the mount's details update.</li>
+      </ol>
+      <details>
+        <summary>Show the entry</summary>
+        <textarea id="log-out" rows="9" readonly class="mono"></textarea>
+      </details>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="button" class="btn" id="log-back" hidden>Back</button>
+      <button type="submit" class="btn primary" id="log-next">Next</button>
+      <a class="btn primary" id="log-github" target="_blank" rel="noopener" hidden>Create entry on GitHub</a>
+    </div>
+  </form>
+  <datalist id="techniques">
+    <option value="Fission track (LA-ICP-MS)"><option value="Fission track (EDM)"><option value="(U-Th)/He">
+    <option value="U-Pb (LA-ICP-MS)"><option value="Trace elements (LA-ICP-MS)"><option value="LIBS">
+    <option value="SEM imaging"><option value="Cathodoluminescence imaging"><option value="EPMA"><option value="Raman">
+  </datalist>
+</dialog>
+<script src="{{ '/assets/log.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

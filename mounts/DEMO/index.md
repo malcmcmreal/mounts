@@ -3,6 +3,7 @@ layout: mount
 mount_id: "DEMO"
 permalink: /DEMO/
 year: 2026
+created: "2026-11-05"
 created_by: "Example person"
 affiliation: "University of Melbourne"
 mount_format: "25 mm round"

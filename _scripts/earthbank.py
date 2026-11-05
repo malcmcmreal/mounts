@@ -112,13 +112,17 @@ def build_index():
 # ---------------------------------------------------------------- details
 
 def linked_ids():
-    """EarthBank sample IDs used in the mount files (`earthbank:` under a sample)."""
+    """EarthBank sample IDs linked to mounts: in the mount files (`earthbank:` under a
+    sample) and in timeline entries (_data/log/<ID>/*.yml)."""
     ids = set()
-    for path in glob.glob(os.path.join(ROOT, "mounts", "*", "index.md")):
+    files = glob.glob(os.path.join(ROOT, "mounts", "*", "index.md")) + \
+        glob.glob(os.path.join(ROOT, "_data", "log", "*", "*.yml"))
+    for path in files:
         with open(path, encoding="utf-8") as f:
             text = f.read()
-        head = text.split("---")[1] if text.startswith("---") else ""
-        ids.update(int(m) for m in re.findall(r"^\s*earthbank:\s*\"?(\d+)\"?\s*$", head, re.M))
+        if path.endswith(".md"):
+            text = text.split("---")[1] if text.startswith("---") else ""
+        ids.update(int(m) for m in re.findall(r"^\s*earthbank:\s*\"?(\d+)\"?\s*$", text, re.M))
     return sorted(ids)
 
 

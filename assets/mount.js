@@ -55,3 +55,10 @@
     });
   });
 })();
+
+// Close the "···" menu when clicking elsewhere or choosing an item
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('details.menu[open]').forEach(function (m) {
+    if (!m.contains(e.target) || e.target.closest('.menu-list')) m.open = false;
+  });
+});
