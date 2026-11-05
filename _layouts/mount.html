@@ -74,6 +74,14 @@ layout: default
     </div>
   </section>
 
+  {% assign notes = content | strip %}
+  {% if notes != "" %}
+  <section class="card notes">
+    <h2>Notes</h2>
+    {{ content }}
+  </section>
+  {% endif %}
+
   {% assign has_images = false %}{% assign has_files = false %}
   {% for f in site.static_files %}{% if f.path contains folder %}
     {% assign ext = f.extname | downcase %}
@@ -99,6 +107,30 @@ layout: default
     </div>
     {% else %}
     <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map (JPG or PNG).</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Data files</h2>
+    {% if has_files %}
+    <ul class="files">
+      {% for f in site.static_files %}{% if f.path contains folder %}
+        {% assign ext = f.extname | downcase %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% else %}
+        <li>
+          <div class="file-line">
+            <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
+            <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
+            {% endif %}
+          </div>
+          <div class="preview" hidden></div>
+        </li>
+        {% endcase %}
+      {% endif %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">No data files yet. Use <strong>Add files</strong> to upload CSV or text files.</p>
     {% endif %}
   </section>
 
@@ -188,43 +220,11 @@ layout: default
   </section>
   {% endif %}
 
-  <section class="card">
-    <h2>Data files</h2>
-    {% if has_files %}
-    <ul class="files">
-      {% for f in site.static_files %}{% if f.path contains folder %}
-        {% assign ext = f.extname | downcase %}
-        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% else %}
-        <li>
-          <div class="file-line">
-            <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
-            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
-            <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
-            {% endif %}
-          </div>
-          <div class="preview" hidden></div>
-        </li>
-        {% endcase %}
-      {% endif %}{% endfor %}
-    </ul>
-    {% else %}
-    <p class="muted">No data files yet. Use <strong>Add files</strong> to upload CSV or text files.</p>
-    {% endif %}
-  </section>
-
   <section class="card" id="codes" data-text="{{ qr_text }}" data-id="{{ page.mount_id }}">
     <h2>Codes for this mount</h2>
     <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
     <div class="codes"></div>
   </section>
-
-  {% assign notes = content | strip %}
-  {% if notes != "" %}
-  <section class="card notes">
-    <h2>Notes</h2>
-    {{ content }}
-  </section>
-  {% endif %}
 </article>
 
 {% if has_eb and eb %}
