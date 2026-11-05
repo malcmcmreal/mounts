@@ -56,9 +56,9 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color:
 .grid + .card { margin-top: 1rem; }
 @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
 
-.facts { display: grid; grid-template-columns: max-content 1fr; gap: .45rem 1.25rem; margin: 0; }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .45rem 1.25rem; margin: 0; }
 .facts dt { color: var(--muted); }
-.facts dd { margin: 0; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
 .qr-card { text-align: center; }
 .qr { background: #fff; border-radius: 6px; padding: .4rem; display: inline-block; width: 100%; max-width: 200px; }
