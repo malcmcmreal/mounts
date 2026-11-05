@@ -262,3 +262,6 @@ ul.plain li { margin: 0 0 .2rem; }
 .hires-add:hover { border-color: var(--link); background: none; }
 .hires-edit { margin-top: .3rem; }
 .warn-text { color: var(--warn) !important; }
+/* Puck label preview: show the label's true edges */
+.code.label .code-img { background: none; padding: 0; justify-content: flex-start; height: auto; }
+.code.label .code-img svg { width: 100%; max-width: 760px; height: auto; outline: 1px solid #8e8e93; }

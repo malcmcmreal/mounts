@@ -64,6 +64,40 @@
       ' at ' + MM + ' mm per square, including the margin';
   }
 
+  // Short mineral codes for the label (accessory minerals first; others get their first two letters)
+  var MINERALS = { apatite: 'Ap', zircon: 'Zr', monazite: 'Mn', titanite: 'Ti', sphene: 'Ti', rutile: 'Rt',
+    xenotime: 'Xt', allanite: 'Aln', baddeleyite: 'Bdy', garnet: 'Grt', epidote: 'Ep', quartz: 'Qz',
+    feldspar: 'Fsp', 'k-feldspar': 'Kfs', plagioclase: 'Pl', biotite: 'Bt', muscovite: 'Ms', hornblende: 'Hbl',
+    magnetite: 'Mag', pyrite: 'Py', calcite: 'Cal', olivine: 'Ol', pyroxene: 'Px', goethite: 'Gth', hematite: 'Hem' };
+  function mineralCodes(s) {
+    return s.split(/\s*(?:,|;|\/|&|\+|\band\b)\s*/i).map(function (m) {
+      m = m.trim().toLowerCase();
+      if (!m) return '';
+      if (MINERALS[m]) return MINERALS[m];
+      var hit = Object.keys(MINERALS).filter(function (k) { return m.indexOf(k) !== -1; })[0];
+      return hit ? MINERALS[hit] : m.charAt(0).toUpperCase() + m.slice(1, 2);
+    }).filter(Boolean).join('/');
+  }
+  // Shrink lines that are too long for the label; short lines keep their size and leave space on the right
+  function fitText(lines, room) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var probe = document.createElementNS(ns, 'svg');
+    probe.setAttribute('style', 'position:absolute;left:-9999px;top:0;visibility:hidden');
+    document.body.appendChild(probe);
+    var sizes = lines.map(function (l) {
+      if (!l[0]) return l[1];
+      var t = document.createElementNS(ns, 'text');
+      t.setAttribute('font-family', 'Helvetica Neue, Helvetica, Arial, sans-serif');
+      t.setAttribute('font-size', l[1]); t.setAttribute('font-weight', l[2]);
+      t.textContent = l[0];
+      probe.appendChild(t);
+      var w = t.getComputedTextLength() || 0;
+      return w > room ? +(l[1] * room / w).toFixed(2) : l[1];
+    });
+    probe.remove();
+    return sizes;
+  }
+
   // ---------- the codes ----------
   var codes = [];
 
@@ -85,7 +119,40 @@
     });
   })();
 
-  // 2. Rounded QR
+  // 2. Puck mount label: standard QR on the left, two lines of text to its right,
+  //    1 : 8.75 overall, for wrapping around the side of a round (puck) mount
+  (function () {
+    var qr = qrcode(0, 'M');
+    qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
+    qr.make();
+    var n = qr.getModuleCount(), quiet = 2, H = n + 2 * quiet, W = H * 8.75;
+    var line2 = [section.dataset.year, mineralCodes(section.dataset.minerals || ''), section.dataset.affiliation]
+      .map(function (x) { return (x || '').trim(); }).filter(Boolean).join(' - ');
+    var x0 = H + 1, room = W - x0 - 1.5;
+    var fit = fitText([[mountId, 11, 700], [line2, 6.5, 400]], room);
+    var d = '';
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++)
+      if (qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+    var font = 'Helvetica Neue, Helvetica, Arial, sans-serif';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W * 10 + '" height="' + H * 10 + '">' +
+      '<rect width="' + W + '" height="' + H + '" fill="#fff"/>' +
+      '<path fill="#000" shape-rendering="crispEdges" d="' + d + '"/>' +
+      '<text x="' + x0 + '" y="' + (quiet + 0.73 * fit[0]) + '" font-family="' + font + '" font-weight="700" font-size="' + fit[0] + '" fill="#000">' + esc(mountId) + '</text>' +
+      (line2 ? '<text x="' + x0 + '" y="' + (H - quiet) + '" font-family="' + font + '" font-size="' + fit[1] + '" fill="#000">' + esc(line2) + '</text>' : '') +
+      '</svg>';
+    codes.push({
+      key: 'PuckLabel', title: 'Puck mount QR', svg: svg, wide: true, label: true,
+      info: [
+        'Standard QR, version ' + (n - 17) / 4 + ' (' + n + '×' + n + ' squares), with the mount ID and details beside it',
+        'Proportions 1 : 8.75, for wrapping around the side of a puck mount',
+        'At ' + MM + ' mm per square: ' + (H * MM).toFixed(1) + ' mm tall × ' + (W * MM).toFixed(1) + ' mm long. ' +
+          'Scale it to the height of your mount\'s side; the QR stays readable down to about 0.25 mm per square.',
+        'Second line: ' + (line2 || '(year, minerals and affiliation appear here once the mount has them)')
+      ]
+    });
+  })();
+
+  // 3. Rounded QR
   (function () {
     var qr = qrcode(0, 'Q');
     qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
@@ -209,7 +276,7 @@
   codes = codes.filter(function (c) { return !c.wide; }).concat(codes.filter(function (c) { return c.wide; }));
   var grid = section.querySelector('.codes');
   grid.innerHTML = codes.map(function (c, i) {
-    return '<figure class="code' + (c.wide ? ' wide' : '') + '">' +
+    return '<figure class="code' + (c.wide ? ' wide' : '') + (c.label ? ' label' : '') + '">' +
       (c.empty
         ? '<div class="code-img code-empty"><span>' + esc(c.empty) + '</span></div>'
         : '<div class="code-img">' + c.svg + '</div>') +
