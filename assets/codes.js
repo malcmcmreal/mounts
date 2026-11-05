@@ -95,17 +95,20 @@
     var probe = document.createElementNS(ns, 'svg');
     probe.setAttribute('style', 'position:absolute;left:-9999px;top:0;visibility:hidden');
     document.body.appendChild(probe);
+    var widths = [];
     var sizes = lines.map(function (l) {
-      if (!l[0]) return l[1];
+      if (!l[0]) { widths.push(0); return l[1]; }
       var t = document.createElementNS(ns, 'text');
       t.setAttribute('font-family', 'Helvetica Neue, Helvetica, Arial, sans-serif');
       t.setAttribute('font-size', l[1]); t.setAttribute('font-weight', l[2]);
       t.textContent = l[0];
       probe.appendChild(t);
       var w = t.getComputedTextLength() || 0;
-      return w > room ? +(l[1] * room / w).toFixed(2) : l[1];
+      widths.push(w);
+      return room && w > room ? +(l[1] * room / w).toFixed(2) : l[1];
     });
     probe.remove();
+    fitText.widths = widths;
     return sizes;
   }
 
@@ -175,7 +178,52 @@
     });
   })();
 
-  // 3. Rounded QR
+  // 3. Round label: standard QR in the middle, text around it on two arcs
+  //    (mount ID over the top, details around the bottom), for the back of a puck mount.
+  //    There is no standard circular QR code that phones read, so this keeps a normal QR.
+  (function () {
+    var puck = codes.filter(function (c) { return c.label; })[0];
+    var qr = qrcode(0, 'M');
+    qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
+    qr.make();
+    var n = qr.getModuleCount(), quiet = 2, Q = n + 2 * quiet;
+    var half = Q / 2, corner = half * Math.SQRT2;          // QR corners sit this far from the centre
+    var rTop = corner + 1.2, rBot = corner + 4.9, R = corner + 6.6, S = 2 * R + 1, c0 = S / 2;
+    var d = '';
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++)
+      if (qr.isDark(r, c)) d += 'M' + (c0 - half + c + quiet) + ' ' + (c0 - half + r + quiet) + 'h1v1h-1z';
+    var font = 'Helvetica Neue, Helvetica, Arial, sans-serif';
+    function build(l1, l2) {
+      var fit = fitText([[l1, 4.6, 700], [l2, 3.1, 400]], 0);
+      var w = fitText.widths;
+      // shrink each line to the arc space it has (top ~120°, bottom ~200°)
+      var s1 = w[0] > rTop * 2.1 ? +(4.6 * rTop * 2.1 / w[0]).toFixed(2) : 4.6;
+      var s2 = w[1] > rBot * 3.4 ? +(3.1 * rBot * 3.4 / w[1]).toFixed(2) : 3.1;
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + S + ' ' + S + '" width="' + S * 10 + '" height="' + S * 10 + '">' +
+        '<defs><path id="arcTop" d="M' + (c0 - rTop) + ' ' + c0 + ' A' + rTop + ' ' + rTop + ' 0 0 1 ' + (c0 + rTop) + ' ' + c0 + '"/>' +
+        '<path id="arcBot" d="M' + (c0 - rBot) + ' ' + c0 + ' A' + rBot + ' ' + rBot + ' 0 0 0 ' + (c0 + rBot) + ' ' + c0 + '"/></defs>' +
+        '<circle cx="' + c0 + '" cy="' + c0 + '" r="' + R + '" fill="#fff" stroke="#000" stroke-width="0.35"/>' +
+        '<path fill="#000" shape-rendering="crispEdges" d="' + d + '"/>' +
+        (l1 ? '<text font-family="' + font + '" font-weight="700" font-size="' + s1 + '" fill="#000" text-anchor="middle">' +
+          '<textPath href="#arcTop" startOffset="50%">' + esc(l1) + '</textPath></text>' : '') +
+        (l2 ? '<text font-family="' + font + '" font-size="' + s2 + '" fill="#000" text-anchor="middle">' +
+          '<textPath href="#arcBot" startOffset="50%">' + esc(l2) + '</textPath></text>' : '') +
+        '</svg>';
+    }
+    codes.push({
+      key: 'RoundLabel', title: 'Round mount QR', label: true, build: build,
+      line1: mountId, line2: puck ? puck.line2 : '', names: ['Around the top', 'Around the bottom'],
+      svg: build(mountId, puck ? puck.line2 : ''),
+      info: [
+        'Standard QR, version ' + (n - 17) / 4 + ' (' + n + '×' + n + ' squares), with text around it',
+        'Round, for the back or top face of a puck mount; the outer ring is a cutting guide',
+        'At ' + MM + ' mm per square: ' + (S * MM).toFixed(1) + ' mm across. Scale it to fit; the QR stays readable down to about 0.25 mm per square.',
+        'No standard circular QR code exists that phones can read, so the code itself stays square'
+      ]
+    });
+  })();
+
+  // 4. Rounded QR
   (function () {
     var qr = qrcode(0, 'Q');
     qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
@@ -226,33 +274,6 @@
     }
   })();
 
-  // 4. Rectangular Micro QR (rMQR): smallest-area version that fits
-  (function () {
-    var rows = [7, 9, 11, 13, 15, 17], cols = [43, 59, 77, 99, 139], vs = [];
-    rows.forEach(function (r) { cols.forEach(function (c) { vs.push([r, c]); }); });
-    vs.push([11, 27], [13, 27]);
-    vs.sort(function (a, b) { return a[0] * a[1] - b[0] * b[1]; });
-    var res = null;
-    if (bw) for (var i = 0; i < vs.length && !res; i++) {
-      try { res = fromBwip(bw.rectangularmicroqrcode, { version: 'R' + vs[i][0] + 'x' + vs[i][1], eclevel: 'M' }, 2); }
-      catch (e) { /* try the next size */ }
-    }
-    codes.push(res ? {
-      key: 'rMQR', title: 'Rectangular Micro QR (rMQR)',
-      svg: res.svg, wide: true,
-      info: [
-        'Version R' + res.h + 'x' + res.w + ' · ' + res.w + '×' + res.h + ' squares',
-        'Error correction M (recovers ' + ECC.M + ' damage)',
-        size(res.w, res.h, 2),
-        'A long, thin code for a narrow strip, such as the side or edge of a mount. It is a newer standard (2022), so few phone apps read it yet.'
-      ]
-    } : {
-      key: 'rMQR', title: 'Rectangular Micro QR (rMQR)',
-      empty: 'Not possible with this address',
-      info: ['This address (' + text.length + ' characters) is too long for any rMQR size.']
-    });
-  })();
-
   // 5. Data Matrix
   (function () {
     if (!bw) return;
@@ -295,19 +316,21 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
   }
-  // The wide rMQR goes last so it doesn't break up the grid
-  codes = codes.filter(function (c) { return !c.wide; }).concat(codes.filter(function (c) { return c.wide; }));
+  // Wide codes go last so they don't break up the grid
+  codes = codes.filter(function (c) { return !c.wide && !c.label; })
+    .concat(codes.filter(function (c) { return !c.wide && c.label; }))
+    .concat(codes.filter(function (c) { return c.wide; }));
   var grid = section.querySelector('.codes');
   grid.innerHTML = codes.map(function (c, i) {
-    return '<figure class="code' + (c.wide ? ' wide' : '') + (c.label ? ' label' : '') + '">' +
+    return '<figure class="code' + (c.wide ? ' wide' : '') + (c.label ? ' label' : '') + '" data-i="' + i + '">' +
       (c.empty
         ? '<div class="code-img code-empty"><span>' + esc(c.empty) + '</span></div>'
         : '<div class="code-img">' + c.svg + '</div>') +
       '<figcaption><strong>' + esc(c.title) + '</strong>' +
       '<ul>' + c.info.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' +
       (c.label ? '<div class="label-edit">' +
-        '<label>Top line <input class="mono" data-line="1" value="' + esc(c.line1) + '"></label>' +
-        '<label>Second line <input data-line="2" value="' + esc(c.line2) + '"></label>' +
+        '<label>' + (c.names ? c.names[0] : 'Top line') + ' <input class="mono" data-line="1" value="' + esc(c.line1) + '"></label>' +
+        '<label>' + (c.names ? c.names[1] : 'Second line') + ' <input data-line="2" value="' + esc(c.line2) + '"></label>' +
         '<button type="button" class="link-btn small" data-reset="' + i + '">Reset to the standard text</button>' +
         '<small class="muted">Edits change the preview and downloads only; they aren\'t saved to the mount.</small></div>' : '') +
       (c.empty ? '' :
@@ -351,7 +374,7 @@
     relabel(fig);
   });
   function relabel(fig) {
-    var c = codes.filter(function (x) { return x.label; })[0];
+    var c = codes[+fig.dataset.i];
     var l1 = fig.querySelector('[data-line="1"]').value, l2 = fig.querySelector('[data-line="2"]').value;
     c.svg = c.build(l1, l2);
     fig.querySelector('.code-img').innerHTML = c.svg;

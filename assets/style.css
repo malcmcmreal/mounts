@@ -270,3 +270,5 @@ ul.plain li { margin: 0 0 .2rem; }
 .label-edit input { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
   border-radius: 6px; padding: .4rem .55rem; }
 .label-edit .link-btn { justify-self: start; }
+.code.label:not(.wide) .code-img svg { max-width: 240px; outline: none; }
+.code.label:not(.wide) .code-img { justify-content: center; }
