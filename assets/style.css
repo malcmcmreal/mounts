@@ -347,3 +347,5 @@ ul.plain li { margin: 0 0 .2rem; }
 .sample-row .sep-input { grid-column: 2 / -1; font-size: .85rem; }
 td.separates { font-size: .9rem; }
 #custom-id-row .check { flex: 1 1 100%; max-width: none; }
+.sdot { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; margin-right: .45rem; vertical-align: -1px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.15); flex: none; }

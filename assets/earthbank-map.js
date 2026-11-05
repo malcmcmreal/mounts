@@ -20,10 +20,11 @@
   var bounds = [];
   pts.forEach(function (p) {
     bounds.push([p.lat, p.lon]);
-    L.circleMarker([p.lat, p.lon], { radius: 7, color: '#1e1e1e', weight: 2, fillColor: '#f2f2f7', fillOpacity: 1 })
+    L.circleMarker([p.lat, p.lon], { radius: 8, color: '#fff', weight: 2, fillOpacity: 1,
+      fillColor: window.MountLayout && p.sample ? MountLayout.sampleColor(p.sample) : '#f2f2f7' })
       .addTo(map)
       .bindPopup('<a href="' + esc(p.url) + '" target="_blank" rel="noopener"><strong>' + esc(p.name) + '</strong></a>' +
-        (p.place ? '<br>' + esc(p.place) : '') + '<br>' + p.lat + ', ' + p.lon);
+        (p.place ? '<br>' + esc(p.place) : '') + (p.sample && p.sample !== p.name ? '<br>Mount sample ' + esc(p.sample) : '') + '<br>' + p.lat + ', ' + p.lon);
   });
   if (bounds.length === 1) map.setView(bounds[0], 9);
   else map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10 });

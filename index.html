@@ -44,7 +44,7 @@ layout: default
   <li class="mount-row" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
     data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
     <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
-      {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}"></span>
+      {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}" data-order="{{ ms | map: 'id' | jsonify | escape }}"></span>
       {% elsif thumb != "" %}<img src="{{ thumb | relative_url }}" alt="" loading="lazy">
       {% else %}<span class="mr-empty"></span>{% endif %}
     </a>
@@ -80,7 +80,7 @@ layout: default
   (function () {
     // Layout thumbnails and small QR codes
     document.querySelectorAll('.mr-layout').forEach(function (el) {
-      try { el.innerHTML = MountLayout.render(JSON.parse(el.dataset.layout), { thumb: true }); } catch (e) {}
+      try { el.innerHTML = MountLayout.render(JSON.parse(el.dataset.layout), { thumb: true, order: JSON.parse(el.dataset.order || '[]') }); } catch (e) {}
     });
     document.querySelectorAll('.mr-qr').forEach(function (el) {
       var t = el.dataset.qr, q = qrcode(0, 'M');

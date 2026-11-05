@@ -90,7 +90,7 @@ layout: default
       <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Separates location</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
       <tbody>
         {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{{ s.separates }}</td>
+        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}"><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{{ s.separates }}</td>
           {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="https://app.ausgeochem.org/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
         </tr>
         {% endfor %}
@@ -230,23 +230,23 @@ layout: default
   <section class="card earthbank" id="earthbank">
     <h2>EarthBank</h2>
     {% if eb %}
-    {% assign markers = "" | split: "" %}
+    {% assign markers = "" %}
     {% assign pkg_ids = "" %}
     {% for s in samples %}{% if s.earthbank %}
       {% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}
-      {% if e.location.lat and e.location.lon and e.location.body == nil %}{% assign markers = markers | push: e %}{% endif %}
+      {% if e.location.lat and e.location.lon and e.location.body == nil %}{% capture mk %}{"name":{{ e.name | jsonify }},"sample":{{ s.id | jsonify }},"lat":{{ e.location.lat }},"lon":{{ e.location.lon }},"url":{{ e.url | jsonify }},"place":{{ e.location.name | default: "" | jsonify }}}{% endcapture %}{% if markers != "" %}{% assign markers = markers | append: "," %}{% endif %}{% assign markers = markers | append: mk %}{% endif %}
       {% if e.package %}{% assign pkg_ids = pkg_ids | append: "," | append: e.package %}{% endif %}
     {% endif %}{% endfor %}
 
-    {% if markers.size > 0 %}
-    <div id="eb-map" class="eb-map" data-points='[{% for e in markers %}{"name":{{ e.name | jsonify }},"lat":{{ e.location.lat }},"lon":{{ e.location.lon }},"url":{{ e.url | jsonify }},"place":{{ e.location.name | default: "" | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}]'></div>
+    {% if markers != "" %}
+    <div id="eb-map" class="eb-map" data-points="[{{ markers | escape }}]"></div>
     <p class="muted small">Where the samples in this mount were collected. Click a marker for the EarthBank sample.</p>
     {% endif %}
 
     <div class="eb-samples">
     {% for s in samples %}{% if s.earthbank %}
       {% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}
-      <article class="eb-sample" id="eb-{{ key }}">
+      <article class="eb-sample" id="eb-{{ key }}" data-sample="{{ s.id | escape }}">
         {% if e %}
         <h3><a href="{{ e.url }}" target="_blank" rel="noopener" class="break">{{ e.name }}</a>
           {% if e.name != s.id %}<span class="muted small">(mount sample {{ s.id }})</span>{% endif %}</h3>
@@ -319,6 +319,7 @@ layout: default
     <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
     <div class="codes"></div>
   </section>
+  <script type="application/json" id="sample-order">{{ samples | map: "id" | jsonify }}</script>
 </article>
 
 {% if repo != "" %}
@@ -331,6 +332,7 @@ layout: default
 {% include layout-dialog.html %}
 {% endif %}
 
+<script src="{{ '/assets/layout.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% if has_eb and eb %}
 <link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">
 <script src="{{ '/assets/leaflet/leaflet.js' | relative_url }}"></script>
@@ -339,5 +341,4 @@ layout: default
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
-<script src="{{ '/assets/layout.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/mount.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

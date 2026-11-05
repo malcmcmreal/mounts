@@ -8,7 +8,8 @@
 //     fiducials: [{ x, y }],                // numbered 1, 2, 3… in this order
 //     notes:     [{ x, y, text }] }
 (function () {
-  var COLORS = ['#c0392b', '#2471a3', '#1e8449', '#b9770e', '#7d3c98', '#117a65', '#a04000', '#2e4053'];
+  // Clearly different colours (Tableau 10 order), so neighbouring samples never look alike
+  var COLORS = ['#d62728', '#1f77b4', '#2ca02c', '#ff7f0e', '#9467bd', '#e377c2', '#8c564b', '#17becf', '#bcbd22', '#7f7f7f'];
   var FONT = 'Helvetica Neue, Helvetica, Arial, sans-serif';
   var M = 3;                                   // margin around the mount, mm
 
@@ -18,12 +19,14 @@
     });
   }
   function r2(n) { return Math.round(n * 100) / 100; }
+  // Each sample keeps one colour everywhere on the page: the mount's sample order first,
+  // then any other region labels in the order they appear.
   function colorFor(label, labels) {
     var i = labels.indexOf(label);
     return COLORS[(i < 0 ? 0 : i) % COLORS.length];
   }
-  function labelsOf(L) {
-    var out = [];
+  function labelsOf(L, order) {
+    var out = (order || []).slice();
     (L.regions || []).forEach(function (r) { if (out.indexOf(r.label) === -1) out.push(r.label); });
     return out;
   }
@@ -40,7 +43,7 @@
     opts = opts || {};
     var W = L.w + 2 * M, H = L.h + 2 * M + (opts.title ? 3 : 0), oy = opts.title ? 3 : 0;
     var u = Math.max(L.w, L.h) / 25;           // text scales with the mount
-    var labels = labelsOf(L), sel = opts.selected || {};
+    var labels = labelsOf(L, opts.order || sampleOrder), sel = opts.selected || {};
     var o = [];
     o.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + r2(W) + ' ' + r2(H) + '" width="' + r2(W * 20) + '" height="' + r2(H * 20) + '" font-family="' + FONT + '">');
     o.push('<rect width="' + r2(W) + '" height="' + r2(H) + '" fill="#fff"/>');
@@ -102,7 +105,21 @@
     o.push('</svg>');
     return o.join('');
   }
-  window.MountLayout = { render: render, fidCoords: fidCoords };
+  var sampleOrder = [];
+  try { sampleOrder = JSON.parse((document.getElementById('sample-order') || {}).textContent || '[]'); } catch (e) {}
+  function sampleColor(id) { return colorFor(String(id), labelsOf({ regions: [] }, sampleOrder)); }
+  window.MountLayout = { render: render, fidCoords: fidCoords, sampleColor: sampleColor };
+
+  // Colour dots beside samples (Samples table, EarthBank cards) so they match the drawing and the map
+  if (sampleOrder.length) {
+    document.querySelectorAll('[data-sample]').forEach(function (el) {
+      var dot = document.createElement('span');
+      dot.className = 'sdot'; dot.style.background = sampleColor(el.dataset.sample);
+      dot.title = 'Colour used for ' + el.dataset.sample + ' in the layout and map';
+      var h = el.querySelector('h3') || el;
+      h.insertBefore(dot, h.firstChild);
+    });
+  }
 
   // ---------- on the mount page ----------
   var view = document.getElementById('layout-view');
@@ -427,7 +444,7 @@
       }).join('') + '</table><p class="muted small">mm from the centre; y towards the orientation mark.</p>' : '<p class="muted small">None yet.</p>') +
       '<p class="lay-props-title">Regions (' + L.regions.length + ')</p>' +
       (L.regions.length ? '<ul class="lay-list small">' + L.regions.map(function (r, i) {
-        return '<li data-sel="region:' + i + '"><span class="dot" style="background:' + colorFor(r.label, labelsOf(L)) + '"></span>' + esc(r.label) + '</li>';
+        return '<li data-sel="region:' + i + '"><span class="dot" style="background:' + colorFor(r.label, labelsOf(L, sampleOrder)) + '"></span>' + esc(r.label) + '</li>';
       }).join('') + '</ul>' : '<p class="muted small">None yet.</p>') +
       (missing.length ? '<p class="muted small">Not placed yet: ' + missing.map(esc).join(', ') + '</p>' : '');
   }
