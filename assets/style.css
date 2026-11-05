@@ -265,3 +265,8 @@ ul.plain li { margin: 0 0 .2rem; }
 /* Puck label preview: show the label's true edges */
 .code.label .code-img { background: none; padding: 0; justify-content: flex-start; height: auto; }
 .code.label .code-img svg { width: 100%; max-width: 760px; height: auto; outline: 1px solid #8e8e93; }
+.label-edit { display: grid; gap: .5rem; margin: .4rem 0 .8rem; max-width: 760px; }
+.label-edit label { display: grid; gap: .2rem; font-size: .82rem; color: var(--muted); }
+.label-edit input { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: .4rem .55rem; }
+.label-edit .link-btn { justify-self: start; }

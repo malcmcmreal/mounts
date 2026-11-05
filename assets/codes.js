@@ -78,6 +78,17 @@
       return hit ? MINERALS[hit] : m.charAt(0).toUpperCase() + m.slice(1, 2);
     }).filter(Boolean).join('/');
   }
+  // "University of Melbourne" -> "UoM"; short names are kept as they are
+  var AFFILIATIONS = { 'university of melbourne': 'UoM', 'the university of melbourne': 'UoM' };
+  function shortAffiliation(a) {
+    a = a.trim();
+    if (!a) return '';
+    if (AFFILIATIONS[a.toLowerCase()]) return AFFILIATIONS[a.toLowerCase()];
+    if (a.length <= 12) return a;
+    return a.split(/\s+/).map(function (w) {
+      return /^(of|and|the|for|de|du|la)$/i.test(w) ? w.charAt(0).toLowerCase() : w.charAt(0).toUpperCase();
+    }).join('');
+  }
   // Shrink lines that are too long for the label; short lines keep their size and leave space on the right
   function fitText(lines, room) {
     var ns = 'http://www.w3.org/2000/svg';
@@ -120,34 +131,46 @@
   })();
 
   // 2. Puck mount label: standard QR on the left, two lines of text to its right,
-  //    1 : 8.75 overall, for wrapping around the side of a round (puck) mount
+  //    1 : 8.75 overall, for wrapping around the side of a round (puck) mount.
+  //    Line 2 default: minerals · samples · year · short affiliation · readable address.
+  //    Both lines can be edited on the page before downloading.
   (function () {
     var qr = qrcode(0, 'M');
     qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
     qr.make();
     var n = qr.getModuleCount(), quiet = 2, H = n + 2 * quiet, W = H * 8.75;
-    var line2 = [section.dataset.year, mineralCodes(section.dataset.minerals || ''), section.dataset.affiliation]
-      .map(function (x) { return (x || '').trim(); }).filter(Boolean).join(' - ');
     var x0 = H + 1, room = W - x0 - 1.5;
-    var fit = fitText([[mountId, 11, 700], [line2, 6.5, 400]], room);
     var d = '';
     for (var r = 0; r < n; r++) for (var c = 0; c < n; c++)
       if (qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
     var font = 'Helvetica Neue, Helvetica, Arial, sans-serif';
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W * 10 + '" height="' + H * 10 + '">' +
-      '<rect width="' + W + '" height="' + H + '" fill="#fff"/>' +
-      '<path fill="#000" shape-rendering="crispEdges" d="' + d + '"/>' +
-      '<text x="' + x0 + '" y="' + (quiet + 0.73 * fit[0]) + '" font-family="' + font + '" font-weight="700" font-size="' + fit[0] + '" fill="#000">' + esc(mountId) + '</text>' +
-      (line2 ? '<text x="' + x0 + '" y="' + (H - quiet) + '" font-family="' + font + '" font-size="' + fit[1] + '" fill="#000">' + esc(line2) + '</text>' : '') +
-      '</svg>';
+
+    var ns = +section.dataset.nsamples || 0;
+    var address = /^https?:\/\//i.test(text) ? text.replace(/^https?:\/\//i, '').replace(/\/$/, '') : '';
+    if (address.length > 24) address = '';            // too long to be worth printing
+    else address = address.toLowerCase().replace(/\/[^/]*$/, '/' + mountId);
+    var line2 = [mineralCodes(section.dataset.minerals || ''),
+      ns ? ns + ' sample' + (ns === 1 ? '' : 's') : '',
+      section.dataset.year, shortAffiliation(section.dataset.affiliation || ''), address]
+      .map(function (x) { return (x || '').trim(); }).filter(Boolean).join(' · ');
+
+    function build(l1, l2) {
+      var fit = fitText([[l1, 11, 700], [l2, 6.5, 400]], room);
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W * 10 + '" height="' + H * 10 + '">' +
+        '<rect width="' + W + '" height="' + H + '" fill="#fff"/>' +
+        '<path fill="#000" shape-rendering="crispEdges" d="' + d + '"/>' +
+        (l1 ? '<text x="' + x0 + '" y="' + (quiet + 0.73 * fit[0]) + '" font-family="' + font + '" font-weight="700" font-size="' + fit[0] + '" fill="#000">' + esc(l1) + '</text>' : '') +
+        (l2 ? '<text x="' + x0 + '" y="' + (H - quiet) + '" font-family="' + font + '" font-size="' + fit[1] + '" fill="#000">' + esc(l2) + '</text>' : '') +
+        '</svg>';
+    }
     codes.push({
-      key: 'PuckLabel', title: 'Puck mount QR', svg: svg, wide: true, label: true,
+      key: 'PuckLabel', title: 'Puck mount QR', svg: build(mountId, line2), wide: true, label: true,
+      build: build, line1: mountId, line2: line2,
       info: [
         'Standard QR, version ' + (n - 17) / 4 + ' (' + n + '×' + n + ' squares), with the mount ID and details beside it',
         'Proportions 1 : 8.75, for wrapping around the side of a puck mount',
         'At ' + MM + ' mm per square: ' + (H * MM).toFixed(1) + ' mm tall × ' + (W * MM).toFixed(1) + ' mm long. ' +
-          'Scale it to the height of your mount\'s side; the QR stays readable down to about 0.25 mm per square.',
-        'Second line: ' + (line2 || '(year, minerals and affiliation appear here once the mount has them)')
+          'Scale it to the height of your mount\'s side; the QR stays readable down to about 0.25 mm per square.'
       ]
     });
   })();
@@ -282,6 +305,11 @@
         : '<div class="code-img">' + c.svg + '</div>') +
       '<figcaption><strong>' + esc(c.title) + '</strong>' +
       '<ul>' + c.info.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' +
+      (c.label ? '<div class="label-edit">' +
+        '<label>Top line <input class="mono" data-line="1" value="' + esc(c.line1) + '"></label>' +
+        '<label>Second line <input data-line="2" value="' + esc(c.line2) + '"></label>' +
+        '<button type="button" class="link-btn small" data-reset="' + i + '">Reset to the standard text</button>' +
+        '<small class="muted">Edits change the preview and downloads only; they aren\'t saved to the mount.</small></div>' : '') +
       (c.empty ? '' :
         '<div class="code-dl"><button type="button" class="btn small" data-i="' + i + '" data-fmt="svg">SVG</button>' +
         '<button type="button" class="btn small" data-i="' + i + '" data-fmt="png">PNG</button></div>') +
@@ -316,7 +344,27 @@
     };
     img.src = URL.createObjectURL(blob);
   }
+  // Puck label: live editing of the two text lines
+  grid.addEventListener('input', function (e) {
+    var fig = e.target.closest('.code.label');
+    if (!fig || !e.target.dataset.line) return;
+    relabel(fig);
+  });
+  function relabel(fig) {
+    var c = codes.filter(function (x) { return x.label; })[0];
+    var l1 = fig.querySelector('[data-line="1"]').value, l2 = fig.querySelector('[data-line="2"]').value;
+    c.svg = c.build(l1, l2);
+    fig.querySelector('.code-img').innerHTML = c.svg;
+  }
   grid.addEventListener('click', function (e) {
+    var rs = e.target.closest('[data-reset]');
+    if (rs) {
+      var c = codes[+rs.dataset.reset], fig = rs.closest('.code');
+      fig.querySelector('[data-line="1"]').value = c.line1;
+      fig.querySelector('[data-line="2"]').value = c.line2;
+      relabel(fig);
+      return;
+    }
     var b = e.target.closest('button[data-fmt]');
     if (b) download(codes[+b.dataset.i], b.dataset.fmt);
   });

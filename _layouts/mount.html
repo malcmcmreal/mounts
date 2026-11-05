@@ -290,7 +290,8 @@ layout: default
   {% endif %}
 
   <section class="card" id="codes" data-text="{{ qr_text }}" data-id="{{ page.mount_id }}"
-    data-year="{{ cur.year }}" data-minerals="{{ cur.minerals | escape }}" data-affiliation="{{ cur.affiliation | escape }}">
+    data-year="{{ cur.year }}" data-minerals="{{ cur.minerals | escape }}" data-affiliation="{{ cur.affiliation | escape }}"
+    data-nsamples="{{ samples | size }}">
     <h2>Codes for this mount</h2>
     <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
     <div class="codes"></div>
