@@ -82,7 +82,7 @@ layout: default
     {% assign pkg_ids = "" %}
     {% for s in page.samples %}{% if s.earthbank %}
       {% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}
-      {% if e.location.lat and e.location.lon %}{% assign markers = markers | push: e %}{% endif %}
+      {% if e.location.lat and e.location.lon and e.location.body == nil %}{% assign markers = markers | push: e %}{% endif %}
       {% if e.package %}{% assign pkg_ids = pkg_ids | append: "," | append: e.package %}{% endif %}
     {% endif %}{% endfor %}
 
@@ -107,8 +107,9 @@ layout: default
           {% if e.collected %}<dt>Collected</dt><dd>{{ e.collected | slice: 0, 10 }}</dd>{% endif %}
           {% if e.location.name or e.location.lat %}<dt>Location</dt><dd>
             {{ e.location.name }}{% if e.location.country %}, {{ e.location.country }}{% endif %}
+            {% if e.location.body %}<strong>On {{ e.location.body }}</strong>{% endif %}
             {% if e.location.lat %}<br><span class="mono">{{ e.location.lat }}, {{ e.location.lon }}</span>
-              · <a href="https://www.openstreetmap.org/?mlat={{ e.location.lat }}&amp;mlon={{ e.location.lon }}#map=12/{{ e.location.lat }}/{{ e.location.lon }}" target="_blank" rel="noopener">map</a>{% endif %}
+              {% unless e.location.body %}· <a href="https://www.openstreetmap.org/?mlat={{ e.location.lat }}&amp;mlon={{ e.location.lon }}#map=12/{{ e.location.lat }}/{{ e.location.lon }}" target="_blank" rel="noopener">map</a>{% endunless %}{% endif %}
             {% if e.location.kind %}<br><span class="muted">{{ e.location.kind }}</span>{% endif %}</dd>{% endif %}
           {% if e.elevation %}<dt>Elevation</dt><dd>{{ e.elevation }} m</dd>{% endif %}
           {% if e.package %}{% assign pk = e.package | append: "" %}{% assign p = eb.packages[pk] %}

@@ -165,7 +165,9 @@ def sample_details(h, points):
         name = TECHNIQUES.get((p.get("dataStructure") or "").upper(), p.get("dataStructure") or "Other")
         counts[name] = counts.get(name, 0) + 1
     people = [clean({
-        "name": p.get("calcName") or " ".join(x for x in [p.get("firstName"), p.get("name")] if x),
+        # EarthBank sometimes appends the ORCID to the name, e.g. "DA Foster (0000-0002-...)"
+        "name": re.sub(r"\s*\(\d{4}-\d{4}-\d{4}-\d{3}[\dX]\)", "",
+                       p.get("calcName") or " ".join(x for x in [p.get("firstName"), p.get("name")] if x)),
         "orcid": ("https://orcid.org/" + re.sub(r"^https?://orcid\.org/", "", p["orcId"])) if p.get("orcId") else None,
     }) for p in (h.get("personDTOs") or [])]
     lit = []
@@ -193,6 +195,8 @@ def sample_details(h, points):
             "name": loc.get("name"), "country": loc.get("countryName"),
             "lat": loc.get("lat"), "lon": loc.get("lon"),
             "kind": s.get("locationKindName"), "description": loc.get("description"),
+            # Planetary samples (e.g. Mars rover data) have coordinates on another body
+            "body": loc.get("celestialName") if (loc.get("celestialName") or "Earth") != "Earth" else None,
         },
         "elevation": s.get("referenceElevation"),
         "package": s.get("dataPackageId"),
