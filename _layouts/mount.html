@@ -47,10 +47,10 @@ layout: default
 
     <aside class="card qr-card">
       <h2>QR code</h2>
-      <div id="qr" class="qr" data-text="{{ qr_text }}"></div>
+      <div id="qr" class="qr"></div>
       <p class="mono small break">{{ qr_text }}</p>
-      <p class="muted small" id="qr-info"></p>
       <button type="button" class="btn small" id="qr-download">Download QR (SVG)</button>
+      <p class="small"><a href="#codes">Other code types &darr;</a></p>
     </aside>
   </div>
 
@@ -120,6 +120,12 @@ layout: default
     {% endif %}
   </section>
 
+  <section class="card" id="codes" data-text="{{ qr_text }}" data-id="{{ page.mount_id }}">
+    <h2>Codes for this mount</h2>
+    <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
+    <div class="codes"></div>
+  </section>
+
   {% assign notes = content | strip %}
   {% if notes != "" %}
   <section class="card notes">
@@ -130,4 +136,6 @@ layout: default
 </article>
 
 <script src="{{ '/assets/qrcode.js' | relative_url }}"></script>
+<script src="{{ '/assets/barcodes.js' | relative_url }}"></script>
+<script src="{{ '/assets/codes.js' | relative_url }}"></script>
 <script src="{{ '/assets/mount.js' | relative_url }}"></script>

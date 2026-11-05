@@ -1,28 +1,5 @@
-// Mount page: draws the QR code and previews CSV / text files.
+// Mount page: previews CSV / text files. (The codes are drawn by codes.js.)
 (function () {
-  // ---------- QR code ----------
-  var box = document.getElementById('qr');
-  if (box && window.qrcode) {
-    var text = box.dataset.text;
-    // All-capitals URLs use the compact "alphanumeric" mode, giving a smaller code.
-    var mode = /^[0-9A-Z $%*+\-.\/:]*$/.test(text) ? 'Alphanumeric' : 'Byte';
-    var qr = qrcode(0, 'M');
-    qr.addData(text, mode);
-    qr.make();
-    var n = qr.getModuleCount();
-    box.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 32, scalable: true });
-    document.getElementById('qr-info').textContent =
-      'Standard QR, version ' + ((n - 17) / 4) + ' (' + n + '×' + n + ' squares)' +
-      (mode === 'Byte' ? '. Set a short qr_base in _config.yml for a smaller code.' : '.');
-    document.getElementById('qr-download').addEventListener('click', function () {
-      var blob = new Blob([box.innerHTML], { type: 'image/svg+xml' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'QR-' + (document.querySelector('h1').textContent.trim()) + '.svg';
-      document.body.appendChild(a); a.click(); a.remove();
-    });
-  }
-
   // ---------- file previews ----------
   function parseCSV(str, sep) {
     var rows = [], row = [], cell = '', inQ = false;

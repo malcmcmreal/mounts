@@ -110,3 +110,17 @@ legend { font-weight: 650; margin-bottom: .5rem; padding: 0; }
 .steps li { margin-bottom: .4rem; }
 details textarea { margin: .5rem 0; font-size: .8rem; }
 summary { cursor: pointer; color: var(--accent); }
+
+/* Codes section */
+.codes { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.code { margin: 0; border: 1px solid var(--line); border-radius: 8px; padding: .9rem; display: flex; flex-direction: column; }
+.code.wide { grid-column: 1 / -1; }
+.code-img { display: flex; align-items: center; justify-content: center; height: 170px; margin-bottom: .75rem; }
+.code-img svg { max-width: 100%; max-height: 100%; width: auto; height: 100%; }
+.code.wide .code-img { height: 90px; }
+.code.wide .code-img svg { height: auto; width: 100%; max-width: 640px; }
+.code-empty { border: 2px dashed var(--line); border-radius: 6px; color: var(--muted); font-size: .9rem; text-align: center; padding: 1rem; }
+.code figcaption { font-size: .85rem; display: flex; flex-direction: column; flex: 1; }
+.code figcaption ul { margin: .35rem 0 .75rem; padding-left: 1.1rem; color: var(--muted); }
+.code figcaption li { margin: .15rem 0; }
+.code-dl { display: flex; gap: .4rem; margin-top: auto; }
