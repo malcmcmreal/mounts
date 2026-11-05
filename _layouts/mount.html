@@ -51,6 +51,7 @@ layout: default
         {% if repo != "" %}<button type="button" class="btn small" data-add-entry="details">Add &amp; edit</button>{% endif %}
       </div>
       <dl class="facts">
+        {% if cur.project %}<dt>Project</dt><dd><a href="{{ '/' | relative_url }}?group=project#{{ cur.project | slugify }}">{{ cur.project }}</a></dd>{% endif %}
         <dt>Number of samples</dt><dd>{{ samples | size }}</dd>
         {% if cur.year %}<dt>Year made</dt><dd>{{ cur.year }}</dd>{% endif %}
         {% if cur.created_by %}<dt>Made by</dt><dd>{{ cur.created_by }}</dd>{% endif %}
@@ -125,10 +126,31 @@ layout: default
     {% endcase %}
   {% endif %}{% endfor %}
 
-  <section class="card">
-    <h2>Sample maps and images</h2>
+  <section class="card" id="layout">
+    <div class="card-head">
+      <h2>Mount layout</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-layout-edit>{% if st.layout %}Edit layout{% else %}Draw layout{% endif %}</button>{% endif %}
+    </div>
+    {% if st.layout %}
+    <div class="layout-view" id="layout-view" data-mount="{{ page.mount_id }}"></div>
+    <div class="layout-meta">
+      <div id="layout-fids"></div>
+      <div class="code-dl">
+        <button type="button" class="btn small" data-layout-dl="svg">SVG</button>
+        <button type="button" class="btn small" data-layout-dl="png">PNG</button>
+        <button type="button" class="btn small" data-layout-dl="csv" title="Fiducial and region-centre coordinates">Coordinates (CSV)</button>
+      </div>
+      <p class="muted small">Drawn {{ st.layout.updated | date: "%-d %b %Y" }}{% if st.layout.by != "" %} by {{ st.layout.by }}{% endif %}. Positions are in millimetres, as drawn.</p>
+    </div>
+    <script type="application/json" id="layout-data">{{ st.layout | jsonify }}</script>
+    {% else %}
+    <p class="muted">No layout yet. Draw a schematic of the mount: its shape, where each sample sits, and numbered fiducial markers.</p>
+    {% endif %}
+  
+    <div class="photos">
+      <h3>Photos and hi-res images</h3>
     {% if has_images %}
-    <div class="gallery">
+    <div class="gallery gallery-small">
       {% for f in site.static_files %}{% if f.path contains folder %}
         {% assign ext = f.extname | downcase %}
         {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
@@ -154,30 +176,9 @@ layout: default
       {% endif %}{% endfor %}
     </div>
     {% else %}
-    <p class="muted">No images yet. Use <strong>Add files</strong> to upload a map preview (JPG or PNG); you can then link a hi-res download under it.</p>
+    <p class="muted small">No photos yet. Use <strong>Add files</strong> to upload a photo or map image of the mount (JPG or PNG); you can then link a hi-res download under it.</p>
     {% endif %}
-  </section>
-
-  <section class="card" id="layout">
-    <div class="card-head">
-      <h2>Mount layout</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-layout-edit>{% if st.layout %}Edit layout{% else %}Draw layout{% endif %}</button>{% endif %}
     </div>
-    {% if st.layout %}
-    <div class="layout-view" id="layout-view" data-mount="{{ page.mount_id }}"></div>
-    <div class="layout-meta">
-      <div id="layout-fids"></div>
-      <div class="code-dl">
-        <button type="button" class="btn small" data-layout-dl="svg">SVG</button>
-        <button type="button" class="btn small" data-layout-dl="png">PNG</button>
-        <button type="button" class="btn small" data-layout-dl="csv" title="Fiducial and region-centre coordinates">Coordinates (CSV)</button>
-      </div>
-      <p class="muted small">Drawn {{ st.layout.updated | date: "%-d %b %Y" }}{% if st.layout.by != "" %} by {{ st.layout.by }}{% endif %}. Positions are in millimetres, as drawn.</p>
-    </div>
-    <script type="application/json" id="layout-data">{{ st.layout | jsonify }}</script>
-    {% else %}
-    <p class="muted">No layout yet. Draw a schematic of the mount: its shape, where each sample sits, and numbered fiducial markers.</p>
-    {% endif %}
   </section>
 
   <section class="card">
@@ -321,10 +322,10 @@ layout: default
 </article>
 
 {% if repo != "" %}
-<script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
+<script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "project": {{ page.project | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
 {% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
-<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
+<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
 {% include layout-dialog.html %}

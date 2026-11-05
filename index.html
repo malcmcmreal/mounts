@@ -13,7 +13,24 @@ layout: default
   <button type="button" id="new-mount-btn" class="btn primary">+ New mount</button>
 </div>
 
-<input id="filter" class="filter" type="search" placeholder="Search by mount ID, sample ID, mineral, person, place or year">
+<div class="list-tools">
+  <input id="filter" class="filter" type="search" placeholder="Search by mount ID, sample ID, mineral, person, place or year">
+  <label class="group-by">Group by
+    <select id="group-by">
+      <option value="project">Project</option>
+      <option value="year">Year</option>
+      <option value="affiliation">Affiliation</option>
+      <option value="minerals">Minerals</option>
+      <option value="maker">Made by</option>
+      <option value="none">No grouping</option>
+    </select>
+  </label>
+  <span class="group-toggles">
+    <button type="button" class="link-btn small" id="expand-all">Expand all</button> ·
+    <button type="button" class="link-btn small" id="collapse-all">Collapse all</button>
+  </span>
+</div>
+<div id="mount-groups"></div>
 
 <ul class="mount-list" id="mount-list">
   {% for m in mounts %}
@@ -24,7 +41,8 @@ layout: default
   {% assign thumb = "" %}{% for f in site.static_files %}{% if thumb == "" and f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".webp", ".gif" %}{% assign thumb = f.path %}{% endcase %}{% endif %}{% endfor %}
   {% assign linked = "" | split: "" %}{% for s in ms %}{% if s.earthbank %}{% assign e = s.earthbank | append: "" %}{% assign linked = linked | push: e %}{% endif %}{% endfor %}
   {% assign last = st.timeline | last %}
-  <li class="mount-row" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
+  <li class="mount-row" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
+    data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
     <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
       {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}"></span>
       {% elsif thumb != "" %}<img src="{{ thumb | relative_url }}" alt="" loading="lazy">
@@ -34,6 +52,7 @@ layout: default
       <a class="mr-id mono" href="{{ m.url | relative_url }}">{{ m.mount_id }}</a>
       <p class="mr-meta">
         {% assign bits = "" | split: "" %}
+        {% if cur.project %}{% assign bits = bits | push: cur.project %}{% endif %}
         {% if cur.minerals %}{% assign bits = bits | push: cur.minerals %}{% endif %}
         {% assign n = ms | size %}{% capture sc %}{{ n }} sample{% if n != 1 %}s{% endif %}{% endcapture %}{% assign bits = bits | push: sc %}
         {% if cur.year %}{% assign y = cur.year | append: "" %}{% assign bits = bits | push: y %}{% endif %}
@@ -68,19 +87,90 @@ layout: default
       q.addData(t, /^[0-9A-Z $%*+\-.\/:]*$/.test(t) ? 'Alphanumeric' : 'Byte'); q.make();
       el.innerHTML = q.createSvgTag({ cellSize: 2, margin: 2, scalable: true });
     });
-    // Search
+    // ---------- grouping ----------
+    var list = document.getElementById('mount-list');
+    var rows = Array.prototype.slice.call(list.querySelectorAll('.mount-row'));
+    var box = document.getElementById('mount-groups'), sel = document.getElementById('group-by');
+    var EMPTY = { project: 'No project', year: 'Year not recorded', affiliation: 'No affiliation',
+      minerals: 'Minerals not recorded', maker: 'Maker not recorded' };
+    function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+    function key(row, by) {
+      var v = (row.dataset[by] || '').trim();
+      if (by === 'minerals' && v) {
+        v = v.split(/\s*(?:,|;|\/|&|\+|\band\b)\s*/i).filter(Boolean).map(cap).sort().join(', ');
+      }
+      return v;
+    }
+    function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+    function build(by) {
+      rows.forEach(function (r) { list.appendChild(r); });     // gather every mount back first
+      box.innerHTML = '';
+      if (by === 'none') { box.appendChild(list); list.hidden = false; filter(); return; }
+      var groups = {}, order = [];
+      rows.forEach(function (r) {
+        var k = key(r, by);
+        if (!groups[k]) { groups[k] = []; order.push(k); }
+        groups[k].push(r);
+      });
+      order.sort(function (a, b) {
+        if (!a) return 1; if (!b) return -1;                    // empty group last
+        if (by === 'year') return (+b) - (+a);                  // newest year first
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+      });
+      order.forEach(function (k) {
+        var d = document.createElement('details');
+        d.className = 'mount-group'; d.open = true; d.id = slug(k || 'none');
+        d.innerHTML = '<summary><span class="mg-name">' + (k ? k.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) : EMPTY[by]) +
+          '</span> <span class="mg-count"></span></summary>';
+        var ul = document.createElement('ul'); ul.className = 'mount-list';
+        groups[k].forEach(function (r) { ul.appendChild(r); });
+        d.appendChild(ul);
+        box.appendChild(d);
+      });
+      list.hidden = true;
+      filter();
+    }
+    sel.addEventListener('change', function () {
+      try { localStorage.setItem('mounts.group', sel.value); } catch (e) {}
+      build(sel.value);
+    });
+    document.getElementById('expand-all').addEventListener('click', function () {
+      box.querySelectorAll('details').forEach(function (d) { d.open = true; });
+    });
+    document.getElementById('collapse-all').addEventListener('click', function () {
+      box.querySelectorAll('details').forEach(function (d) { d.open = false; });
+    });
+
+    // ---------- search ----------
     var input = document.getElementById('filter');
-    var rows = document.querySelectorAll('#mount-list .mount-row');
     var none = document.getElementById('no-results');
-    input.addEventListener('input', function () {
+    function filter() {
       var words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
       rows.forEach(function (r) {
         var hay = (r.dataset.search + ' ' + r.textContent).toLowerCase();
         var hit = words.every(function (w) { return hay.indexOf(w) !== -1; });
         r.hidden = !hit; if (hit) shown++;
       });
+      box.querySelectorAll('.mount-group').forEach(function (g) {
+        var n = g.querySelectorAll('.mount-row:not([hidden])').length;
+        g.hidden = !n;
+        g.querySelector('.mg-count').textContent = n + ' mount' + (n === 1 ? '' : 's');
+        if (words.length && n) g.open = true;
+      });
       none.hidden = shown !== 0;
-    });
+    }
+    input.addEventListener('input', filter);
+
+    // Start with ?group=… from a link, else the last choice, else Project
+    var params = new URLSearchParams(location.search), start = params.get('group');
+    if (!start) { try { start = localStorage.getItem('mounts.group'); } catch (e) {} }
+    if (!start || !sel.querySelector('option[value="' + start + '"]')) start = 'project';
+    sel.value = start;
+    build(start);
+    if (location.hash) {
+      var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target) { target.open = true; target.scrollIntoView(); }
+    }
   })();
 </script>
 

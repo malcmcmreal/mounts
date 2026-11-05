@@ -28,6 +28,9 @@
         <div class="row" id="custom-id-row">
           <label class="check"><input type="checkbox" name="custom_id"> Use a custom mount ID that doesn't follow the standard</label>
         </div>
+        <label>Project <input name="project" list="projects" autocomplete="off" placeholder="e.g. Grand Canyon thermochronology">
+          <small class="hint">Groups mounts together on the home page. Pick an existing project to keep the name identical.</small></label>
+        <datalist id="projects">{% assign all_mounts = site.pages | where: "layout", "mount" %}{% assign plist = "" | split: "" %}{% for m in all_mounts %}{% assign stx = site.data.mountstate[m.mount_id] %}{% assign pj = stx.project | default: m.project %}{% if pj and pj != "" %}{% assign plist = plist | push: pj %}{% endif %}{% endfor %}{% assign plist = plist | uniq | sort %}{% for pj in plist %}<option value="{{ pj | escape }}">{% endfor %}</datalist>
         <div class="row">
           <label>Year made <input name="year" type="number" min="1900" max="2100"></label>
           <label class="grow">Made by <input name="created_by" placeholder="Name"></label>

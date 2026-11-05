@@ -55,9 +55,9 @@ def load_entries(mount_id):
     return out
 
 
-DETAIL_FIELDS = ["year", "created_by", "affiliation", "mount_format", "resin", "minerals",
+DETAIL_FIELDS = ["project", "year", "created_by", "affiliation", "mount_format", "resin", "minerals",
                  "polish", "etch", "coating", "storage"]
-DETAIL_LABELS = {"year": "Year made", "created_by": "Made by", "affiliation": "Affiliation",
+DETAIL_LABELS = {"project": "Project", "year": "Year made", "created_by": "Made by", "affiliation": "Affiliation",
                  "mount_format": "Mount format", "resin": "Resin / epoxy", "minerals": "Minerals",
                  "polish": "Polish", "etch": "Etching", "coating": "Coating", "storage": "Stored at"}
 

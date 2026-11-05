@@ -274,9 +274,9 @@ ul.plain li { margin: 0 0 .2rem; }
 .code.label:not(.wide) .code-img { justify-content: center; }
 
 /* Mount layout */
-.layout-view { max-width: 560px; }
+.layout-view { max-width: 672px; }
 .layout-view svg { width: 100%; height: auto; border-radius: 8px; display: block; }
-.layout-meta { margin-top: .75rem; display: grid; gap: .6rem; max-width: 560px; }
+.layout-meta { margin-top: .75rem; display: grid; gap: .6rem; max-width: 672px; }
 .layout-meta table { border-collapse: collapse; }
 .layout-meta td, .layout-meta th { padding: .2rem .8rem .2rem 0; text-align: left; }
 .dialog.dialog-wide { width: min(1150px, 96vw); max-width: none; }
@@ -326,3 +326,21 @@ ul.plain li { margin: 0 0 .2rem; }
 .mr-qr { display: block; width: 64px; height: 64px; background: #fff; border-radius: 6px; padding: 2px; }
 .mr-qr svg { width: 100%; height: 100%; display: block; }
 @media (max-width: 560px) { .mount-row { grid-template-columns: 60px minmax(0, 1fr) 48px; gap: .7rem; } .mr-thumb { width: 60px; height: 60px; } .mr-qr { width: 48px; height: 48px; } }
+.photos { margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.photos h3 { font-size: 1rem; margin: 0 0 .75rem; }
+.gallery-small { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+
+/* Home: grouping */
+.list-tools { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; }
+.list-tools .filter { flex: 1 1 320px; margin: 0; }
+.group-by { display: flex; align-items: center; gap: .45rem; font-size: .88rem; color: var(--muted); }
+.group-by select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: .35rem .5rem; }
+.group-toggles { font-size: .85rem; color: var(--muted); }
+#mount-groups { margin-top: 1rem; display: grid; gap: .8rem; }
+.mount-group > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: .6rem;
+  padding: .35rem .2rem; font-weight: 600; font-size: 1.02rem; border-bottom: 1px solid var(--line); }
+.mount-group > summary::-webkit-details-marker { display: none; }
+.mount-group > summary::before { content: '▸'; color: var(--muted); font-size: .85rem; transition: transform .15s; }
+.mount-group[open] > summary::before { transform: rotate(90deg); }
+.mg-count { font-weight: 400; font-size: .82rem; color: var(--muted); }
+.mount-group .mount-list { margin-top: .6rem; }

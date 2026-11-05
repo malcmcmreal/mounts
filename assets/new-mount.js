@@ -20,7 +20,7 @@
   var backBtn = document.getElementById('back-btn');
   var ghBtn = document.getElementById('github-btn');
   var editMsg = document.getElementById('edit-msg');
-  var FIELDS = ['year', 'created_by', 'affiliation', 'mount_format', 'resin', 'minerals',
+  var FIELDS = ['project', 'year', 'created_by', 'affiliation', 'mount_format', 'resin', 'minerals',
                 'polish', 'etch', 'coating', 'storage'];
   // Editing: { id, path, original file text } or null for a new mount
   var editing = null;

@@ -1,6 +1,7 @@
 ---
 layout: mount
 mount_id: "DEMO"
+project: "Example project"
 permalink: /DEMO/
 year: 2026
 created: "2026-11-05"
