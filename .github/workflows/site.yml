@@ -38,6 +38,8 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # latest, so a list saved by an earlier run is seen
       - name: Decide whether to rebuild the sample list
         id: need
         run: |
