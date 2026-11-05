@@ -92,11 +92,13 @@
         '<text x="' + r2(f.x + s * 1.5) + '" y="' + r2(f.y - s * 1.3) + '" font-size="' + r2(1.05 * u) + '" font-weight="700" fill="#111" pointer-events="none">' + (i + 1) + '</text></g>');
     });
     o.push('</g>');
-    // scale bar
+    // scale bar (not on thumbnails)
+    if (!opts.thumb) {
     var bar = L.w >= 20 ? 5 : L.w >= 8 ? 2 : 1;
     var bx = W - M - bar, by = H - 0.9;
     o.push('<path d="M' + r2(bx) + ' ' + r2(by) + 'h' + bar + '" stroke="#222" stroke-width="' + r2(0.18 * u) + '"/>' +
       '<text x="' + r2(bx + bar / 2) + '" y="' + r2(by - 0.45) + '" font-size="' + r2(0.9 * u) + '" fill="#222" text-anchor="middle">' + bar + ' mm</text>');
+    }
     o.push('</svg>');
     return o.join('');
   }

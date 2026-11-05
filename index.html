@@ -13,47 +13,75 @@ layout: default
   <button type="button" id="new-mount-btn" class="btn primary">+ New mount</button>
 </div>
 
-<input id="filter" class="filter" type="search" placeholder="Search by mount ID, sample ID, person or year">
+<input id="filter" class="filter" type="search" placeholder="Search by mount ID, sample ID, mineral, person, place or year">
 
-<div class="table-scroll">
-<table class="mount-table" id="mount-table">
-  <thead>
-    <tr><th>Mount ID</th><th>Samples</th><th>Sample IDs</th><th>Minerals</th><th>Year</th><th>Created by</th></tr>
-  </thead>
-  <tbody>
-    {% for m in mounts %}
-    {% assign st = site.data.mountstate[m.mount_id] %}
-    {% if st %}{% assign ms = st.samples %}{% else %}{% assign ms = m.samples %}{% endif %}
-    <tr>
-      <td class="mono"><a href="{{ m.url | relative_url }}">{{ m.mount_id }}</a></td>
-      <td>{{ ms | size }}</td>
-      <td>{{ ms | map: "id" | join: ", " }}</td>
-      <td>{{ m.minerals }}</td>
-      <td>{{ m.year }}</td>
-      <td>{{ m.created_by }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
+<ul class="mount-list" id="mount-list">
+  {% for m in mounts %}
+  {% assign st = site.data.mountstate[m.mount_id] %}
+  {% if st %}{% assign ms = st.samples %}{% assign cur = st %}{% else %}{% assign ms = m.samples %}{% assign cur = m %}{% endif %}
+  {% if site.qr_base and site.qr_base != "" %}{% assign qr = site.qr_base | append: "/" | append: m.mount_id %}{% else %}{% assign qr = m.url | absolute_url %}{% endif %}
+  {% assign folder = m.path | remove: "index.md" | prepend: "/" %}
+  {% assign thumb = "" %}{% for f in site.static_files %}{% if thumb == "" and f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".webp", ".gif" %}{% assign thumb = f.path %}{% endcase %}{% endif %}{% endfor %}
+  {% assign linked = "" | split: "" %}{% for s in ms %}{% if s.earthbank %}{% assign e = s.earthbank | append: "" %}{% assign linked = linked | push: e %}{% endif %}{% endfor %}
+  {% assign last = st.timeline | last %}
+  <li class="mount-row" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
+    <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
+      {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}"></span>
+      {% elsif thumb != "" %}<img src="{{ thumb | relative_url }}" alt="" loading="lazy">
+      {% else %}<span class="mr-empty"></span>{% endif %}
+    </a>
+    <div class="mr-main">
+      <a class="mr-id mono" href="{{ m.url | relative_url }}">{{ m.mount_id }}</a>
+      <p class="mr-meta">
+        {% assign bits = "" | split: "" %}
+        {% if cur.minerals %}{% assign bits = bits | push: cur.minerals %}{% endif %}
+        {% assign n = ms | size %}{% capture sc %}{{ n }} sample{% if n != 1 %}s{% endif %}{% endcapture %}{% assign bits = bits | push: sc %}
+        {% if cur.year %}{% assign y = cur.year | append: "" %}{% assign bits = bits | push: y %}{% endif %}
+        {% if cur.created_by %}{% assign bits = bits | push: cur.created_by %}{% endif %}
+        {{ bits | join: " · " }}
+      </p>
+      <p class="mr-samples">
+        {% for s in ms limit: 6 %}<span class="chip mono{% if s.earthbank %} eb{% endif %}"{% if s.earthbank %} title="Linked to EarthBank sample {{ s.earthbank }}"{% endif %}>{{ s.id }}</span>{% endfor %}
+        {% if ms.size > 6 %}<span class="muted small">+{{ ms.size | minus: 6 }} more</span>{% endif %}
+      </p>
+      <p class="mr-extra muted small">
+        {% if cur.storage %}{{ cur.storage }}{% endif %}{% if cur.storage and linked.size > 0 %} · {% endif %}{% if linked.size > 0 %}{{ linked.size }} linked to EarthBank{% endif %}{% if last and last.type != "created" %}{% if cur.storage or linked.size > 0 %} · {% endif %}updated {{ last.date | date: "%-d %b %Y" }}{% endif %}
+      </p>
+    </div>
+    <a class="mr-qr" href="{{ m.url | relative_url }}" title="{{ qr }}" data-qr="{{ qr }}" aria-label="QR code for {{ m.mount_id }}"></a>
+  </li>
+  {% endfor %}
+</ul>
 <p id="no-results" class="muted" hidden>No mounts match that search.</p>
 <p class="muted count">{{ mounts | size }} mount{% if mounts.size != 1 %}s{% endif %} in the catalogue.</p>
 
-{% include new-mount-dialog.html %}
-
+<script src="{{ '/assets/qrcode.js' | relative_url }}"></script>
+<script src="{{ '/assets/layout.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script>
-  // Simple search filter for the table
   (function () {
+    // Layout thumbnails and small QR codes
+    document.querySelectorAll('.mr-layout').forEach(function (el) {
+      try { el.innerHTML = MountLayout.render(JSON.parse(el.dataset.layout), { thumb: true }); } catch (e) {}
+    });
+    document.querySelectorAll('.mr-qr').forEach(function (el) {
+      var t = el.dataset.qr, q = qrcode(0, 'M');
+      q.addData(t, /^[0-9A-Z $%*+\-.\/:]*$/.test(t) ? 'Alphanumeric' : 'Byte'); q.make();
+      el.innerHTML = q.createSvgTag({ cellSize: 2, margin: 2, scalable: true });
+    });
+    // Search
     var input = document.getElementById('filter');
-    var rows = document.querySelectorAll('#mount-table tbody tr');
+    var rows = document.querySelectorAll('#mount-list .mount-row');
     var none = document.getElementById('no-results');
     input.addEventListener('input', function () {
-      var q = input.value.trim().toLowerCase(), shown = 0;
+      var words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
       rows.forEach(function (r) {
-        var hit = r.textContent.toLowerCase().indexOf(q) !== -1;
+        var hay = (r.dataset.search + ' ' + r.textContent).toLowerCase();
+        var hit = words.every(function (w) { return hay.indexOf(w) !== -1; });
         r.hidden = !hit; if (hit) shown++;
       });
       none.hidden = shown !== 0;
     });
   })();
 </script>
+
+{% include new-mount-dialog.html %}
