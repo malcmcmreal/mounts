@@ -166,3 +166,4 @@ summary { cursor: pointer; color: var(--link); }
 .leaflet-control-attribution { background: rgba(13,17,23,.8) !important; color: var(--muted); }
 .leaflet-control-attribution a { color: var(--link); }
 .leaflet-bar a { background: var(--raised); color: var(--ink); border-color: var(--line); }
+.leaflet-control-layers { background: var(--card) !important; color: var(--ink); border: 1px solid var(--line) !important; font-size: .8rem; }

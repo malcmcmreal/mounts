@@ -4,10 +4,18 @@
   if (!el || !window.L) return;
   var pts = JSON.parse(el.dataset.points || '[]');
   var map = L.map(el, { scrollWheelZoom: false });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, subdomains: 'abcd',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }).addTo(map);
+  var esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  var dark = L.layerGroup([
+    L.tileLayer(esri + 'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16,
+      attribution: 'Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors' }),
+    L.tileLayer(esri + 'Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+  ]);
+  var satellite = L.tileLayer(esri + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18,
+    attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics' });
+  var topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17,
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA), &copy; OpenStreetMap contributors' });
+  dark.addTo(map);
+  L.control.layers({ 'Dark': dark, 'Satellite': satellite, 'Topographic': topo }, null, { collapsed: false }).addTo(map);
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var bounds = [];
   pts.forEach(function (p) {
