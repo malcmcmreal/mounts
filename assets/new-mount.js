@@ -126,14 +126,14 @@
   });
 
   // ---------- mount ID ----------
-  // Standard IDs: exactly 5 characters from capitals and numbers without the lookalikes
-  // 0/O and 1/I, plus hyphens. With "HTTP://<domain>/" in front this keeps the
+  // Standard IDs: exactly 5 characters from capitals, numbers and hyphens. The lookalikes
+  // 0/O and 1/I are allowed but get a warning (Suggest one never uses them). With "HTTP://<domain>/" in front this keeps the
   // standard QR code at its smallest size (21x21). A custom ID needs the box ticked.
   var SAFE = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-  var STANDARD = /^[2-9A-HJ-NP-Z-]{5}$/;
+  var STANDARD = /^[0-9A-Z-]{5}$/;
   var LEN = 5;
   var customBox = form.elements.custom_id;
-  defaultHint = 'Exactly 5 characters: capital letters, numbers and hyphens, without O, I, 0 or 1. ' +
+  defaultHint = 'Exactly 5 characters: capital letters, numbers and hyphens. ' +
     'This keeps the QR code at its smallest size.';
   idMsg.textContent = defaultHint;
   function isCustom() { return customBox.checked; }
@@ -178,11 +178,11 @@
         (v.length > LEN ? 'IDs longer than ' + LEN + ' characters make the QR code bigger. ' : '') +
         'Make sure the QR code still fits your mount.';
     } else {
-      var bad = v.replace(/[2-9A-HJ-NP-Z-]/g, '');
+      var bad = v.replace(/[0-9A-Z-]/g, '');
       if (bad) problem = 'Not allowed in a standard ID: ' + bad.split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(' ') +
-        (/[01OI]/.test(bad) ? ' (0, 1, O and I are left out because they look alike)' : '') +
         '. Tick "custom mount ID" below to use it anyway.';
       else if (v.length !== LEN) problem = 'A standard ID is exactly ' + LEN + ' characters (this one has ' + v.length + ').';
+      else if (/[01OI]/.test(v)) note = 'Fine to use, but 0/O and 1/I look alike, so this ID is easy to misread when typed from a label.';
     }
     idMsg.textContent = problem || note || defaultHint;
     idMsg.className = problem ? 'hint error' : note ? 'hint warn-text' : 'hint';
