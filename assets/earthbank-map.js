@@ -20,7 +20,7 @@
   var bounds = [];
   pts.forEach(function (p) {
     bounds.push([p.lat, p.lon]);
-    L.circleMarker([p.lat, p.lon], { radius: 7, color: '#fff', weight: 2, fillColor: '#2f81f7', fillOpacity: 1 })
+    L.circleMarker([p.lat, p.lon], { radius: 7, color: '#1e1e1e', weight: 2, fillColor: '#f2f2f7', fillOpacity: 1 })
       .addTo(map)
       .bindPopup('<a href="' + esc(p.url) + '" target="_blank" rel="noopener"><strong>' + esc(p.name) + '</strong></a>' +
         (p.place ? '<br>' + esc(p.place) : '') + '<br>' + p.lat + ', ' + p.lon);
