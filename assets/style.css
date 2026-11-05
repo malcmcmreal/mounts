@@ -107,7 +107,7 @@ legend { font-weight: 650; margin-bottom: .5rem; padding: 0; }
 .hint { display: block; margin-top: .3rem; font-size: .8rem; color: var(--muted); }
 .hint.error { color: var(--error); }
 .warn { color: var(--warn); background: rgba(187, 128, 9, .15); padding: .6rem .8rem; border-radius: 6px; }
-.sample-row { display: grid; grid-template-columns: 1.6rem 1fr 1.6fr auto; gap: .5rem; align-items: center; margin-bottom: .45rem; }
+.sample-row { display: grid; grid-template-columns: 1.6rem 1fr 1.6fr auto 1.6rem; gap: .5rem; align-items: center; margin-bottom: .45rem; }
 .sample-row .eb-btn { margin-top: 0; }
 .eb-tag { grid-column: 2 / -1; font-size: .8rem; color: var(--muted); margin-top: -.15rem; }
 .link-btn { border: 0; background: none; color: var(--link); cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
@@ -121,7 +121,7 @@ legend { font-weight: 650; margin-bottom: .5rem; padding: 0; }
 .pick-item:hover { background: var(--raised); }
 .pick-item input { width: auto !important; display: inline !important; margin: .2rem 0 0 !important; }
 .pick-item small { display: block; color: var(--muted); }
-@media (max-width: 560px) { .sample-row { grid-template-columns: 1.6rem 1fr; } .sample-row input[data-k=position], .sample-row .eb-btn { grid-column: 2; } }
+@media (max-width: 560px) { .sample-row { grid-template-columns: 1.6rem 1fr; } .sample-row input[data-k=position], .sample-row .eb-btn { grid-column: 2; } .sample-row .row-del { grid-column: 2; justify-self: end; } }
 .sample-row input { margin-top: 0; }
 .sample-row .num { color: var(--muted); font-size: .85rem; text-align: right; }
 .steps { padding-left: 1.2rem; }
@@ -172,3 +172,6 @@ a:hover { color: var(--link-hover); text-decoration-color: currentColor; }
 .btn.primary:hover { filter: none; background: #737377; border-color: #737377; }
 a.btn:hover, .site-title:hover { color: var(--ink); }
 a.btn.primary:hover { color: var(--accent-ink); }
+.row-del { font-size: 1.3rem; padding: 0; }
+.row-del:hover { color: var(--error); }
+kbd { font-family: var(--mono); font-size: .8em; padding: .05rem .3rem; border: 1px solid var(--line); border-radius: 4px; background: var(--raised); }

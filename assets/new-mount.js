@@ -1,4 +1,6 @@
-// "New mount" form: builds the mount's page file and opens GitHub with it pre-filled.
+// "New mount" / "Edit mount" form: builds the mount's page file and hands it to GitHub.
+// New mounts open GitHub with the file pre-filled. Edits copy the updated text and open
+// GitHub's editor for the existing file (GitHub can't pre-fill an existing file).
 (function () {
   var dlg = document.getElementById('new-mount');
   if (!dlg) return;
@@ -17,15 +19,103 @@
   var nextBtn = document.getElementById('next-btn');
   var backBtn = document.getElementById('back-btn');
   var ghBtn = document.getElementById('github-btn');
+  var editMsg = document.getElementById('edit-msg');
+  var FIELDS = ['year', 'created_by', 'affiliation', 'mount_format', 'resin', 'minerals',
+                'polish', 'etch', 'coating', 'storage'];
+  // Editing: { id, path, original file text } or null for a new mount
+  var editing = null;
 
   // ---------- open / close ----------
-  openBtn.addEventListener('click', function () {
+  if (openBtn) openBtn.addEventListener('click', function () {
+    if (editing) { form.reset(); rowsBox.innerHTML = ''; editing = null; }
+    setMode();
     if (!form.elements.year.value) form.elements.year.value = new Date().getFullYear();
     buildRows();
     showStep(1);
     dlg.showModal();
     idInput.focus();
   });
+
+  // Edit mode, opened from a mount's page
+  var editBtn = document.getElementById('edit-mount-btn');
+  if (editBtn) editBtn.addEventListener('click', function () {
+    var data = JSON.parse(document.getElementById('mount-data').textContent);
+    var path = editBtn.dataset.path;
+    editing = { id: data.mount_id, path: path, text: null };
+    form.reset(); rowsBox.innerHTML = '';
+    setMode();
+    idInput.value = data.mount_id;
+    FIELDS.forEach(function (k) { if (data[k] != null) form.elements[k].value = data[k]; });
+    var samples = data.samples || [];
+    setCount(Math.max(1, samples.length));
+    rows().forEach(function (row, i) {
+      var s = samples[i];
+      if (!s) return;
+      row.dataset.orig = JSON.stringify(s);
+      row.querySelector('[data-k=id]').value = s.id != null ? s.id : '';
+      row.querySelector('[data-k=position]').value = s.position || '';
+      if (s.earthbank) linkRow(row, String(s.earthbank), null, null);
+    });
+    showStep(1);
+    dlg.showModal();
+    // Show the EarthBank names of already-linked samples once the search list is loaded
+    loadList().then(function () {
+      if (!eb) return;
+      rows().forEach(function (row) {
+        if (!row.dataset.eb) return;
+        var id = +row.dataset.eb;
+        for (var i = 0; i < eb.samples.length; i++) if (eb.samples[i][0] === id) {
+          var sm = eb.samples[i];
+          var tag = row.querySelector('.eb-tag .mono');
+          if (tag) tag.insertAdjacentText('afterend', ' (' + sm[1] + (sm[2] >= 0 ? ' · ' + eb.packages[sm[2]][1] : '') + ')');
+          break;
+        }
+      });
+    });
+    // Fetch the current file so notes and any hand-added fields are kept
+    editMsg.hidden = false;
+    editMsg.textContent = 'Loading the current page from GitHub…';
+    loadFile(path).then(function (text) {
+      editing.text = text;
+      form.elements.notes.value = body(text).trim();
+      editMsg.hidden = true;
+    }).catch(function () {
+      editMsg.textContent = 'Couldn\'t load the current page from GitHub, so the notes below are empty. ' +
+        'If this mount has notes, use "Edit file on GitHub" instead, or copy them in before saving.';
+    });
+  });
+
+  function setMode() {
+    var e = !!editing;
+    document.getElementById('dlg-title').textContent = e ? 'Edit mount ' + editing.id : 'New mount';
+    idInput.readOnly = e;
+    document.getElementById('suggest-id').hidden = e;
+    editMsg.hidden = true;
+    idMsg.className = 'hint';
+    idMsg.textContent = e ? 'The mount ID can\'t be changed, because printed QR codes point to it.' : defaultHint;
+  }
+
+  function loadFile(path) {
+    // GitHub's API gives the latest version straight away (raw files can be cached for minutes)
+    return fetch('https://api.github.com/repos/' + repo + '/contents/' + path + '?ref=' + branch, {
+      headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store'
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    }).catch(function () {
+      return fetch('https://raw.githubusercontent.com/' + repo + '/' + branch + '/' + path + '?t=' + Date.now())
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+    });
+  }
+  // Split a page file into front matter (without the --- lines) and body
+  function frontMatter(text) {
+    var m = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(\r?\n|$)/.exec(text || '');
+    return m ? m[1] : '';
+  }
+  function body(text) {
+    var m = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(\r?\n|$)/.exec(text || '');
+    return m ? text.slice(m[0].length) : '';
+  }
   dlg.querySelectorAll('[data-close]').forEach(function (b) {
     b.addEventListener('click', function () { dlg.close(); });
   });
@@ -50,6 +140,7 @@
   function checkId() {
     var v = idInput.value.trim();
     var problem = '';
+    if (editing) return true;
     if (!v) problem = 'Please enter a mount ID.';
     else if (!/^[A-Z0-9-]+$/.test(v)) problem = 'Only capital letters, numbers and hyphens are allowed.';
     else if (existing.indexOf(v) !== -1) problem = 'A mount with this ID already exists.';
@@ -75,10 +166,15 @@
         '<input data-k="id" placeholder="Sample ID" class="mono">' +
         '<input data-k="position" placeholder="Where in the mount (e.g. top left, row 1)">' +
         '<button type="button" class="btn small eb-btn">EarthBank…</button>' +
+        '<button type="button" class="icon-btn row-del" title="Remove this sample" aria-label="Remove this sample">&times;</button>' +
         '<div class="eb-tag" hidden></div>';
       rowsBox.appendChild(div);
     }
     for (var j = old.length - 1; j >= n; j--) old[j].remove();
+    renumber();
+  }
+  function renumber() {
+    rowsBox.querySelectorAll('.sample-row .num').forEach(function (el, i) { el.textContent = i + 1; });
   }
   function rows() { return rowsBox.querySelectorAll('.sample-row'); }
 
@@ -88,7 +184,8 @@
     if (!id) { delete row.dataset.eb; tag.hidden = true; tag.innerHTML = ''; return; }
     row.dataset.eb = id;
     var idInput = row.querySelector('[data-k=id]');
-    if (name) idInput.value = name;
+    // New mounts take the EarthBank name; when editing, keep the mount's own sample ID unless it's blank
+    if (name && (!editing || !idInput.value.trim())) idInput.value = name;
     tag.innerHTML = 'Linked to EarthBank sample <span class="mono">' + id + '</span>' +
       (pkg ? ' · ' + esc(pkg) : '') +
       ' <button type="button" class="link-btn" data-unlink>Remove link</button>';
@@ -98,6 +195,12 @@
     var row = e.target.closest('.sample-row');
     if (!row) return;
     if (e.target.closest('[data-unlink]')) linkRow(row, null);
+    else if (e.target.closest('.row-del')) {
+      if (rows().length <= 1) return;
+      row.remove();
+      form.elements.n_samples.value = rows().length;
+      renumber();
+    }
     else if (e.target.closest('.eb-btn')) openPicker(row);
   });
 
@@ -229,24 +332,45 @@
 
   // ---------- build the page text ----------
   function q(s) { return JSON.stringify(String(s)); } // safe YAML string
+  var MANAGED = ['layout', 'mount_id', 'permalink', 'samples'].concat(FIELDS);
+  var ROW_KEYS = ['id', 'position', 'earthbank'];
+  function yamlValue(v) {
+    return typeof v === 'number' || typeof v === 'boolean' ? String(v) : q(v);
+  }
   function buildText(id) {
     var f = form.elements;
     var lines = ['---', 'layout: mount', 'mount_id: ' + q(id), 'permalink: /' + id + '/'];
-    var fields = ['year', 'created_by', 'affiliation', 'mount_format', 'resin', 'minerals',
-                  'polish', 'etch', 'coating', 'storage'];
-    fields.forEach(function (k) {
+    FIELDS.forEach(function (k) {
       var v = (f[k].value || '').trim();
       if (!v) return;
       lines.push(k + ': ' + (k === 'year' && /^\d{4}$/.test(v) ? v : q(v)));
     });
     lines.push('samples:');
-    rowsBox.querySelectorAll('.sample-row').forEach(function (r, i) {
+    rows().forEach(function (r, i) {
       var sid = r.querySelector('[data-k=id]').value.trim() || ('Sample ' + (i + 1));
       var pos = r.querySelector('[data-k=position]').value.trim();
       lines.push('  - id: ' + q(sid));
       if (pos) lines.push('    position: ' + q(pos));
       if (r.dataset.eb) lines.push('    earthbank: ' + r.dataset.eb);
+      // keep anything else recorded for this sample (e.g. notes)
+      var orig = {};
+      try { orig = JSON.parse(r.dataset.orig || '{}'); } catch (e) {}
+      Object.keys(orig).forEach(function (k) {
+        var v = orig[k];
+        if (ROW_KEYS.indexOf(k) !== -1 || v == null || v === '' || typeof v === 'object') return;
+        lines.push('    ' + k + ': ' + yamlValue(v));
+      });
     });
+    // When editing, keep any top-level fields this form doesn't know about, exactly as written
+    if (editing && editing.text) {
+      var block = null, keep = [];
+      frontMatter(editing.text).split(/\r?\n/).forEach(function (line) {
+        var m = /^([A-Za-z_][\w-]*)\s*:/.exec(line);
+        if (m) block = MANAGED.indexOf(m[1]) === -1 ? m[1] : null;
+        if (block) keep.push(line);
+      });
+      lines = lines.concat(keep);
+    }
     lines.push('---');
     var notes = (f.notes.value || '').trim();
     lines.push(notes || '');
@@ -267,23 +391,45 @@
     if (!stepPicker.hidden) return; // Enter in the EarthBank search box
     if (!checkId()) { idInput.focus(); return; }
     var id = idInput.value.trim();
-    var path = 'mounts/' + id + '/index.md';
+    var path = editing ? editing.path : 'mounts/' + id + '/index.md';
     var text = buildText(id);
     document.getElementById('yaml-out').value = text;
     document.getElementById('done-id').textContent = id;
+    document.getElementById('done-edit-id').textContent = id;
     document.getElementById('done-path').textContent = path;
     document.getElementById('no-repo-msg').hidden = !!repo;
+    document.getElementById('done-new').hidden = !!editing;
+    document.getElementById('done-edit').hidden = !editing;
+    document.getElementById('copy-msg').textContent = '';
     if (repo) {
-      ghBtn.href = 'https://github.com/' + repo + '/new/' + branch +
-        '?filename=' + encodeURIComponent(path) + '&value=' + encodeURIComponent(text);
+      ghBtn.href = editing
+        ? 'https://github.com/' + repo + '/edit/' + branch + '/' + path
+        : 'https://github.com/' + repo + '/new/' + branch +
+          '?filename=' + encodeURIComponent(path) + '&value=' + encodeURIComponent(text);
     }
+    ghBtn.textContent = editing ? 'Open GitHub editor' : 'Create page on GitHub';
     showStep(2);
   });
 
-  document.getElementById('copy-yaml').addEventListener('click', function () {
+  function copyText() {
     var t = document.getElementById('yaml-out');
-    t.select();
-    (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject())
-      .catch(function () { document.execCommand('copy'); });
+    return (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject())
+      .catch(function () {
+        var d = t.closest('details'); if (d) d.open = true;
+        t.select();
+        if (!document.execCommand('copy')) throw new Error('copy failed');
+      });
+  }
+  document.getElementById('copy-yaml').addEventListener('click', copyText);
+  // Editing: copy the new text as the GitHub editor opens
+  ghBtn.addEventListener('click', function () {
+    if (!editing) return;
+    var msg = document.getElementById('copy-msg');
+    copyText().then(function () {
+      msg.className = 'hint'; msg.textContent = 'Copied. Now paste it over everything in the GitHub editor.';
+    }).catch(function () {
+      msg.className = 'hint error';
+      msg.textContent = 'Couldn\'t copy automatically. Open "Show the page text", copy it, then paste it in GitHub.';
+    });
   });
 })();

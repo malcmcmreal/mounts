@@ -25,8 +25,9 @@ layout: default
     </div>
     {% if repo != "" %}
     <div class="actions">
-      <a class="btn" href="https://github.com/{{ repo }}/edit/{{ branch }}/{{ page.path }}">Edit details</a>
+      <button type="button" class="btn primary" id="edit-mount-btn" data-path="{{ page.path }}">Edit mount</button>
       <a class="btn" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}">Add files</a>
+      <a class="btn" href="https://github.com/{{ repo }}/edit/{{ branch }}/{{ page.path }}" title="Edit the page's text file directly">Edit file on GitHub</a>
     </div>
     {% endif %}
   </div>
@@ -226,6 +227,11 @@ layout: default
     <div class="codes"></div>
   </section>
 </article>
+
+{% if repo != "" %}
+<script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
+{% include new-mount-dialog.html %}
+{% endif %}
 
 {% if has_eb and eb %}
 <link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">

@@ -8,11 +8,12 @@
 
   <form id="new-mount-form" method="dialog" novalidate>
     <div class="dialog-head">
-      <h2>New mount</h2>
+      <h2 id="dlg-title">New mount</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
     </div>
 
     <div class="dialog-body" id="step-form">
+      <p id="edit-msg" class="warn" hidden></p>
       <fieldset>
         <legend>Mount</legend>
         <div class="row">
@@ -78,6 +79,18 @@
     </div>
 
     <div class="dialog-body" id="step-done" hidden>
+      <div id="done-edit" hidden>
+      <p><strong>Almost done.</strong> The updated page for <span class="mono" id="done-edit-id"></span> is ready.
+        GitHub can't fill in an existing file for us, so this takes one paste:</p>
+      <ol class="steps">
+        <li>Click <strong>Open GitHub editor</strong> below. The updated text is copied to your clipboard at the same time.</li>
+        <li>In GitHub's editor, select everything (<kbd>Ctrl</kbd>+<kbd>A</kbd>, or <kbd>⌘</kbd>+<kbd>A</kbd> on a Mac) and paste (<kbd>Ctrl</kbd>+<kbd>V</kbd> / <kbd>⌘</kbd>+<kbd>V</kbd>).</li>
+        <li>Click the green <strong>Commit changes…</strong> button, then <strong>Commit changes</strong> again.</li>
+        <li>Wait 1–2 minutes and refresh the mount's page. EarthBank details for newly linked samples appear then.</li>
+      </ol>
+      <p class="hint" id="copy-msg"></p>
+      </div>
+      <div id="done-new">
       <p><strong>Almost done.</strong> Clicking the button below opens GitHub in a new tab with the page for
         <span class="mono" id="done-id"></span> already filled in.</p>
       <ol class="steps">
@@ -86,10 +99,11 @@
         <li>Wait 1–2 minutes and refresh this page. The new mount appears in the list.</li>
         <li>Open the mount's page and use <strong>Add files</strong> to upload the map image and data files.</li>
       </ol>
+      </div>
       <p id="no-repo-msg" class="warn" hidden>The site can't tell which GitHub repository it lives in (this happens when it's viewed outside GitHub Pages).
         Copy the text below and create the file <span class="mono" id="done-path"></span> by hand.</p>
       <details>
-        <summary>Show the page text that will be created</summary>
+        <summary>Show the page text</summary>
         <textarea id="yaml-out" rows="14" readonly class="mono"></textarea>
         <button type="button" class="btn small" id="copy-yaml">Copy text</button>
       </details>
