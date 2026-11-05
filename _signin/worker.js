@@ -9,7 +9,7 @@
 //   GITHUB_CLIENT_ID      the GitHub App's Client ID
 //   GITHUB_CLIENT_SECRET  the GitHub App's client secret (add it as a Secret)
 //   ALLOWED_ORIGINS       site addresses allowed to sign in, comma-separated,
-//                         e.g. https://malcmcmreal.github.io,https://xtl.au
+//                         e.g. https://mnts.au,https://malcmcmreal.github.io
 
 export default {
   async fetch(request, env) {

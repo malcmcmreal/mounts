@@ -15,7 +15,7 @@ default_affiliation: University of Melbourne
 # Leave this as "" until you have your own domain.
 # Then set it to something like "HTTP://XTL.AU" (all capitals
 # keeps the QR code as small as possible).
-qr_base: ""
+qr_base: "HTTP://MNTS.AU"
 
 # Address of the sign-in service (see _signin/SETUP.md), e.g.
 # "https://mounts-signin.yourname.workers.dev". When set, people

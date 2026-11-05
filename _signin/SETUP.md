@@ -30,7 +30,7 @@ You need the address from part A for part B, and the codes from part B for part 
 2. Fill in:
    - **GitHub App name:** something unique, e.g. `Mount catalogue sign-in (malcmcmreal)`.
      People see this name the first time they sign in.
-   - **Homepage URL:** `https://malcmcmreal.github.io/mounts/`
+   - **Homepage URL:** `https://mnts.au`
    - **Callback URL:** your Worker address from A5 with `/callback` on the end, e.g.
      `https://mounts-signin.YOURNAME.workers.dev/callback`
    - **Expire user authorization tokens:** untick. People then stay signed in until they sign out.
@@ -53,10 +53,9 @@ You need the address from part A for part B, and the codes from part B for part 
    |--------|------------------------|-------------------------------------|
    | Text   | `GITHUB_CLIENT_ID`     | the Client ID from B4               |
    | Secret | `GITHUB_CLIENT_SECRET` | the client secret from B4           |
-   | Text   | `ALLOWED_ORIGINS`      | `https://malcmcmreal.github.io`     |
+   | Text   | `ALLOWED_ORIGINS`      | `https://mnts.au,https://malcmcmreal.github.io` |
 
-   Click **Deploy**. When you have your own domain, add it to `ALLOWED_ORIGINS` after a comma,
-   e.g. `https://malcmcmreal.github.io,https://xtl.au`.
+   Click **Deploy**. Both addresses are listed so sign-in works whichever one someone opens.
 2. In this repository, open `_config.yml` and set `auth_url` to the Worker address, e.g.
    `auth_url: "https://mounts-signin.YOURNAME.workers.dev"`. Commit.
 

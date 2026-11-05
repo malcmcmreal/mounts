@@ -11,6 +11,6 @@ Each mount has its own page with:
 
 Each physical mount has a QR code that links to its page.
 
-**Browse the catalogue:** https://malcmcmreal.github.io/mounts/
+**Browse the catalogue:** https://mnts.au
 
 The site is built with GitHub Pages.
