@@ -2,7 +2,7 @@
   /* Dark theme in neutral greys, like macOS dark mode with the Graphite accent */
   color-scheme: dark;
   --ink: #e8e8ea; --muted: #98989d; --line: #3d3d3f; --bg: #1e1e1e; --card: #282828; --raised: #333335;
-  --link: #d4d4d8; --accent: #636366; --accent-ink: #fff; --warn: #e0b04a; --error: #ff6961;
+  --link: #BE5103; --link-hover: #E07A2E; --accent: #636366; --accent-ink: #fff; --warn: #e0b04a; --error: #ff6961;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
@@ -167,6 +167,8 @@ summary { cursor: pointer; color: var(--link); }
 .leaflet-control-attribution a { color: var(--link); }
 .leaflet-bar a { background: var(--raised); color: var(--ink); border-color: var(--line); }
 .leaflet-control-layers, .leaflet-control-layers label { background: var(--card) !important; color: var(--ink) !important; border: 1px solid var(--line) !important; font-size: .8rem; }
-a { text-decoration-color: rgba(212, 212, 216, .45); text-underline-offset: 2px; }
-a:hover { color: #fff; text-decoration-color: currentColor; }
+a { text-decoration-color: rgba(190, 81, 3, .5); text-underline-offset: 2px; }
+a:hover { color: var(--link-hover); text-decoration-color: currentColor; }
 .btn.primary:hover { filter: none; background: #737377; border-color: #737377; }
+a.btn:hover, .site-title:hover { color: var(--ink); }
+a.btn.primary:hover { color: var(--accent-ink); }
