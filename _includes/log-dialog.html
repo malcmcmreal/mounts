@@ -21,18 +21,18 @@
         <label>Sample <select name="sample_pick"></select></label>
         <div class="row">
           <label class="grow">Sample ID <input name="sample_id" class="mono" autocomplete="off"></label>
-          <label class="grow">Position in the mount <input name="position" placeholder="e.g. top left"></label>
+          <label class="grow">Position in the mount <input name="position"></label>
         </div>
-        <label>Separates location <input name="separates" placeholder="Where the remaining mineral separate is kept, e.g. Separates store, cabinet 3, vial 12"></label>
+        <label>Separates location <input name="separates"></label>
         <p class="hint" id="log-rename-hint" hidden>Renaming keeps the old ID in the history.</p>
         <div class="eb-box">
           <p class="eb-box-head"><strong>EarthBank</strong> <span class="muted" id="log-current-link"></span></p>
           <label class="check" id="log-unlink-row" hidden><input type="checkbox" name="unlink"> Remove the EarthBank link</label>
           <div id="log-eb">
-            <label>Find the EarthBank sample <input id="log-q" type="search" autocomplete="off" placeholder="Sample name or place"></label>
+            <label>Find the EarthBank sample <input id="log-q" type="search" autocomplete="off"></label>
             <p class="hint" id="log-eb-status"></p>
             <div class="pick-results" id="log-eb-results"></div>
-            <label class="narrow">Or type an EarthBank sample ID <input name="earthbank" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
+            <label class="narrow">Or type an EarthBank sample ID <input name="earthbank" inputmode="numeric" class="mono"></label>
           </div>
         </div>
       </fieldset>
@@ -51,18 +51,18 @@
           </select>
         </label>
         <div data-what="polish etch coat other">
-          <label>Details <input name="detail" placeholder="e.g. 1 µm diamond, 5 min"></label>
+          <label>Details <input name="detail"></label>
         </div>
         <div data-what="analysis" hidden>
           <div class="row">
-            <label class="grow">Technique <input name="technique" list="techniques" placeholder="e.g. Fission track (LA-ICP-MS)"></label>
-            <label class="grow">Instrument <input name="instrument" placeholder="e.g. Agilent 7900"></label>
+            <label class="grow">Technique <input name="technique" list="techniques"></label>
+            <label class="grow">Instrument <input name="instrument"></label>
           </div>
-          <label>Samples analysed <input name="samples" placeholder="e.g. all, or EX-001, EX-002"></label>
-          <label>Link to data (optional) <input name="link" type="url" placeholder="e.g. EarthBank data package or DOI"></label>
+          <label>Samples analysed <input name="samples"></label>
+          <label>Link to data (optional) <input name="link" type="url"></label>
         </div>
         <div data-what="location" hidden>
-          <label>New location <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
+          <label>New location <input name="storage"></label>
         </div>
         <div data-what="detail" hidden>
           <div class="row">
@@ -92,21 +92,19 @@
         <p class="hint" id="log-hires-current"></p>
         <label class="check" id="log-hires-remove-row" hidden><input type="checkbox" name="hires_remove"> Remove the hi-res link</label>
         <div id="log-hires-fields">
-          <label>Download link <input name="hires_url" type="url" placeholder="https://… (e.g. a Mediaflux share link)"></label>
+          <label>Download link <input name="hires_url" type="url"></label>
           <label>Description <span class="muted">(optional)</span>
-            <input name="hires_label" placeholder="e.g. Full-resolution TIFF, 480 MB (Mediaflux)"></label>
+            <input name="hires_label"></label>
         </div>
-        <p class="hint">The page shows the image you uploaded as the preview, with a Hi-res download button underneath.
-          If the link changes later, add a new link here; the newest one is used.</p>
       </fieldset>
 
       <fieldset>
         <div class="row">
           <label>Date <input name="date" type="date"></label>
-          <label class="grow">By <input name="by" placeholder="Your name"></label>
+          <label class="grow">By <input name="by"></label>
         </div>
         <label><span id="log-note-label">Comment <span class="muted">(optional)</span></span>
-          <textarea name="note" rows="2" placeholder="Anything worth recording"></textarea></label>
+          <textarea name="note" rows="2"></textarea></label>
       </fieldset>
       <p class="hint error" id="log-error"></p>
     </div>

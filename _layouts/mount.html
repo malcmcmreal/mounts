@@ -140,11 +140,11 @@ layout: default
         <button type="button" class="btn small" data-layout-dl="png">PNG</button>
         <button type="button" class="btn small" data-layout-dl="csv" title="Fiducial and region-centre coordinates">Coordinates (CSV)</button>
       </div>
-      <p class="muted small">Drawn {{ st.layout.updated | date: "%-d %b %Y" }}{% if st.layout.by != "" %} by {{ st.layout.by }}{% endif %}. Positions are in millimetres, as drawn.</p>
+      <p class="muted small">Drawn {{ st.layout.updated | date: "%-d %b %Y" }}{% if st.layout.by != "" %} by {{ st.layout.by }}{% endif %}. Positions in mm.</p>
     </div>
     <script type="application/json" id="layout-data">{{ st.layout | jsonify }}</script>
     {% else %}
-    <p class="muted">No layout yet. Draw a schematic of the mount: its shape, where each sample sits, and numbered fiducial markers.</p>
+    <p class="muted">No layout yet.</p>
     {% endif %}
   
     <div class="photos">
@@ -168,7 +168,7 @@ layout: default
           {% elsif repo != "" %}
           <button type="button" class="hires hires-add" data-add-entry="hires" data-file="{{ f.name }}">
             <span class="hires-icon" aria-hidden="true">+</span>
-            <span><strong>Add hi-res download link</strong><small>e.g. a Mediaflux share link</small></span>
+            <span><strong>Add hi-res download link</strong></span>
           </button>
           {% endif %}
         </figure>
@@ -176,7 +176,7 @@ layout: default
       {% endif %}{% endfor %}
     </div>
     {% else %}
-    <p class="muted small">No photos yet. Use <strong>Add files</strong> to upload a photo or map image of the mount (JPG or PNG); you can then link a hi-res download under it.</p>
+    <p class="muted small">No photos yet.</p>
     {% endif %}
     </div>
   </section>
@@ -201,7 +201,7 @@ layout: default
       {% endif %}{% endfor %}
     </ul>
     {% else %}
-    <p class="muted">No data files yet. Use <strong>Add files</strong> to upload CSV or text files.</p>
+    <p class="muted">No data files yet.</p>
     {% endif %}
   </section>
 
@@ -240,7 +240,7 @@ layout: default
 
     {% if markers != "" %}
     <div id="eb-map" class="eb-map" data-points="[{{ markers | escape }}]"></div>
-    <p class="muted small">Where the samples in this mount were collected. Click a marker for the EarthBank sample.</p>
+    <p class="muted small">Sample locations.</p>
     {% endif %}
 
     <div class="eb-samples">
@@ -307,7 +307,7 @@ layout: default
     <p class="muted small eb-foot">From <a href="https://www.auscope.org.au/earthbank" target="_blank" rel="noopener">AuScope EarthBank</a>
       public data, updated {{ eb.updated | date: "%-d %b %Y" }}. Some EarthBank pages (such as data packages) may ask you to sign in.</p>
     {% else %}
-    <p class="muted small">EarthBank details couldn't be loaded when the site was last built. They'll appear after the next build.</p>
+    <p class="muted small">EarthBank details unavailable.</p>
     {% endif %}
   </section>
   {% endif %}
@@ -316,7 +316,7 @@ layout: default
     data-year="{{ cur.year }}" data-minerals="{{ cur.minerals | escape }}" data-affiliation="{{ cur.affiliation | escape }}"
     data-nsamples="{{ samples | size }}">
     <h2>Codes for this mount</h2>
-    <p class="muted small">Every code below holds the same address: <span class="mono break">{{ qr_text }}</span>. Test a few on your phones at the size you plan to print before embedding them.</p>
+    <p class="muted small">Address: <span class="mono break">{{ qr_text }}</span></p>
     <div class="codes"></div>
   </section>
   <script type="application/json" id="sample-order">{{ samples | map: "id" | jsonify }}</script>

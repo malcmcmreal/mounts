@@ -134,8 +134,7 @@
   var STANDARD = /^[0-9A-Z-]{5}$/;
   var LEN = 5;
   var customBox = form.elements.custom_id;
-  defaultHint = 'Exactly 5 characters: capital letters, numbers and hyphens. ' +
-    'This keeps the QR code at its smallest size.';
+  defaultHint = '5 characters: capital letters, numbers and hyphens.';
   idMsg.textContent = defaultHint;
   function isCustom() { return customBox.checked; }
   function taken(v) {
@@ -156,7 +155,7 @@
   customBox.addEventListener('change', function () { applyMode(); checkId(); });
   function applyMode() {
     idInput.maxLength = isCustom() ? 40 : LEN;
-    idInput.placeholder = isCustom() ? 'Any ID' : 'e.g. A7K3M';
+    idInput.placeholder = '';
     if (!isCustom()) idInput.value = idInput.value.toUpperCase().slice(0, LEN);
   }
   idInput.addEventListener('input', function () {
@@ -203,10 +202,10 @@
       div.innerHTML =
         '<span class="num">' + (i + 1) + '</span>' +
         '<input data-k="id" placeholder="Sample ID" class="mono">' +
-        '<input data-k="position" placeholder="Where in the mount (e.g. top left, row 1)">' +
+        '<input data-k="position" placeholder="Position">' +
         '<button type="button" class="btn small eb-btn">EarthBank…</button>' +
         '<button type="button" class="icon-btn row-del" title="Remove this sample" aria-label="Remove this sample">&times;</button>' +
-        '<input data-k="separates" class="sep-input" placeholder="Separates location (where the remaining mineral separate is kept)">' +
+        '<input data-k="separates" class="sep-input" placeholder="Separates location">' +
         '<div class="eb-tag" hidden></div>';
       rowsBox.appendChild(div);
     }

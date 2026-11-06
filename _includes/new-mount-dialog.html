@@ -19,7 +19,7 @@
         <div class="row">
           <label class="grow">Mount ID *
             <span class="inline">
-              <input name="mount_id" required autocomplete="off" placeholder="e.g. A7K3M" class="mono" maxlength="5">
+              <input name="mount_id" required autocomplete="off" class="mono" maxlength="5">
               <button type="button" class="btn small" id="suggest-id">Suggest one</button>
             </span>
             <small id="id-msg" class="hint"></small>
@@ -28,31 +28,30 @@
         <div class="row" id="custom-id-row">
           <label class="check"><input type="checkbox" name="custom_id"> Use a custom mount ID that doesn't follow the standard</label>
         </div>
-        <label>Project <input name="project" list="projects" autocomplete="off" placeholder="e.g. Grand Canyon thermochronology">
-          <small class="hint">Groups mounts together on the home page. Pick an existing project to keep the name identical.</small></label>
+        <label>Project <input name="project" list="projects" autocomplete="off"></label>
         <datalist id="projects">{% assign all_mounts = site.pages | where: "layout", "mount" %}{% assign plist = "" | split: "" %}{% for m in all_mounts %}{% assign stx = site.data.mountstate[m.mount_id] %}{% assign pj = stx.project | default: m.project %}{% if pj and pj != "" %}{% assign plist = plist | push: pj %}{% endif %}{% endfor %}{% assign plist = plist | uniq | sort %}{% for pj in plist %}<option value="{{ pj | escape }}">{% endfor %}</datalist>
         <div class="row">
           <label>Year made <input name="year" type="number" min="1900" max="2100"></label>
-          <label class="grow">Made by <input name="created_by" placeholder="Name"></label>
+          <label class="grow">Made by <input name="created_by"></label>
         </div>
         <label>Affiliation <input name="affiliation" value="{{ site.default_affiliation }}"></label>
         <div class="row">
           <label class="grow">Mount format
-            <input name="mount_format" list="formats" placeholder="e.g. 25 mm round">
+            <input name="mount_format" list="formats">
           </label>
           <label class="grow">Resin / epoxy
-            <input name="resin" placeholder="e.g. Struers EpoFix">
+            <input name="resin">
           </label>
         </div>
-        <label>Minerals mounted <input name="minerals" placeholder="e.g. Apatite, zircon"></label>
+        <label>Minerals mounted <input name="minerals"></label>
       </fieldset>
 
       <fieldset>
         <legend>Preparation</legend>
-        <label>Polish <input name="polish" list="polishes" placeholder="e.g. 9, 3, 1 µm diamond; final 0.04 µm colloidal silica"></label>
-        <label>Etching <input name="etch" placeholder="e.g. 5.5 M HNO₃, 20 s at 21 °C"></label>
-        <label>Coating <input name="coating" list="coatings" placeholder="e.g. Carbon, ~20 nm"></label>
-        <label>Where the mount is stored <input name="storage" placeholder="e.g. Thermochron lab, drawer 3"></label>
+        <label>Polish <input name="polish" list="polishes"></label>
+        <label>Etching <input name="etch"></label>
+        <label>Coating <input name="coating" list="coatings"></label>
+        <label>Where the mount is stored <input name="storage"></label>
       </fieldset>
 
       <fieldset>
@@ -60,14 +59,12 @@
         <label class="narrow">Number of samples
           <input name="n_samples" type="number" min="1" max="50" value="1">
         </label>
-        <p class="hint">Type sample IDs directly, or click <strong>EarthBank…</strong> on a row to search EarthBank and link the sample.
-          Linked samples show their EarthBank details and location on the mount's page.</p>
         <div id="sample-rows"></div>
       </fieldset>
 
       <fieldset>
         <legend>Notes</legend>
-        <textarea name="notes" rows="3" placeholder="Anything else worth recording (optional)"></textarea>
+        <textarea name="notes" rows="3"></textarea>
       </fieldset>
     </div>
 
@@ -75,13 +72,13 @@
       <p class="small muted">Search public EarthBank samples. Tick one or more and click <strong>Use selected</strong>.
         They fill the sample rows starting at row <span id="pick-row"></span>, adding rows if needed.</p>
       <div class="row">
-        <label class="grow">Sample name or place <input id="pick-q" type="search" autocomplete="off" placeholder="e.g. Durango"></label>
+        <label class="grow">Sample name or place <input id="pick-q" type="search" autocomplete="off"></label>
         <label class="grow">Data package <select id="pick-pkg"><option value="">All data packages</option></select></label>
       </div>
       <p id="pick-status" class="hint"></p>
       <div id="pick-results" class="pick-results"></div>
       <label class="narrow">Or type an EarthBank sample ID
-        <input id="pick-manual" inputmode="numeric" class="mono" placeholder="e.g. 14915452"></label>
+        <input id="pick-manual" inputmode="numeric" class="mono"></label>
     </div>
 
     <div class="dialog-body" id="step-done" hidden>

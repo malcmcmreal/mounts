@@ -82,7 +82,6 @@
     f.sample_id.value = s ? s.id : '';
     f.position.value = s ? (s.position || '') : '';
     f.separates.value = s ? (s.separates || '') : '';
-    f.sample_id.placeholder = s ? '' : 'e.g. MM26-04';
     document.getElementById('log-current-link').textContent = s && s.earthbank
       ? '· currently linked to sample ' + s.earthbank + '. Pick another to re-link.'
       : '· not linked yet';
@@ -166,8 +165,6 @@
   function whatChanged() {
     var w = f.what.value;
     form.querySelectorAll('[data-what]').forEach(function (el) { el.hidden = el.dataset.what.split(' ').indexOf(w) === -1; });
-    var ph = { polish: 'e.g. 1 µm diamond, 5 min', etch: 'e.g. 5.5 M HNO₃, 20 s at 21 °C', coat: 'e.g. Carbon, ~20 nm', other: 'What was done' };
-    if (ph[w]) f.detail.placeholder = ph[w];
     if (w === 'detail') f.value.value = current[f.field.value] != null ? current[f.field.value] : '';
     errBox.textContent = '';
   }

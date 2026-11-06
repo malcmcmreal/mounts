@@ -268,7 +268,7 @@
         info: [
           'This address is ' + text.length + ' characters. Micro QR holds at most ' +
             (alnum ? '35 characters of capitals-only text' : '15 characters when the text has lowercase letters') + '.',
-          'Set a short capitals-only address (qr_base in _config.yml, e.g. HTTP://XTL.AU) and it will fit.'
+          'A shorter address in capitals (qr_base in _config.yml) would fit.'
         ]
       });
     }
