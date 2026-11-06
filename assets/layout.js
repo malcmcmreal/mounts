@@ -38,16 +38,21 @@
   }
 
   // ---------- drawing (shared by the page and the builder) ----------
-  // opts: { title, editing, selected: {kind, i} }
+  // opts: { title, lines: [smaller lines under the title], editing, selected: {kind, i} }
   function render(L, opts) {
     opts = opts || {};
-    var W = L.w + 2 * M, H = L.h + 2 * M + (opts.title ? 3 : 0), oy = opts.title ? 3 : 0;
+    var sub = opts.title ? (opts.lines || []).filter(Boolean) : [];
+    var oy = opts.title ? 3 + sub.length * 1.4 : 0;
+    var W = L.w + 2 * M, H = L.h + 2 * M + oy;
     var u = Math.max(L.w, L.h) / 25;           // text scales with the mount
     var labels = labelsOf(L, opts.order || sampleOrder), sel = opts.selected || {};
     var o = [];
     o.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + r2(W) + ' ' + r2(H) + '" width="' + r2(W * 20) + '" height="' + r2(H * 20) + '" font-family="' + FONT + '">');
     o.push('<rect width="' + r2(W) + '" height="' + r2(H) + '" fill="#fff"/>');
     if (opts.title) o.push('<text x="' + M + '" y="' + r2(2.4) + '" font-size="' + r2(1.7) + '" font-weight="700" fill="#222">' + esc(opts.title) + '</text>');
+    sub.forEach(function (t, i) {
+      o.push('<text x="' + M + '" y="' + r2(2.4 + 1.4 * (i + 1)) + '" font-size="' + r2(1.0) + '" fill="#555">' + esc(t) + '</text>');
+    });
     o.push('<g transform="translate(' + M + ' ' + r2(M + oy) + ')">');
     // mount body
     if (L.shape === 'round') {
@@ -88,11 +93,11 @@
     });
     // fiducials
     (L.fiducials || []).forEach(function (f, i) {
-      var on = sel.kind === 'fid' && sel.i === i, s = 0.7 * u, sw = r2(0.12 * u);
+      var on = sel.kind === 'fid' && sel.i === i, s = 0.525 * u, sw = r2(0.12 * u);
       o.push('<g data-kind="fid" data-i="' + i + '" class="lay-item">' +
         '<circle cx="' + r2(f.x) + '" cy="' + r2(f.y) + '" r="' + r2(s * 1.3) + '" fill="' + (on ? '#ffe9a8' : '#fff') + '" fill-opacity=".85" stroke="#111" stroke-width="' + sw + '"/>' +
         '<path d="M' + r2(f.x - s * 1.9) + ' ' + r2(f.y) + 'H' + r2(f.x + s * 1.9) + 'M' + r2(f.x) + ' ' + r2(f.y - s * 1.9) + 'V' + r2(f.y + s * 1.9) + '" stroke="#111" stroke-width="' + sw + '"/>' +
-        '<text x="' + r2(f.x + s * 1.5) + '" y="' + r2(f.y - s * 1.3) + '" font-size="' + r2(1.05 * u) + '" font-weight="700" fill="#111" pointer-events="none">' + (i + 1) + '</text></g>');
+        '<text x="' + r2(f.x + s * 1.5) + '" y="' + r2(f.y - s * 1.5) + '" font-size="' + r2(1.05 * u) + '" font-weight="700" fill="#111" pointer-events="none">' + (i + 1) + '</text></g>');
     });
     o.push('</g>');
     // scale bar (not on thumbnails)
@@ -127,9 +132,15 @@
   var saved = null;
   try { saved = dataEl ? JSON.parse(dataEl.textContent) : null; } catch (e) { saved = null; }
   var mountId = view ? view.dataset.mount : '';
-  if (!mountId) { try { mountId = JSON.parse(document.getElementById('mount-state').textContent).mount_id; } catch (e) {} }
+  var mstate = {};
+  try { mstate = JSON.parse(document.getElementById('mount-state').textContent) || {}; } catch (e) {}
+  if (!mountId) mountId = mstate.mount_id || '';
+  // Under the mount ID: polish, then coating (only when filled in)
+  function filled(v) { v = String(v == null ? '' : v).trim(); return /^(none|na|n\/a|-|no)$/i.test(v) ? '' : v; }
+  var mf = mstate.fields || {};
+  var titleLines = [filled(mf.polish) && 'Polish: ' + filled(mf.polish), filled(mf.coating) && 'Coating: ' + filled(mf.coating)];
   if (view && saved) {
-    view.innerHTML = render(saved, { title: mountId });
+    view.innerHTML = render(saved, { title: mountId, lines: titleLines });
     var tbl = document.getElementById('layout-fids');
     if (tbl) {
       var fc = fidCoords(saved);
@@ -172,7 +183,7 @@
       var a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([fidCsv(saved)], { type: 'text/csv' }));
       a.download = mountId + '_layout_coordinates.csv'; document.body.appendChild(a); a.click(); a.remove();
-    } else download(render(saved, { title: mountId }), mountId + '_layout', fmt);
+    } else download(render(saved, { title: mountId, lines: titleLines }), mountId + '_layout', fmt);
   });
 
   // ---------- the builder ----------
@@ -458,7 +469,7 @@
   // ---------- downloads and saving ----------
   dlg.addEventListener('click', function (e) {
     var b = e.target.closest('[data-lay-dl]');
-    if (b) download(render(L, { title: mountId }), mountId + '_layout', b.dataset.layDl);
+    if (b) download(render(L, { title: mountId, lines: titleLines }), mountId + '_layout', b.dataset.layDl);
   });
   var saveBtn = document.getElementById('lay-save'), ghBtn = document.getElementById('lay-github'), backBtn = document.getElementById('lay-back');
   function direct() { return window.GH && GH.canWrite(); }
