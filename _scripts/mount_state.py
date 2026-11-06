@@ -6,7 +6,7 @@ Everything that happens later is a separate dated entry file in _data/log/<ID>/,
 
     date: "2027-02-02 14:30"
     by: "M. McMillan"
-    type: sample            # sample | prep | analysis | location | detail | hires | layout | note
+    type: sample            # sample | prep | analysis | location | detail | details | hires | layout | note
     sample: "EX-002"        # sample entries: the sample's current ID
     id: "MM26-02"           #   optional new ID (rename); new: true adds a sample
     earthbank: 748265       #   optional EarthBank link (unlink: true removes it)
@@ -105,6 +105,10 @@ def describe(e):
     if t == "detail":
         f = text(e.get("field"))
         return f"{DETAIL_LABELS.get(f, f)} set to {text(e.get('value'))}"
+    if t == "details":
+        changes = e.get("set") if isinstance(e.get("set"), dict) else {}
+        return "; ".join(f"{DETAIL_LABELS.get(k, k)} set to {text(v)}" for k, v in changes.items()
+                         if k in DETAIL_FIELDS) or "Details updated"
     if t == "hires":
         f = text(e.get("file"))
         return f"Hi-res link removed for {f}" if not text(e.get("url")) else f"Hi-res download linked for {f}"
@@ -194,6 +198,10 @@ def build():
                     hires.pop(text(e.get("file")), None)
             elif t == "detail" and text(e.get("field")) in DETAIL_FIELDS:
                 fields[text(e.get("field"))] = text(e.get("value"))
+            elif t == "details" and isinstance(e.get("set"), dict):    # several fields at once (bulk edit)
+                for k, v in e["set"].items():
+                    if k in DETAIL_FIELDS and text(v):
+                        fields[k] = text(v)
             item = {k: v for k, v in e.items() if not k.startswith("_") and k != "layout" and v not in (None, "")}
             item["text"] = describe(e)
             item["file"] = e["_file"]

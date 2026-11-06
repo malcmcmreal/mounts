@@ -34,6 +34,7 @@ layout: default
 <div class="pick-bar" id="pick-bar" hidden>
   <span id="pick-count"></span>
   <button type="button" class="btn small primary" id="pick-dl">Download QR codes</button>
+  {% if site.github.repository_nwo %}<button type="button" class="btn small" id="pick-edit">Edit details</button>{% endif %}
   <button type="button" class="link-btn small" id="pick-clear">Clear selection</button>
 </div>
 <div id="mount-groups"></div>
@@ -48,7 +49,8 @@ layout: default
   {% assign linked = "" | split: "" %}{% for s in ms %}{% if s.earthbank %}{% assign e = s.earthbank | append: "" %}{% assign linked = linked | push: e %}{% endif %}{% endfor %}
   {% assign last = st.timeline | last %}
   <li class="mount-row" data-id="{{ m.mount_id }}" data-nsamples="{{ ms | size }}" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
-    data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
+    data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}"
+    data-format="{{ cur.mount_format | escape }}" data-polish="{{ cur.polish | escape }}" data-etch="{{ cur.etch | escape }}" data-coating="{{ cur.coating | escape }}" data-storage="{{ cur.storage | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
     <label class="mr-pick"><input type="checkbox" class="pick" aria-label="Select {{ m.mount_id }}"></label>
     <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
       {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}" data-order="{{ ms | map: 'id' | jsonify | escape }}"></span>
@@ -211,6 +213,47 @@ layout: default
     </div>
   </form>
 </dialog>
+{% if site.github.repository_nwo %}
+<dialog id="bulk-dialog" class="dialog">
+  <form method="dialog" id="bulk-form" novalidate>
+    <div class="dialog-head">
+      <h2>Edit details</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="dialog-body" id="bulk-body">
+      <p id="bulk-which" class="small"></p>
+      <p class="hint">Only filled-in fields are changed. Each change is added to the mount's history.</p>
+      <div class="bulk-grid">
+        <label>Project <input name="project" list="projects"><span class="cur" data-cur="project"></span></label>
+        <label>Year made <input name="year" inputmode="numeric"><span class="cur" data-cur="year"></span></label>
+        <label>Made by <input name="created_by"><span class="cur" data-cur="maker"></span></label>
+        <label>Mount format <input name="mount_format" list="formats"><span class="cur" data-cur="format"></span></label>
+        <label>Minerals <input name="minerals"><span class="cur" data-cur="minerals"></span></label>
+        <label>Polish <input name="polish" list="polishes"><span class="cur" data-cur="polish"></span></label>
+        <label>Etching <input name="etch"><span class="cur" data-cur="etch"></span></label>
+        <label>Coating <input name="coating" list="coatings"><span class="cur" data-cur="coating"></span></label>
+        <label class="wide">Stored at <input name="storage"><span class="cur" data-cur="storage"></span></label>
+      </div>
+      <label>New note <textarea name="note" rows="3"></textarea></label>
+      <div class="row">
+        <label>Date <input name="date" type="date"></label>
+        <label class="grow">By <input name="by"></label>
+      </div>
+      <p class="hint" id="bulk-signin" hidden>Sign in with GitHub (top right) to save changes to several mounts at once.</p>
+      <p class="hint error" id="bulk-error"></p>
+    </div>
+    <div class="dialog-body" id="bulk-done" hidden>
+      <div class="saved"><span aria-hidden="true">✓</span>
+        <div><strong>Saved.</strong> <span id="bulk-done-text"></span> The pages update in about a minute.</div></div>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="bulk-go">Save</button>
+    </div>
+  </form>
+</dialog>
+<script src="{{ '/assets/bulk-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% endif %}
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/zip.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script>

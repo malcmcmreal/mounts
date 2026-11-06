@@ -362,3 +362,9 @@ td.separates { font-size: .9rem; }
 .dl-set legend { font-size: .85rem; color: var(--muted); padding: 0 .3rem; }
 .dl-set label.check { margin-bottom: .45rem; }
 #dl-which { word-break: break-word; }
+
+/* Home: bulk edit */
+.bulk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 0 .9rem; }
+.bulk-grid .wide { grid-column: 1 / -1; }
+.bulk-grid .cur { display: block; min-height: 1.1em; margin: .15rem 0 .2rem; font-size: .78rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
