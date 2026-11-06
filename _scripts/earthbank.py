@@ -205,7 +205,8 @@ def sample_details(h, points):
         }))
     return clean({
         "id": sid,
-        "name": s.get("name"),
+        # plain name, without the LITH00000000- prefix EarthBank adds in some places
+        "name": re.sub(r"^LITH\d+-", "", s.get("name") or "") or None,
         "url": f"{WEB}/show/sample/{sid}",
         "igsn": ident,
         "igsn_url": ident_url(ident),

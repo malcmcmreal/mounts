@@ -13,7 +13,7 @@ minerals: "Apatite"
 polish: "9, 3, 1 µm diamond"
 etch: "NA"
 samples:
-  - id: "LITH00728954-7222-133"
+  - id: "7222-133"
     position: "Top most rectangle"
     separates: "1A03"
     earthbank: 752059
@@ -29,7 +29,7 @@ samples:
   - id: "Durango"
     position: "Center right square"
     separates: "STD Drawer"
-  - id: "LITH00728955-SWY-16"
+  - id: "SWY-16"
     position: "Lower rectangle"
     separates: "13L15"
     earthbank: 758116

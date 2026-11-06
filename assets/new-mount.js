@@ -264,7 +264,12 @@
       if (!r.ok) throw new Error(r.status);
       return r.json();
     }).then(function (d) {
-      d.samples.forEach(function (s) { s.push((s[1] + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase()); });
+      // EarthBank's list adds a prefix to some names (LITH00728954-7222-133): show the plain name, search both
+      d.samples.forEach(function (s) {
+        var full = s[1] || '';
+        s[1] = full.replace(/^LITH\d+-/, '');
+        s.push((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
+      });
       var opts = d.packages.map(function (p, i) { return [p[1], i]; })
         .sort(function (a, b) { return a[0].localeCompare(b[0]); });
       pickPkg.insertAdjacentHTML('beforeend', opts.map(function (o) {

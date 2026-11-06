@@ -109,7 +109,12 @@
       if (!r.ok) throw new Error(r.status);
       return r.json();
     }).then(function (d) {
-      d.samples.forEach(function (s) { s.push((s[1] + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase()); });
+      // EarthBank's list adds a prefix to some names (LITH00728954-7222-133): show the plain name, search both
+      d.samples.forEach(function (s) {
+        var full = s[1] || '';
+        s[1] = full.replace(/^LITH\d+-/, '');
+        s.push((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
+      });
       eb = d;
     }).catch(function () {
       ebLoading = null;
@@ -146,7 +151,12 @@
   }
   var timer;
   qBox.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(search, 150); });
-  results.addEventListener('change', function (e) { chosen = +e.target.value; f.earthbank.value = chosen; });
+  results.addEventListener('change', function (e) {
+    chosen = +e.target.value; f.earthbank.value = chosen;
+    // A new sample with no ID yet takes the EarthBank name
+    if (!f.sample_id.value.trim() && eb) for (var i = 0; i < eb.samples.length; i++)
+      if (eb.samples[i][0] === chosen) { f.sample_id.value = eb.samples[i][1] || ''; break; }
+  });
 
   // ---------- Hi-res link ----------
   f.hires_file.addEventListener('change', hiresChanged);
