@@ -14,11 +14,11 @@ polish: "9, 3, 1 µm diamond"
 etch: "NA"
 samples:
   - id: "LITH00728954-7222-133"
-    position: "Upper left rectangle"
+    position: "Top most rectangle"
     separates: "1A03"
     earthbank: 752059
   - id: "8122-15"
-    position: "Upper right rectangle"
+    position: "Second from top rectangle"
     separates: "5H26"
   - id: "MudTank"
     position: "Center left square"
