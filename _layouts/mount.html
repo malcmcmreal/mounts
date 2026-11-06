@@ -91,7 +91,7 @@ layout: default
       <tbody>
         {% for s in samples %}
         <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}"><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{{ s.separates }}</td>
-          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="https://app.ausgeochem.org/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
+          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
         </tr>
         {% endfor %}
       </tbody>
@@ -277,7 +277,7 @@ layout: default
         {% endif %}
         {% else %}
         <h3 class="mono">{{ s.id }}</h3>
-        <p class="small muted">EarthBank sample <a href="https://app.ausgeochem.org/show/sample/{{ key }}" target="_blank" rel="noopener" class="mono">{{ key }}</a>
+        <p class="small muted">EarthBank sample <a href="{{ site.earthbank_web }}/show/sample/{{ key }}" target="_blank" rel="noopener" class="mono">{{ key }}</a>
           wasn't found in EarthBank's public data. Check the ID, or the sample may be private.</p>
         {% endif %}
       </article>

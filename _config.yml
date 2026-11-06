@@ -17,6 +17,9 @@ default_affiliation: University of Melbourne
 # keeps the QR code as small as possible).
 qr_base: "HTTP://MNTS.AU"
 
+# Where EarthBank links on the site point (the data itself is still read from the EarthBank API)
+earthbank_web: "https://app.earthbank.au"
+
 # Address of the sign-in service (see _signin/SETUP.md), e.g.
 # "https://mounts-signin.yourname.workers.dev". When set, people
 # can sign in with GitHub and save changes straight from the site.

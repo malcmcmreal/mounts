@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch public data from EarthBank (app.ausgeochem.org) for the mount catalogue.
+"""Fetch public data from EarthBank (API at app.ausgeochem.org) for the mount catalogue.
 
 Runs in GitHub Actions (see .github/workflows/site.yml). Two jobs:
 
@@ -26,7 +26,15 @@ import urllib.parse
 import urllib.request
 
 API = os.environ.get("EARTHBANK_API", "https://app.ausgeochem.org")
-WEB = "https://app.ausgeochem.org"
+def _web():
+    """Link address for EarthBank pages: earthbank_web in _config.yml."""
+    try:
+        import yaml
+        cfg = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "_config.yml"), encoding="utf-8"))
+        return (cfg.get("earthbank_web") or "").rstrip("/") or "https://app.earthbank.au"
+    except Exception:
+        return "https://app.earthbank.au"
+WEB = _web()
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TECHNIQUES = {
