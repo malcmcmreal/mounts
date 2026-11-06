@@ -142,10 +142,11 @@
     qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
     qr.make();
     var n = qr.getModuleCount(), quiet = 2, H = n + 2 * quiet, W = H * 8.75;
-    var x0 = H + 1, room = W - x0 - 1.5;
+    var off = +(W * 0.1).toFixed(2);                  // left margin: 10% of the label length
+    var x0 = off + H + 1, room = W - x0 - 1.5;
     var d = '';
     for (var r = 0; r < n; r++) for (var c = 0; c < n; c++)
-      if (qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+      if (qr.isDark(r, c)) d += 'M' + (off + c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
     var font = 'Helvetica Neue, Helvetica, Arial, sans-serif';
 
     var ns = +section.dataset.nsamples || 0;
