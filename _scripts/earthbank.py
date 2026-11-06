@@ -31,9 +31,9 @@ def _web():
     try:
         import yaml
         cfg = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "_config.yml"), encoding="utf-8"))
-        return (cfg.get("earthbank_web") or "").rstrip("/") or "https://app.earthbank.au"
+        return (cfg.get("earthbank_web") or "").rstrip("/") or "https://app.ausgeochem.org"
     except Exception:
-        return "https://app.earthbank.au"
+        return "https://app.ausgeochem.org"
 WEB = _web()
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

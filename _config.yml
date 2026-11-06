@@ -18,7 +18,7 @@ default_affiliation: University of Melbourne
 qr_base: "HTTP://MNTS.AU"
 
 # Where EarthBank links on the site point (the data itself is still read from the EarthBank API)
-earthbank_web: "https://app.earthbank.au"
+earthbank_web: "https://app.ausgeochem.org"
 
 # Address of the sign-in service (see _signin/SETUP.md), e.g.
 # "https://mounts-signin.yourname.workers.dev". When set, people
