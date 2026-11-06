@@ -1,0 +1,10 @@
+name: probe
+on: { push: { branches: [probe-eb] } }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s "https://app.ausgeochem.org/api/core/hydrate-samples-by-id?sampleIds=752059,758116" | python3 -m json.tool | head -c 20000
+          echo; echo ===== LIST
+          curl -s "https://app.ausgeochem.org/api/core/sample-with-locations?id.equals=752059" | python3 -m json.tool | head -c 6000
