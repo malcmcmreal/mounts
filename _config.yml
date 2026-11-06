@@ -24,7 +24,7 @@ earthbank_web: "https://app.ausgeochem.org"
 # "https://mounts-signin.yourname.workers.dev". When set, people
 # can sign in with GitHub and save changes straight from the site.
 # Leave as "" to always use GitHub's own pages for saving.
-auth_url: ""
+auth_url: "https://mounts-signin.malcmcm.workers.dev"
 
 # =============================================================
 #  LEAVE EVERYTHING BELOW AS IT IS
