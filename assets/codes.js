@@ -142,7 +142,7 @@
     qr.addData(text, alnum ? 'Alphanumeric' : 'Byte');
     qr.make();
     var n = qr.getModuleCount(), quiet = 2, H = n + 2 * quiet, W = H * 8.75;
-    var off = +(W * 0.1).toFixed(2);                  // left margin: 10% of the label length
+    var off = +(W * 3 / 65.6).toFixed(2);             // left margin: 3 mm when printed 65.6 mm long
     var x0 = off + H + 1, room = W - x0 - 1.5;
     var d = '';
     for (var r = 0; r < n; r++) for (var c = 0; c < n; c++)
