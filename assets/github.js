@@ -127,7 +127,9 @@
       // Someone else saved at the same moment: try once more on top of their change
       if (e.status === 422 && !retried) return GH.commit(files, message, true);
       if (e.status === 403 || e.status === 404) {
-        throw new Error('GitHub didn\'t allow the save. Ask the catalogue owner to add you as a collaborator on the repository.');
+        var why = e.message ? ' (GitHub said: ' + e.message + ')' : '';
+        throw new Error('GitHub didn\'t allow the save' + why + '. Either you aren\'t a collaborator on the repository, ' +
+          'or the sign-in app isn\'t installed on it with Contents set to "Read and write".');
       }
       throw e;
     });
