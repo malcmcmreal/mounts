@@ -31,7 +31,7 @@ def _web():
     try:
         import yaml
         cfg = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "_config.yml"), encoding="utf-8"))
-        return (cfg.get("earthbank_web") or "").rstrip("/") or "https://app.ausgeochem.org"
+        return (cfg.get("earthbank_web") or "").rstrip("/") or "https://www.earthbank.au"
     except Exception:
         return "https://app.ausgeochem.org"
 WEB = _web()
@@ -206,7 +206,7 @@ def sample_details(h, points):
     return clean({
         "id": sid,
         "name": s.get("name"),
-        "url": f"{WEB}/show/sample/{sid}",
+        "url": f"{WEB}/mydata#/core/sample-with-locations/{sid}/show",
         "igsn": ident,
         "igsn_url": ident_url(ident),
         "description": s.get("description"),
