@@ -27,8 +27,14 @@ layout: default
   </label>
   <span class="group-toggles">
     <button type="button" class="link-btn small" id="expand-all">Expand all</button> ·
-    <button type="button" class="link-btn small" id="collapse-all">Collapse all</button>
+    <button type="button" class="link-btn small" id="collapse-all">Collapse all</button> ·
+    <button type="button" class="link-btn small" id="select-all">Select all</button>
   </span>
+</div>
+<div class="pick-bar" id="pick-bar" hidden>
+  <span id="pick-count"></span>
+  <button type="button" class="btn small primary" id="pick-dl">Download QR codes</button>
+  <button type="button" class="link-btn small" id="pick-clear">Clear selection</button>
 </div>
 <div id="mount-groups"></div>
 
@@ -41,8 +47,9 @@ layout: default
   {% assign thumb = "" %}{% for f in site.static_files %}{% if thumb == "" and f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".webp", ".gif" %}{% assign thumb = f.path %}{% endcase %}{% endif %}{% endfor %}
   {% assign linked = "" | split: "" %}{% for s in ms %}{% if s.earthbank %}{% assign e = s.earthbank | append: "" %}{% assign linked = linked | push: e %}{% endif %}{% endfor %}
   {% assign last = st.timeline | last %}
-  <li class="mount-row" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
+  <li class="mount-row" data-id="{{ m.mount_id }}" data-nsamples="{{ ms | size }}" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
     data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
+    <label class="mr-pick"><input type="checkbox" class="pick" aria-label="Select {{ m.mount_id }}"></label>
     <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
       {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}" data-order="{{ ms | map: 'id' | jsonify | escape }}"></span>
       {% elsif thumb != "" %}<img src="{{ thumb | relative_url }}" alt="" loading="lazy">
@@ -121,7 +128,7 @@ layout: default
         var d = document.createElement('details');
         d.className = 'mount-group'; d.open = true; d.id = slug(k || 'none');
         d.innerHTML = '<summary><span class="mg-name">' + (k ? k.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) : EMPTY[by]) +
-          '</span> <span class="mg-count"></span></summary>';
+          '</span> <span class="mg-count"></span> <button type="button" class="link-btn small mg-pick">Select</button></summary>';
         var ul = document.createElement('ul'); ul.className = 'mount-list';
         groups[k].forEach(function (r) { ul.appendChild(r); });
         d.appendChild(ul);
@@ -171,6 +178,131 @@ layout: default
       var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
       if (target) { target.open = true; target.scrollIntoView(); }
     }
+  })();
+</script>
+
+<dialog id="dl-dialog" class="dialog">
+  <form method="dialog" id="dl-form">
+    <div class="dialog-head">
+      <h2>Download QR codes</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <p id="dl-which" class="small"></p>
+      <fieldset class="dl-set"><legend>Code type</legend>
+        <label class="check"><input type="checkbox" name="fmt" value="PuckLabel"> Puck mount QR (long label with text)</label>
+        <label class="check"><input type="checkbox" name="fmt" value="RoundLabel"> Round mount QR</label>
+        <label class="check"><input type="checkbox" name="fmt" value="QR"> Standard QR</label>
+        <label class="check"><input type="checkbox" name="fmt" value="QR-round"> Rounded QR</label>
+        <label class="check"><input type="checkbox" name="fmt" value="MicroQR"> Micro QR</label>
+        <label class="check"><input type="checkbox" name="fmt" value="DataMatrix"> Data Matrix</label>
+        <label class="check"><input type="checkbox" name="fmt" value="Aztec"> Aztec</label>
+      </fieldset>
+      <fieldset class="dl-set"><legend>File type</legend>
+        <label class="check"><input type="radio" name="ftype" value="svg" checked> SVG</label>
+        <label class="check"><input type="radio" name="ftype" value="png"> PNG</label>
+        <label class="check"><input type="radio" name="ftype" value="both"> Both</label>
+      </fieldset>
+      <p class="hint error" id="dl-error"></p>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="dl-go">Download</button>
+    </div>
+  </form>
+</dialog>
+<script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/zip.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script>
+  // ---------- select mounts and download their codes ----------
+  (function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.mount-row'));
+    var bar = document.getElementById('pick-bar'), count = document.getElementById('pick-count');
+    var dlg = document.getElementById('dl-dialog'), form = document.getElementById('dl-form');
+    var err = document.getElementById('dl-error'), go = document.getElementById('dl-go');
+    function picked() { return rows.filter(function (r) { return r.querySelector('.pick').checked; }); }
+    function update() {
+      var n = picked().length;
+      bar.hidden = !n;
+      count.textContent = n + ' mount' + (n === 1 ? '' : 's') + ' selected';
+      rows.forEach(function (r) { r.classList.toggle('picked', r.querySelector('.pick').checked); });
+    }
+    function setAll(list, on) { list.forEach(function (r) { r.querySelector('.pick').checked = on; }); update(); }
+    document.addEventListener('change', function (e) { if (e.target.classList.contains('pick')) update(); });
+    document.getElementById('select-all').addEventListener('click', function () {
+      setAll(rows.filter(function (r) { return !r.hidden && !(r.closest('.mount-group') || {}).hidden; }), true);
+    });
+    document.getElementById('pick-clear').addEventListener('click', function () { setAll(rows, false); });
+    document.getElementById('mount-groups').addEventListener('click', function (e) {
+      var b = e.target.closest('.mg-pick');
+      if (!b) return;
+      e.preventDefault();                                   // don't fold the group
+      var g = Array.prototype.slice.call(b.closest('.mount-group').querySelectorAll('.mount-row:not([hidden])'));
+      setAll(g, !g.every(function (r) { return r.querySelector('.pick').checked; }));
+    });
+
+    // Remember the last choice of code types and file type
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem('mounts.dl') || '{}'); } catch (e) {}
+    var fmts = saved.fmts || ['PuckLabel'];
+    form.querySelectorAll('[name=fmt]').forEach(function (i) { i.checked = fmts.indexOf(i.value) !== -1; });
+    if (saved.ftype) form.querySelector('[name=ftype][value="' + saved.ftype + '"]').checked = true;
+
+    document.getElementById('pick-dl').addEventListener('click', function () {
+      var p = picked();
+      document.getElementById('dl-which').textContent = p.map(function (r) { return r.dataset.id; }).join(', ');
+      err.textContent = ''; go.disabled = false; go.textContent = 'Download';
+      dlg.showModal();
+    });
+    dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { dlg.close(); }); });
+
+    var extra = null;   // barcodes.js (Micro QR, Data Matrix, Aztec) is only loaded when needed
+    function needBarcodes(cb) {
+      if (window.bwip) return cb();
+      if (!extra) {
+        extra = document.createElement('script');
+        extra.src = {{ '/assets/barcodes.js' | relative_url | jsonify }};
+        document.head.appendChild(extra);
+      }
+      extra.addEventListener('load', cb); extra.addEventListener('error', cb);
+    }
+    function pngBytes(svg) {
+      return new Promise(function (ok) {
+        MountCodes.toPng(svg, function (b) { b.arrayBuffer().then(function (a) { ok(new Uint8Array(a)); }); });
+      });
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var want = Array.prototype.map.call(form.querySelectorAll('[name=fmt]:checked'), function (i) { return i.value; });
+      var ftype = form.querySelector('[name=ftype]:checked').value;
+      if (!want.length) { err.textContent = 'Choose at least one code type.'; return; }
+      try { localStorage.setItem('mounts.dl', JSON.stringify({ fmts: want, ftype: ftype })); } catch (x) {}
+      go.disabled = true; go.textContent = 'Preparing…';
+      var heavy = want.some(function (k) { return /MicroQR|DataMatrix|Aztec/.test(k); });
+      (heavy ? needBarcodes : function (cb) { cb(); })(function () {
+        var jobs = [], enc = new TextEncoder(), skipped = [];
+        picked().forEach(function (r) {
+          var codes = MountCodes.make({ text: r.querySelector('.mr-qr').dataset.qr, id: r.dataset.id,
+            year: r.dataset.year, minerals: r.dataset.minerals, affiliation: r.dataset.affiliation, nsamples: r.dataset.nsamples });
+          codes.forEach(function (c) {
+            if (want.indexOf(c.key) === -1) return;
+            if (c.empty) { skipped.push(r.dataset.id + ' ' + c.title); return; }
+            var base = r.dataset.id + '_' + c.key;
+            if (ftype !== 'png') jobs.push(Promise.resolve({ name: base + '.svg', data: enc.encode(c.svg) }));
+            if (ftype !== 'svg') jobs.push(pngBytes(c.svg).then(function (d) { return { name: base + '.png', data: d }; }));
+          });
+        });
+        Promise.all(jobs).then(function (files) {
+          go.disabled = false; go.textContent = 'Download';
+          if (!files.length) { err.textContent = 'Nothing to download: ' + skipped.join(', ') + ' not possible with these addresses.'; return; }
+          if (files.length === 1) MountCodes.save(new Blob([files[0].data]), files[0].name);
+          else MountCodes.save(makeZip(files), 'mount-codes-' + new Date().toISOString().slice(0, 10) + '.zip');
+          if (skipped.length) err.textContent = 'Skipped (not possible with these addresses): ' + skipped.join(', ');
+          else dlg.close();
+        });
+      });
+    });
   })();
 </script>
 

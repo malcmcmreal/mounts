@@ -1,15 +1,12 @@
 // Mount page: draws the mount's address as several kinds of 2D code,
 // each with a short description and SVG / PNG downloads.
+// MountCodes.make() is also used by the home page to download codes for several mounts.
 (function () {
-  var section = document.getElementById('codes');
-  if (!section || !window.qrcode) return;
+  if (!window.qrcode) return;
 
-  var text = section.dataset.text;
-  var mountId = section.dataset.id;
   var MM = 0.3; // mm per square, used for the "printed size" estimate
-  var alnum = /^[0-9A-Z $%*+\-.\/:]*$/.test(text);
   var ECC = { L: '~7%', M: '~15%', Q: '~25%', H: '~30%' };
-  var bw = window.bwip;
+  var text, bw;   // set by make() for the mount being drawn
 
   // ---------- drawing helpers ----------
   function wrap(w, h, quiet, body) {
@@ -112,7 +109,18 @@
     return sizes;
   }
 
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
   // ---------- the codes ----------
+  // o: { text, id, year, minerals, affiliation, nsamples }
+  function make(o) {
+  text = o.text; bw = window.bwip;
+  var mountId = o.id;
+  var alnum = /^[0-9A-Z $%*+\-.\/:]*$/.test(text);
   var codes = [];
 
   // 1. Standard QR
@@ -149,13 +157,13 @@
       if (qr.isDark(r, c)) d += 'M' + (off + c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
     var font = 'Helvetica Neue, Helvetica, Arial, sans-serif';
 
-    var ns = +section.dataset.nsamples || 0;
+    var ns = +o.nsamples || 0;
     var address = /^https?:\/\//i.test(text) ? text.replace(/^https?:\/\//i, '').replace(/\/$/, '') : '';
     if (address.length > 24) address = '';            // too long to be worth printing
     else address = address.toLowerCase().replace(/\/[^/]*$/, '/' + mountId);
-    var line2 = [mineralCodes(section.dataset.minerals || ''),
+    var line2 = [mineralCodes(o.minerals || ''),
       ns ? ns + ' sample' + (ns === 1 ? '' : 's') : '',
-      section.dataset.year, shortAffiliation(section.dataset.affiliation || ''), address]
+      o.year, shortAffiliation(o.affiliation || ''), address]
       .map(function (x) { return (x || '').trim(); }).filter(Boolean).join(' · ');
 
     function build(l1, l2) {
@@ -311,16 +319,42 @@
     } catch (e) {}
   })();
 
-  // ---------- page output ----------
-  function esc(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-  }
   // Wide codes go last so they don't break up the grid
-  codes = codes.filter(function (c) { return !c.wide && !c.label; })
+  return codes.filter(function (c) { return !c.wide && !c.label; })
     .concat(codes.filter(function (c) { return !c.wide && c.label; }))
     .concat(codes.filter(function (c) { return c.wide; }));
+  }
+
+  function save(blob, name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  // PNG at 20 pixels per square
+  function toPng(svg, cb) {
+    var vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+    var img = new Image(), url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    img.onload = function () {
+      var cv = document.createElement('canvas');
+      cv.width = Math.round(vb[1] * 20); cv.height = Math.round(vb[2] * 20);
+      var ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      cv.toBlob(cb, 'image/png');
+    };
+    img.src = url;
+  }
+  window.MountCodes = { make: make, toPng: toPng, save: save };
+
+  // ---------- mount page ----------
+  var section = document.getElementById('codes');
+  if (!section) return;
+  var mountId = section.dataset.id;
+  var codes = make({ text: section.dataset.text, id: mountId, year: section.dataset.year,
+    minerals: section.dataset.minerals, affiliation: section.dataset.affiliation, nsamples: section.dataset.nsamples });
   var grid = section.querySelector('.codes');
   grid.innerHTML = codes.map(function (c, i) {
     return '<figure class="code' + (c.wide ? ' wide' : '') + (c.label ? ' label' : '') + '" data-i="' + i + '">' +
@@ -344,29 +378,10 @@
   var side = document.getElementById('qr');
   if (side) side.innerHTML = codes[0].svg;
 
-  function save(blob, name) {
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-  }
   function download(c, fmt) {
     var name = mountId + '_' + c.key;
-    var blob = new Blob([c.svg], { type: 'image/svg+xml' });
-    if (fmt === 'svg') return save(blob, name + '.svg');
-    // PNG: 20 pixels per square
-    var vb = c.svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
-    var img = new Image();
-    img.onload = function () {
-      var cv = document.createElement('canvas');
-      cv.width = vb[1] * 20; cv.height = vb[2] * 20;
-      var ctx = cv.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, 0, 0, cv.width, cv.height);
-      cv.toBlob(function (b) { save(b, name + '.png'); }, 'image/png');
-    };
-    img.src = URL.createObjectURL(blob);
+    if (fmt === 'svg') return save(new Blob([c.svg], { type: 'image/svg+xml' }), name + '.svg');
+    toPng(c.svg, function (b) { save(b, name + '.png'); });
   }
   // Puck label: live editing of the two text lines
   grid.addEventListener('input', function (e) {
