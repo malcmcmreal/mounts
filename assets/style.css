@@ -291,7 +291,10 @@ ul.plain li { margin: 0 0 .2rem; }
 .lay-main { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 1rem; margin-top: .4rem; }
 .lay-stage { background: #fff; border-radius: 8px; touch-action: none; user-select: none; }
 .lay-stage svg { width: 100%; height: auto; max-height: 64vh; display: block; }
-.lay-stage[data-tool=region], .lay-stage[data-tool=fid], .lay-stage[data-tool=note] { cursor: crosshair; }
+.lay-stage[data-tool=region], .lay-stage[data-tool=fid], .lay-stage[data-tool=note],
+.lay-stage[data-tool=arrow], .lay-stage[data-tool=shape] { cursor: crosshair; }
+.lay-tools .lay-kind { width: auto; margin: 0; padding: .25rem .4rem; font-size: .85rem; }
+.lay-side textarea { width: 100%; margin-top: .15rem; font: inherit; }
 .lay-stage[data-tool=select] .lay-item { cursor: move; }
 .lay-side { display: grid; gap: .8rem; align-content: start; font-size: .88rem; }
 .lay-props-title { margin: 0 0 .35rem; font-weight: 600; }

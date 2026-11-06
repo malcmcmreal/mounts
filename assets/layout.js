@@ -6,12 +6,28 @@
 //   { v: 1, shape: "round"|"rect", w, h, orient: true|false,
 //     regions:   [{ x, y, w, h, label }],
 //     fiducials: [{ x, y }],                // numbered 1, 2, 3… in this order
-//     notes:     [{ x, y, text }] }
+//     notes:     [{ x, y, text, size }],   // text may have line breaks; size = text height in mm
+//     arrows:    [{ x1, y1, x2, y2 }],     // head at x2, y2
+//     shapes:    [{ kind, x, y, s, rot }] } // circle|square|triangle|hexprism|diamond; s = size in mm
+// Notes, arrows and shapes may sit outside the mount, in the margin around it.
 (function () {
   // Clearly different colours (Tableau 10 order), so neighbouring samples never look alike
   var COLORS = ['#d62728', '#1f77b4', '#2ca02c', '#ff7f0e', '#9467bd', '#e377c2', '#8c564b', '#17becf', '#bcbd22', '#7f7f7f'];
   var FONT = 'Helvetica Neue, Helvetica, Arial, sans-serif';
-  var M = 3;                                   // margin around the mount, mm
+  // Margin around the mount (mm): room for notes and arrows outside the mount
+  function marg(L) { return r2(3 + 0.05 * Math.max(L.w, L.h)); }
+  function noteSize(L, n) { return n.size || r2(0.76 * Math.max(L.w, L.h) / 25); }
+  var SHAPES = { circle: 'Circle', square: 'Square', triangle: 'Triangle', hexprism: 'Hex prism', diamond: 'Diamond' };
+  // Outline of a shape centred on 0,0 (size s = overall width)
+  function shapePath(k, s) {
+    var h = s / 2, pts;
+    if (k === 'square') pts = [[-h, -h], [h, -h], [h, h], [-h, h]];
+    else if (k === 'triangle') { var th = s * 0.866; pts = [[0, -th * 2 / 3], [h, th / 3], [-h, th / 3]]; }
+    else if (k === 'diamond') pts = [[0, -h * 1.4], [h * 0.8, 0], [0, h * 1.4], [-h * 0.8, 0]];
+    else if (k === 'hexprism') { var w = s * 0.42, t = s * 0.18; pts = [[-h, 0], [-h + t, -w / 2], [h - t, -w / 2], [h, 0], [h - t, w / 2], [-h + t, w / 2]]; }
+    if (!pts) return null;
+    return 'M' + pts.map(function (p) { return r2(p[0]) + ' ' + r2(p[1]); }).join('L') + 'Z';
+  }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -43,6 +59,7 @@
     opts = opts || {};
     var sub = opts.title ? (opts.lines || []).filter(Boolean) : [];
     var oy = opts.title ? 3 + sub.length * 1.4 : 0;
+    var M = marg(L);
     var W = L.w + 2 * M, H = L.h + 2 * M + oy;
     var u = Math.max(L.w, L.h) / 25;           // text scales with the mount
     var labels = labelsOf(L, opts.order || sampleOrder), sel = opts.selected || {};
@@ -85,11 +102,41 @@
       }
       o.push('</g>');
     });
-    // notes
+    // shapes (grains, features)
+    (L.shapes || []).forEach(function (sh, i) {
+      var on = sel.kind === 'shape' && sel.i === i, sw = r2((on ? 0.2 : 0.12) * u);
+      var tr = 'translate(' + r2(sh.x) + ' ' + r2(sh.y) + ')' + (sh.rot ? ' rotate(' + r2(sh.rot) + ')' : '');
+      var d = shapePath(sh.kind, sh.s);
+      o.push('<g data-kind="shape" data-i="' + i + '" class="lay-item" transform="' + tr + '">' +
+        (d ? '<path d="' + d + '"' : '<circle r="' + r2(sh.s / 2) + '"') +
+        ' fill="#fff" fill-opacity=".35" stroke="#222" stroke-width="' + sw + '" stroke-linejoin="round"' +
+        (on ? ' stroke-dasharray="' + r2(0.4 * u) + ' ' + r2(0.2 * u) + '"' : '') + '/></g>');
+    });
+    // arrows
+    (L.arrows || []).forEach(function (a, i) {
+      var on = sel.kind === 'arrow' && sel.i === i, sw = 0.12 * u;
+      var dx = a.x2 - a.x1, dy = a.y2 - a.y1, len = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / len, uy = dy / len;
+      var hl = Math.min(0.9 * u, len * 0.6), hw = hl * 0.45;
+      var bx = a.x2 - ux * hl, by = a.y2 - uy * hl;
+      o.push('<g data-kind="arrow" data-i="' + i + '" class="lay-item">' +
+        '<line x1="' + r2(a.x1) + '" y1="' + r2(a.y1) + '" x2="' + r2(a.x2) + '" y2="' + r2(a.y2) + '" stroke="transparent" stroke-width="' + r2(1.2 * u) + '"/>' +
+        '<line x1="' + r2(a.x1) + '" y1="' + r2(a.y1) + '" x2="' + r2(bx + ux * hl * 0.3) + '" y2="' + r2(by + uy * hl * 0.3) + '" stroke="' + (on ? '#b8860b' : '#222') + '" stroke-width="' + r2(sw) + '" stroke-linecap="round"/>' +
+        '<path d="M' + r2(a.x2) + ' ' + r2(a.y2) + 'L' + r2(bx - uy * hw) + ' ' + r2(by + ux * hw) + 'L' + r2(bx + uy * hw) + ' ' + r2(by - ux * hw) + 'Z" fill="' + (on ? '#b8860b' : '#222') + '"/>');
+      if (on && opts.editing) {
+        var hr = 0.45 * u;
+        o.push('<circle data-handle="a1" cx="' + r2(a.x1) + '" cy="' + r2(a.y1) + '" r="' + r2(hr) + '" fill="#fff" stroke="#b8860b" stroke-width="' + r2(sw) + '" style="cursor:move"/>' +
+          '<circle data-handle="a2" cx="' + r2(a.x2) + '" cy="' + r2(a.y2) + '" r="' + r2(hr) + '" fill="#fff" stroke="#b8860b" stroke-width="' + r2(sw) + '" style="cursor:move"/>');
+      }
+      o.push('</g>');
+    });
+    // notes (line breaks become separate lines)
     (L.notes || []).forEach(function (n, i) {
-      var on = sel.kind === 'note' && sel.i === i;
-      o.push('<g data-kind="note" data-i="' + i + '" class="lay-item"><text x="' + r2(n.x) + '" y="' + r2(n.y) + '" font-size="' + r2(0.95 * u) + '" font-style="italic" fill="#444"' +
-        (on ? ' text-decoration="underline"' : '') + '>' + esc(n.text) + '</text></g>');
+      var on = sel.kind === 'note' && sel.i === i, fs = noteSize(L, n);
+      var lines = String(n.text == null ? '' : n.text).split('\n');
+      o.push('<g data-kind="note" data-i="' + i + '" class="lay-item"><text x="' + r2(n.x) + '" y="' + r2(n.y) + '" font-size="' + r2(fs) + '" font-style="italic" fill="#444"' +
+        (on ? ' text-decoration="underline"' : '') + '>' +
+        lines.map(function (t, k) { return '<tspan x="' + r2(n.x) + '"' + (k ? ' dy="' + r2(fs * 1.2) + '"' : '') + '>' + (esc(t) || ' ') + '</tspan>'; }).join('') +
+        '</text></g>');
     });
     // fiducials
     (L.fiducials || []).forEach(function (f, i) {
@@ -202,16 +249,19 @@
     var nums = (fmt.match(/\d+(\.\d+)?/g) || []).map(Number);
     var rect = /rect|slide|block|square|\bx\b|×/.test(fmt) && nums.length >= 2;
     var w = nums[0] || 25, h = rect ? nums[1] : w;
-    return { v: 1, shape: rect ? 'rect' : 'round', w: w, h: h, orient: true, regions: [], fiducials: [], notes: [] };
+    return { v: 1, shape: rect ? 'rect' : 'round', w: w, h: h, orient: true, regions: [], fiducials: [], notes: [], arrows: [], shapes: [] };
   }
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   function push() { undo.push(clone(L)); if (undo.length > 100) undo.shift(); }
+  function listOf(k) { return { region: L.regions, fid: L.fiducials, note: L.notes, arrow: L.arrows, shape: L.shapes }[k]; }
+  var shapeKind = 'circle';
 
   document.querySelectorAll('[data-layout-edit]').forEach(function (b) {
     b.addEventListener('click', function () {
       L = saved ? clone(saved) : blank();
       delete L.updated; delete L.by;
       L.regions = L.regions || []; L.fiducials = L.fiducials || []; L.notes = L.notes || [];
+      L.arrows = L.arrows || []; L.shapes = L.shapes || [];
       undo = []; sel = {}; setTool('select'); errBox.textContent = '';
       syncControls(); draw();
       showStep(1);
@@ -235,6 +285,8 @@
   f.snap.addEventListener('change', function () { snap = f.snap.checked; });
   f.grid.addEventListener('change', function () { grid = f.grid.checked; draw(); });
 
+  var kindSel = document.getElementById('lay-shape-kind');
+  if (kindSel) kindSel.addEventListener('change', function () { shapeKind = kindSel.value; setTool('shape'); });
   document.getElementById('lay-tools').addEventListener('click', function (e) {
     var b = e.target.closest('[data-tool]');
     if (b) setTool(b.dataset.tool);
@@ -246,7 +298,9 @@
     var hint = { select: 'Drag items to move them. Drag a region\'s corner square to resize. Delete removes the selected item.',
       region: 'Drag on the mount to draw a sample region (or click for a standard size).',
       fid: 'Click to place fiducial markers; they are numbered 1, 2, 3… in the order placed.',
-      note: 'Click to add a text note, then type it on the right.' }[t];
+      note: 'Click to add a text note, then type it on the right (Return starts a new line).',
+      arrow: 'Drag from where the arrow starts to the point it should point at.',
+      shape: 'Click to place the shape chosen in the list; change its size and angle on the right.' }[t];
     document.getElementById('lay-hint').textContent = hint;
   }
   document.getElementById('lay-undo').addEventListener('click', doUndo);
@@ -256,8 +310,8 @@
     push(); L.regions = autoRegions(); sel = {}; draw();
   });
   document.getElementById('lay-clear').addEventListener('click', function () {
-    if (!L.regions.length && !L.fiducials.length && !L.notes.length) return;
-    push(); L.regions = []; L.fiducials = []; L.notes = []; sel = {}; draw();
+    if (!L.regions.length && !L.fiducials.length && !L.notes.length && !L.arrows.length && !L.shapes.length) return;
+    push(); L.regions = []; L.fiducials = []; L.notes = []; L.arrows = []; L.shapes = []; sel = {}; draw();
   });
 
   // Lay the mount's samples out in a tidy grid inside the outline
@@ -283,10 +337,27 @@
     var svg = stage.querySelector('svg'), pt = svg.createSVGPoint();
     pt.x = ev.clientX; pt.y = ev.clientY;
     var p = pt.matrixTransform(svg.getScreenCTM().inverse());
-    return { x: p.x - M, y: p.y - M };
+    var m = marg(L);
+    return { x: p.x - m, y: p.y - m };
   }
   function snapv(v) { return snap ? Math.round(v * 2) / 2 : r2(v); }
   function clampPt(p) { return { x: Math.min(L.w, Math.max(0, p.x)), y: Math.min(L.h, Math.max(0, p.y)) }; }
+  // Notes, arrows and shapes may go into the margin
+  function clampFree(p) { var m = marg(L) - 0.3; return { x: Math.min(L.w + m, Math.max(-m, p.x)), y: Math.min(L.h + m, Math.max(-m, p.y)) }; }
+  function clampItem(kind, it) {
+    if (kind === 'region') return clampRegion(it);
+    if (kind === 'arrow') {
+      var a = clampFree({ x: it.x1, y: it.y1 }), b = clampFree({ x: it.x2, y: it.y2 });
+      it.x1 = a.x; it.y1 = a.y; it.x2 = b.x; it.y2 = b.y; return;
+    }
+    var c = kind === 'fid' ? clampPt(it) : clampFree(it); it.x = c.x; it.y = c.y;
+  }
+  function moveItem(kind, it, orig, dx, dy) {
+    if (kind === 'arrow') {
+      it.x1 = snapv(orig.x1 + dx); it.y1 = snapv(orig.y1 + dy); it.x2 = snapv(orig.x2 + dx); it.y2 = snapv(orig.y2 + dy);
+    } else { it.x = snapv(orig.x + dx); it.y = snapv(orig.y + dy); }
+    clampItem(kind, it);
+  }
   function clampRegion(r) {
     r.w = Math.max(0.5, Math.min(r.w, L.w)); r.h = Math.max(0.5, Math.min(r.h, L.h));
     r.x = Math.min(L.w - r.w, Math.max(0, r.x)); r.y = Math.min(L.h - r.h, Math.max(0, r.y));
@@ -294,7 +365,9 @@
   function clampAll() {
     L.regions.forEach(clampRegion);
     L.fiducials.forEach(function (p) { var c = clampPt(p); p.x = c.x; p.y = c.y; });
-    L.notes.forEach(function (p) { var c = clampPt(p); p.x = c.x; p.y = c.y; });
+    L.notes.forEach(function (p) { clampItem('note', p); });
+    L.shapes.forEach(function (p) { clampItem('shape', p); });
+    L.arrows.forEach(function (p) { clampItem('arrow', p); });
   }
   function nextLabel() {
     var used = L.regions.map(function (r) { return r.label; });
@@ -310,10 +383,11 @@
     if (tool === 'select') {
       if (handle && sel.kind === 'region') {
         push(); drag = { mode: 'resize', start: p, orig: clone(L.regions[sel.i]) };
+      } else if (handle && sel.kind === 'arrow') {
+        push(); drag = { mode: 'end', end: handle.dataset.handle };
       } else if (item) {
         sel = { kind: item.dataset.kind, i: +item.dataset.i };
-        var list = sel.kind === 'region' ? L.regions : sel.kind === 'fid' ? L.fiducials : L.notes;
-        push(); drag = { mode: 'move', start: p, orig: clone(list[sel.i]), moved: false };
+        push(); drag = { mode: 'move', start: p, orig: clone(listOf(sel.kind)[sel.i]), moved: false };
         draw();
       } else { sel = {}; draw(); }
     } else if (tool === 'region') {
@@ -328,21 +402,32 @@
       L.fiducials.push({ x: snapv(c.x), y: snapv(c.y) });
       sel = { kind: 'fid', i: L.fiducials.length - 1 }; draw();
     } else if (tool === 'note') {
-      push(); var cn = clampPt(p);
-      L.notes.push({ x: snapv(cn.x), y: snapv(cn.y), text: 'Note' });
+      push(); var cn = clampFree(p);
+      L.notes.push({ x: snapv(cn.x), y: snapv(cn.y), text: 'Note', size: r2(0.76 * Math.max(L.w, L.h) / 25) });
       sel = { kind: 'note', i: L.notes.length - 1 }; setTool('select'); draw();
       var inp = props.querySelector('[data-prop="text"]'); if (inp) { inp.focus(); inp.select(); }
+    } else if (tool === 'arrow') {
+      push(); var ca = clampFree(p), ax = snapv(ca.x), ay = snapv(ca.y);
+      L.arrows.push({ x1: ax, y1: ay, x2: ax, y2: ay });
+      sel = { kind: 'arrow', i: L.arrows.length - 1 };
+      drag = { mode: 'end', end: 'a2', fresh: true };
+      draw();
+    } else if (tool === 'shape') {
+      push(); var cs = clampFree(p);
+      L.shapes.push({ kind: shapeKind, x: snapv(cs.x), y: snapv(cs.y), s: r2(Math.max(0.8, 1.4 * Math.max(L.w, L.h) / 25)), rot: 0 });
+      sel = { kind: 'shape', i: L.shapes.length - 1 }; setTool('select'); draw();
     }
     ev.preventDefault();
   });
   stage.addEventListener('pointermove', function (ev) {
     if (!drag) return;
-    var p = toMm(ev), dx = p.x - drag.start.x, dy = p.y - drag.start.y;
+    var p = toMm(ev), st0 = drag.start || p, dx = p.x - st0.x, dy = p.y - st0.y;
     if (drag.mode === 'move') {
-      var list = sel.kind === 'region' ? L.regions : sel.kind === 'fid' ? L.fiducials : L.notes, it = list[sel.i];
-      it.x = snapv(drag.orig.x + dx); it.y = snapv(drag.orig.y + dy);
-      if (sel.kind === 'region') clampRegion(it); else { var c = clampPt(it); it.x = c.x; it.y = c.y; }
+      moveItem(sel.kind, listOf(sel.kind)[sel.i], drag.orig, dx, dy);
       drag.moved = true;
+    } else if (drag.mode === 'end') {
+      var ar = L.arrows[sel.i], e2 = clampFree(p), k = drag.end === 'a1' ? '1' : '2';
+      ar['x' + k] = snapv(e2.x); ar['y' + k] = snapv(e2.y);
     } else if (drag.mode === 'resize') {
       var r = L.regions[sel.i];
       r.w = snapv(Math.max(0.5, drag.orig.w + dx)); r.h = snapv(Math.max(0.5, drag.orig.h + dy));
@@ -366,6 +451,12 @@
       setTool('select');
       draw();
       var inp = props.querySelector('[data-prop="label"]'); if (inp) inp.select();
+    } else if (drag.mode === 'end' && drag.fresh) {
+      var a = L.arrows[sel.i];
+      if (Math.abs(a.x2 - a.x1) + Math.abs(a.y2 - a.y1) < 0.8) {   // a click: a short arrow pointing down-right
+        var d = r2(Math.max(1.5, 3 * Math.max(L.w, L.h) / 25)); a.x2 = a.x1 + d; a.y2 = a.y1 + d; clampItem('arrow', a);
+      }
+      setTool('select'); draw();
     } else if (drag.mode === 'move' && !drag.moved) undo.pop();
     drag = null;
   }
@@ -377,16 +468,15 @@
     var typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
     if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'z' && !typing) { ev.preventDefault(); doUndo(); return; }
     if (typing || !sel.kind) return;
-    var list = sel.kind === 'region' ? L.regions : sel.kind === 'fid' ? L.fiducials : L.notes;
+    var list = listOf(sel.kind);
     if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); push(); list.splice(sel.i, 1); sel = {}; draw(); }
     else if (ev.key === 'Escape') { ev.preventDefault(); sel = {}; draw(); }
     else if (/^Arrow/.test(ev.key)) {
       ev.preventDefault(); push();
-      var st = ev.shiftKey ? 1 : 0.1, it = list[sel.i];
-      if (ev.key === 'ArrowLeft') it.x -= st; if (ev.key === 'ArrowRight') it.x += st;
-      if (ev.key === 'ArrowUp') it.y -= st; if (ev.key === 'ArrowDown') it.y += st;
-      it.x = r2(it.x); it.y = r2(it.y);
-      if (sel.kind === 'region') clampRegion(it); else { var c = clampPt(it); it.x = c.x; it.y = c.y; }
+      var st = ev.shiftKey ? 1 : 0.1, it = list[sel.i], ddx = 0, ddy = 0;
+      if (ev.key === 'ArrowLeft') ddx = -st; if (ev.key === 'ArrowRight') ddx = st;
+      if (ev.key === 'ArrowUp') ddy = -st; if (ev.key === 'ArrowDown') ddy = st;
+      var keep = snap; snap = false; moveItem(sel.kind, it, clone(it), ddx, ddy); snap = keep;
       draw();
     }
   });
@@ -397,7 +487,7 @@
   }
   function drawProps() {
     if (!sel.kind) {
-      props.innerHTML = '<p class="muted small">Select a region, fiducial or note to edit it.</p>';
+      props.innerHTML = '<p class="muted small">Select an item to edit it.</p>';
       return;
     }
     var h = '';
@@ -411,10 +501,22 @@
       h = '<p class="lay-props-title">Fiducial ' + (sel.i + 1) + '</p>' +
         '<div class="lay-grid2">' + num('x (mm)', 'x', fd.x) + num('y (mm)', 'y', fd.y) + '</div>' +
         '<p class="muted small">From centre: ' + fc.x.toFixed(2) + ', ' + fc.y.toFixed(2) + ' mm</p>';
+    } else if (sel.kind === 'arrow') {
+      var a = L.arrows[sel.i];
+      h = '<p class="lay-props-title">Arrow</p>' +
+        '<div class="lay-grid2">' + num('Start x', 'x1', a.x1) + num('Start y', 'y1', a.y1) + num('Tip x', 'x2', a.x2) + num('Tip y', 'y2', a.y2) + '</div>' +
+        '<p class="muted small">Drag the round handles to move either end.</p>';
+    } else if (sel.kind === 'shape') {
+      var sh = L.shapes[sel.i];
+      h = '<p class="lay-props-title">Shape</p>' +
+        '<label>Shape <select data-prop="kind">' + Object.keys(SHAPES).map(function (k) {
+          return '<option value="' + k + '"' + (k === sh.kind ? ' selected' : '') + '>' + SHAPES[k] + '</option>';
+        }).join('') + '</select></label>' +
+        '<div class="lay-grid2">' + num('Size (mm)', 's', sh.s) + num('Angle (°)', 'rot', sh.rot || 0) + num('x (mm)', 'x', sh.x) + num('y (mm)', 'y', sh.y) + '</div>';
     } else {
       var n = L.notes[sel.i];
-      h = '<p class="lay-props-title">Note</p><label>Text <input data-prop="text" value="' + esc(n.text) + '"></label>' +
-        '<div class="lay-grid2">' + num('x (mm)', 'x', n.x) + num('y (mm)', 'y', n.y) + '</div>';
+      h = '<p class="lay-props-title">Note</p><label>Text <textarea data-prop="text" rows="3">' + esc(n.text) + '</textarea></label>' +
+        '<div class="lay-grid2">' + num('Text size (mm)', 'size', noteSize(L, n)) + '<span></span>' + num('x (mm)', 'x', n.x) + num('y (mm)', 'y', n.y) + '</div>';
     }
     h += '<button type="button" class="btn small" id="lay-del">Delete</button>';
     props.innerHTML = h;
@@ -422,18 +524,24 @@
   props.addEventListener('change', function (e) {
     var k = e.target.dataset.prop;
     if (!k || !sel.kind) return;
-    var list = sel.kind === 'region' ? L.regions : sel.kind === 'fid' ? L.fiducials : L.notes, it = list[sel.i];
+    var it = listOf(sel.kind)[sel.i], v = e.target.value;
     push();
-    if (k === 'label' || k === 'text') it[k] = e.target.value.trim() || (k === 'label' ? nextLabel() : 'Note');
-    else if (!isNaN(+e.target.value)) it[k] = +e.target.value;
-    if (sel.kind === 'region') clampRegion(it); else { var c = clampPt(it); it.x = c.x; it.y = c.y; }
+    if (k === 'label') it.label = v.trim() || nextLabel();
+    else if (k === 'text') it.text = v.replace(/\s+$/, '') || 'Note';
+    else if (k === 'kind') it.kind = v;
+    else if (v !== '' && !isNaN(+v)) {
+      v = +v;
+      if (k === 's') v = Math.max(0.2, v);
+      if (k === 'size') v = Math.max(0.2, Math.min(10, v));
+      it[k] = v;
+    }
+    clampItem(sel.kind, it);
     draw();
   });
   props.addEventListener('input', function (e) {           // live label typing
     var k = e.target.dataset.prop;
     if ((k === 'label' || k === 'text') && sel.kind) {
-      var list = sel.kind === 'region' ? L.regions : L.notes;
-      list[sel.i][k] = e.target.value;
+      listOf(sel.kind)[sel.i][k] = e.target.value;
       stage.innerHTML = render(L, { editing: true, grid: grid, selected: sel });
       stage.querySelector('svg').removeAttribute('width'); stage.querySelector('svg').removeAttribute('height');
       drawLists();
@@ -441,8 +549,7 @@
   });
   props.addEventListener('click', function (e) {
     if (e.target.id !== 'lay-del' || !sel.kind) return;
-    var list = sel.kind === 'region' ? L.regions : sel.kind === 'fid' ? L.fiducials : L.notes;
-    push(); list.splice(sel.i, 1); sel = {}; draw();
+    push(); listOf(sel.kind).splice(sel.i, 1); sel = {}; draw();
   });
   function drawLists() {
     var used = L.regions.map(function (r) { return r.label; });
@@ -488,7 +595,9 @@
     var out = { v: 1, shape: L.shape, w: L.w, h: L.h, orient: !!L.orient,
       regions: L.regions.map(function (r) { return { x: r2(r.x), y: r2(r.y), w: r2(r.w), h: r2(r.h), label: r.label }; }),
       fiducials: L.fiducials.map(function (p) { return { x: r2(p.x), y: r2(p.y) }; }),
-      notes: L.notes.map(function (n) { return { x: r2(n.x), y: r2(n.y), text: n.text }; }) };
+      notes: L.notes.map(function (n) { return { x: r2(n.x), y: r2(n.y), text: n.text, size: r2(noteSize(L, n)) }; }),
+      arrows: L.arrows.map(function (a) { return { x1: r2(a.x1), y1: r2(a.y1), x2: r2(a.x2), y2: r2(a.y2) }; }),
+      shapes: L.shapes.map(function (sh) { return { kind: sh.kind, x: r2(sh.x), y: r2(sh.y), s: r2(sh.s), rot: r2(sh.rot || 0) }; }) };
     var now = new Date(), by = '';
     try { by = localStorage.getItem('mounts.by') || ''; } catch (e) {}
     if (!by && window.GH && GH.user) by = GH.user.name;

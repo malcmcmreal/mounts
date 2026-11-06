@@ -15,10 +15,16 @@
           <button type="button" class="btn small" data-tool="region" title="Draw a sample region">▭ Region</button>
           <button type="button" class="btn small" data-tool="fid" title="Place a fiducial marker">⌖ Fiducial</button>
           <button type="button" class="btn small" data-tool="note" title="Add a text note">T Note</button>
+          <button type="button" class="btn small" data-tool="arrow" title="Draw an arrow">↗ Arrow</button>
+          <button type="button" class="btn small" data-tool="shape" title="Add a shape (grain or feature)">◇ Shape</button>
+          <select id="lay-shape-kind" class="lay-kind" aria-label="Shape to add">
+            <option value="circle">Circle</option><option value="square">Square</option><option value="triangle">Triangle</option>
+            <option value="hexprism">Hex prism</option><option value="diamond">Diamond</option>
+          </select>
           <span class="lay-sep"></span>
           <button type="button" class="btn small" id="lay-undo" title="Undo (Ctrl/⌘ Z)">Undo</button>
           <button type="button" class="btn small" id="lay-auto" title="Place one region per sample in a grid">Place all samples</button>
-          <button type="button" class="btn small" id="lay-clear" title="Remove all regions, fiducials and notes">Clear</button>
+          <button type="button" class="btn small" id="lay-clear" title="Remove everything drawn">Clear</button>
         </div>
         <div class="lay-settings">
           <label>Mount
