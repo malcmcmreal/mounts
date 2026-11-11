@@ -379,3 +379,8 @@ td.separates { font-size: .9rem; }
 .dl-links { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
 .dl-links li { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; }
 .dl-links .hires { width: 100%; }
+
+/* Layout: show/hide fiducials and grain points */
+.layout-toggles { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; margin: .6rem 0 0; font-size: .9rem; }
+.layout-toggles label.check { margin: 0; }
+#grain-note { margin: .2rem 0 0; }

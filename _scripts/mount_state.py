@@ -122,6 +122,39 @@ def describe(e):
     return t or "Entry"
 
 
+def read_grains(mount_dir):
+    """Grain coordinate file (mounts/<ID>/grains/*.csv, TrackWorks export): a COORDINATION section
+    with the three fiducials (First, Second, Third) and a GRAIN section (G01, G02…), as name,X,Y,Z
+    in stage coordinates (µm). The last file by name that has both sections is used."""
+    import csv
+    found = None
+    for path in sorted(glob.glob(os.path.join(mount_dir, "grains", "*.csv"))):
+        fids, points, section = [], [], None
+        try:
+            with open(path, encoding="utf-8-sig", errors="replace") as fh:
+                for row in csv.reader(fh):
+                    row = [c.strip() for c in row]
+                    if not row or not row[0]:
+                        section = None if not any(row) else section
+                        continue
+                    head = row[0].upper()
+                    if head in ("COORDINATION", "COORDINATES", "FIDUCIALS"):
+                        section = "fid"; continue
+                    if head in ("GRAIN", "GRAINS", "POINT", "POINTS"):
+                        section = "grain"; continue
+                    if section and len(row) >= 3:
+                        try:
+                            x, y = float(row[1]), float(row[2])
+                        except ValueError:
+                            continue
+                        (fids if section == "fid" else points).append([row[0], round(x, 2), round(y, 2)])
+        except OSError:
+            continue
+        if len(fids) >= 3 and points:
+            found = {"file": os.path.basename(path), "fids": fids[:3], "points": points}
+    return found
+
+
 def build():
     state = {}
     for path in sorted(glob.glob(os.path.join(ROOT, "mounts", "*", "index.md"))):
@@ -220,10 +253,11 @@ def build():
                 notes.append(item)
 
         current = [{k: v for k, v in s.items() if k != "_removed"} for s in samples if not s.get("_removed")]
+        grains = read_grains(os.path.dirname(path))
         state[mid] = dict(
             {k: v for k, v in fields.items() if v not in (None, "")},
             samples=current, timeline=timeline, entries=len(timeline) - 1,
-            analyses=list(reversed(analyses)), notes=notes, hires=hires, links=list(links.values()), layout=layout)
+            analyses=list(reversed(analyses)), notes=notes, hires=hires, links=list(links.values()), layout=layout, grains=grains)
 
     out = os.path.join(ROOT, "_data", "mountstate.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)

@@ -54,7 +54,8 @@
   }
 
   // ---------- drawing (shared by the page and the builder) ----------
-  // opts: { title, lines: [smaller lines under the title], editing, selected: {kind, i} }
+  // opts: { title, lines: [smaller lines under the title], editing, selected: {kind, i},
+  //         points: [{ n, x, y }] measured grain positions in drawing mm, pointLabels, hideFids }
   function render(L, opts) {
     opts = opts || {};
     var sub = opts.title ? (opts.lines || []).filter(Boolean) : [];
@@ -139,13 +140,23 @@
         '</text></g>');
     });
     // fiducials
-    (L.fiducials || []).forEach(function (f, i) {
+    (opts.hideFids ? [] : L.fiducials || []).forEach(function (f, i) {
       var on = sel.kind === 'fid' && sel.i === i, s = 0.525 * u, sw = r2(0.12 * u);
       o.push('<g data-kind="fid" data-i="' + i + '" class="lay-item">' +
         '<circle cx="' + r2(f.x) + '" cy="' + r2(f.y) + '" r="' + r2(s * 1.3) + '" fill="' + (on ? '#ffe9a8' : '#fff') + '" fill-opacity=".85" stroke="#111" stroke-width="' + sw + '"/>' +
         '<path d="M' + r2(f.x - s * 1.9) + ' ' + r2(f.y) + 'H' + r2(f.x + s * 1.9) + 'M' + r2(f.x) + ' ' + r2(f.y - s * 1.9) + 'V' + r2(f.y + s * 1.9) + '" stroke="#111" stroke-width="' + sw + '"/>' +
         '<text x="' + r2(f.x + s * 1.5) + '" y="' + r2(f.y - s * 1.5) + '" font-size="' + r2(1.05 * u) + '" font-weight="700" fill="#111" pointer-events="none">' + (i + 1) + '</text></g>');
     });
+    // measured grain positions (from the grain coordinate file)
+    if (opts.points && opts.points.length) {
+      var pr = r2(0.11 * u), pfs = r2(0.42 * u);
+      o.push('<g class="lay-points">');
+      opts.points.forEach(function (p) {
+        o.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="' + pr + '" fill="#0b57d0" stroke="#fff" stroke-width="' + r2(0.04 * u) + '"><title>' + esc(p.n) + '</title></circle>');
+        if (opts.pointLabels) o.push('<text x="' + r2(p.x + pr * 1.3) + '" y="' + r2(p.y - pr * 0.6) + '" font-size="' + pfs + '" fill="#0b3d91">' + esc(p.n) + '</text>');
+      });
+      o.push('</g>');
+    }
     o.push('</g>');
     // scale bar (not on thumbnails)
     if (!opts.thumb) {
@@ -186,8 +197,51 @@
   function filled(v) { v = String(v == null ? '' : v).trim(); return /^(none|na|n\/a|-|no)$/i.test(v) ? '' : v; }
   var mf = mstate.fields || {};
   var titleLines = [filled(mf.polish) && 'Polish: ' + filled(mf.polish), filled(mf.coating) && 'Coating: ' + filled(mf.coating)];
+  // ---- grain points: stage coordinates (µm) placed on the drawing through the three fiducials ----
+  // An affine fit maps the file's First, Second, Third onto drawn fiducials 1, 2, 3 exactly,
+  // so each point sits where it really is relative to the fiducials.
+  var grains = null, show = { fids: true, points: true, labels: false }, gpts = [];
+  try { grains = JSON.parse((document.getElementById('grain-data') || {}).textContent || 'null'); } catch (e) {}
+  function solve3(a, b) {                     // a: 3x3, b: 3 → x (Cramer's rule)
+    function det(m) { return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]); }
+    var d = det(a);
+    if (Math.abs(d) < 1e-9) return null;
+    return [0, 1, 2].map(function (c) {
+      var m = a.map(function (row, r) { return row.map(function (v, k) { return k === c ? b[r] : v; }); });
+      return det(m) / d;
+    });
+  }
+  function placePoints() {
+    var note = document.getElementById('grain-note');
+    if (!grains || !saved) return;
+    var df = saved.fiducials || [];
+    if (df.length < 3) { if (note) note.textContent = 'Draw three fiducial markers on the layout to show the grain points.'; return; }
+    var A = grains.fids.map(function (f) { return [f[1], f[2], 1]; });
+    var cx = solve3(A, df.slice(0, 3).map(function (f) { return f.x; }));
+    var cy = solve3(A, df.slice(0, 3).map(function (f) { return f.y; }));
+    if (!cx || !cy) { if (note) note.textContent = 'The three fiducials in the file are in a line, so the points can\'t be placed.'; return; }
+    gpts = grains.points.map(function (p) { return { n: p[0], x: cx[0] * p[1] + cx[1] * p[2] + cx[2], y: cy[0] * p[1] + cy[1] * p[2] + cy[2] }; });
+    if (note) {
+      var k = Math.sqrt(Math.abs(cx[0] * cy[1] - cx[1] * cy[0])) / 0.001;   // drawing mm per real mm
+      note.textContent = grains.points.length + ' points from ' + grains.file + ', placed using its fiducials ' +
+        grains.fids.map(function (f) { return f[0]; }).join(', ') + ' on drawn fiducials 1, 2, 3' +
+        (Math.abs(k - 1) > 0.05 ? ' (the drawing is about ' + Math.round(k * 100) + '% of true size).' : '.');
+    }
+  }
+  placePoints();
+  function viewOpts() {
+    return { title: mountId, lines: titleLines, hideFids: !show.fids,
+      points: show.points ? gpts : null, pointLabels: show.labels };
+  }
+  document.querySelectorAll('[data-show]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      show[cb.dataset.show] = cb.checked;
+      if (view && saved) view.innerHTML = render(saved, viewOpts());
+    });
+  });
+
   if (view && saved) {
-    view.innerHTML = render(saved, { title: mountId, lines: titleLines });
+    view.innerHTML = render(saved, viewOpts());
     var tbl = document.getElementById('layout-fids');
     if (tbl) {
       var fc = fidCoords(saved);
@@ -217,7 +271,7 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-layout-dl]');
     if (!b || !saved) return;
-    download(render(saved, { title: mountId, lines: titleLines }), mountId + '_layout', b.dataset.layoutDl);
+    download(render(saved, viewOpts()), mountId + '_layout', b.dataset.layoutDl);
   });
 
   // ---------- the builder ----------

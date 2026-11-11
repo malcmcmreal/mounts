@@ -133,6 +133,15 @@ layout: default
     </div>
     {% if st.layout %}
     <div class="layout-view" id="layout-view" data-mount="{{ page.mount_id }}"></div>
+    {% if st.grains %}
+    <div class="layout-toggles">
+      <label class="check"><input type="checkbox" data-show="fids" checked> Fiducial markers</label>
+      <label class="check"><input type="checkbox" data-show="points" checked> Grain points ({{ st.grains.points | size }})</label>
+      <label class="check"><input type="checkbox" data-show="labels"> Grain labels</label>
+    </div>
+    <p class="muted small" id="grain-note"></p>
+    <script type="application/json" id="grain-data">{{ st.grains | jsonify }}</script>
+    {% endif %}
     <div class="layout-meta">
       <div id="layout-fids"></div>
       <div class="code-dl">
