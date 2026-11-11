@@ -214,23 +214,10 @@
     };
     img.src = URL.createObjectURL(blob);
   }
-  function fidCsv(L) {
-    var rows = ['item,label,x_mm,y_mm'];
-    fidCoords(L).forEach(function (f) { rows.push('fiducial,' + f.n + ',' + f.x.toFixed(2) + ',' + f.y.toFixed(2)); });
-    (L.regions || []).forEach(function (r) {
-      rows.push('region_centre,"' + String(r.label).replace(/"/g, '""') + '",' + r2(r.x + r.w / 2 - L.w / 2).toFixed(2) + ',' + r2(L.h / 2 - (r.y + r.h / 2)).toFixed(2));
-    });
-    return rows.join('\n') + '\n';
-  }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-layout-dl]');
     if (!b || !saved) return;
-    var fmt = b.dataset.layoutDl;
-    if (fmt === 'csv') {
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([fidCsv(saved)], { type: 'text/csv' }));
-      a.download = mountId + '_layout_coordinates.csv'; document.body.appendChild(a); a.click(); a.remove();
-    } else download(render(saved, { title: mountId, lines: titleLines }), mountId + '_layout', fmt);
+    download(render(saved, { title: mountId, lines: titleLines }), mountId + '_layout', b.dataset.layoutDl);
   });
 
   // ---------- the builder ----------

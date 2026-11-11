@@ -1,14 +1,14 @@
 <dialog id="upload-dialog" class="dialog">
   <form method="dialog" id="upload-form" novalidate>
     <div class="dialog-head">
-      <h2>Add files to {{ page.mount_id }}</h2>
+      <h2 id="upload-title">Add files to {{ page.mount_id }}</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close">&times;</button>
     </div>
     <div class="dialog-body">
       <label class="drop" id="upload-drop">
         <input type="file" id="upload-input" multiple hidden>
         <span><strong>Drop files here</strong> or <span class="link-like">choose files</span></span>
-        <small>Photos and map images (JPG or PNG) go under Photos and hi-res images; everything else under Data files. Up to 25 MB each.</small>
+        <small id="upload-where">Photos and map images (JPG or PNG) go under Photos and hi-res images; everything else under Data files. Up to 25 MB each.</small>
       </label>
       <ul class="upload-list" id="upload-list"></ul>
       <p class="hint error" id="upload-error"></p>

@@ -2,6 +2,7 @@
 layout: default
 ---
 {% assign folder = page.path | remove: "index.md" | prepend: "/" %}
+{% assign gfolder = folder | append: "grains/" %}
 {% assign repo = site.github.repository_nwo | default: "" %}
 {% assign branch = site.github.source.branch | default: "main" %}
 {% if site.qr_base and site.qr_base != "" %}
@@ -29,8 +30,8 @@ layout: default
     </div>
     {% if repo != "" %}
     <div class="actions">
-      {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
-      <a class="btn" id="add-files" href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}"
+      {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
+      <a class="btn" id="add-files" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}"
         data-folder="{{ folder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ folder_files | jsonify }}'>Add files</a>
       <details class="menu">
         <summary class="btn" aria-label="More actions" title="More actions">&middot;&middot;&middot;</summary>
@@ -118,7 +119,7 @@ layout: default
   {% endif %}
 
   {% assign has_images = false %}{% assign has_files = false %}
-  {% for f in site.static_files %}{% if f.path contains folder %}
+  {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
     {% assign ext = f.extname | downcase %}
     {% case ext %}
       {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign has_images = true %}
@@ -138,7 +139,6 @@ layout: default
       <div class="code-dl">
         <button type="button" class="btn small" data-layout-dl="svg">SVG</button>
         <button type="button" class="btn small" data-layout-dl="png">PNG</button>
-        <button type="button" class="btn small" data-layout-dl="csv" title="Fiducial and region-centre coordinates">Coordinates (CSV)</button>
       </div>
       <p class="muted small">Drawn {{ st.layout.updated | date: "%-d %b %Y" }}{% if st.layout.by != "" %} by {{ st.layout.by }}{% endif %}. Positions in mm.</p>
     </div>
@@ -151,7 +151,7 @@ layout: default
       <h3>Photos and hi-res images</h3>
     {% if has_images %}
     <div class="gallery gallery-small">
-      {% for f in site.static_files %}{% if f.path contains folder %}
+      {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
         {% assign ext = f.extname | downcase %}
         {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
         {% assign hr = st.hires[f.name] %}
@@ -179,13 +179,41 @@ layout: default
     <p class="muted small">No photos yet.</p>
     {% endif %}
     </div>
+
+    {% assign grain_files = "" | split: "" %}{% assign grain_names = "" | split: "" %}
+    {% for f in site.static_files %}{% capture gp %}{{ gfolder }}{{ f.name }}{% endcapture %}{% if f.path == gp %}{% assign grain_files = grain_files | push: f %}{% assign grain_names = grain_names | push: f.name %}{% endif %}{% endfor %}
+    <div class="photos grain-files" id="grain-files">
+      <div class="card-head">
+        <h3>Grain coordinate files</h3>
+        {% if repo != "" %}<a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
+          data-folder="{{ gfolder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'
+          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain">Add files</a>{% endif %}
+      </div>
+      {% if grain_files.size > 0 %}
+      <ul class="files">
+        {% for f in grain_files %}{% assign ext = f.extname | downcase %}
+        <li>
+          <div class="file-line">
+            <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
+            <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
+            {% endif %}
+          </div>
+          <div class="preview" hidden></div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="muted small">No grain coordinate files yet.</p>
+      {% endif %}
+    </div>
   </section>
 
   <section class="card">
     <h2>Data files</h2>
     {% if has_files %}
     <ul class="files">
-      {% for f in site.static_files %}{% if f.path contains folder %}
+      {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
         {% assign ext = f.extname | downcase %}
         {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% else %}
         <li>
@@ -325,7 +353,7 @@ layout: default
 {% if repo != "" %}
 <script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "project": {{ page.project | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
-{% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
+{% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
 <script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
