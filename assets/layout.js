@@ -200,8 +200,9 @@
   // ---- grain points: stage coordinates (µm) placed on the drawing through the three fiducials ----
   // An affine fit maps the file's First, Second, Third onto drawn fiducials 1, 2, 3 exactly,
   // so each point sits where it really is relative to the fiducials.
-  var grains = null, show = { fids: true, points: true, labels: false }, gpts = [];
-  try { grains = JSON.parse((document.getElementById('grain-data') || {}).textContent || 'null'); } catch (e) {}
+  var grainSet = null, grains = null, show = { fids: true, points: true, labels: false }, gpts = [];
+  try { grainSet = JSON.parse((document.getElementById('grain-data') || {}).textContent || 'null'); } catch (e) {}
+  if (grainSet && grainSet.files && grainSet.files.length) grains = grainSet.files[0];   // newest upload first
   function solve3(a, b) {                     // a: 3x3, b: 3 → x (Cramer's rule)
     function det(m) { return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]); }
     var d = det(a);
@@ -233,6 +234,15 @@
     return { title: mountId, lines: titleLines, hideFids: !show.fids,
       points: show.points ? gpts : null, pointLabels: show.labels };
   }
+  // Choose which grain coordinate file is shown (Grain coordinate files section)
+  document.querySelectorAll('input[name="grain-show"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      (grainSet.files || []).forEach(function (g) { if (g.file === r.value) grains = g; });
+      gpts = []; placePoints();
+      var c = document.getElementById('grain-count'); if (c) c.textContent = grains.points.length;
+      if (view && saved) view.innerHTML = render(saved, viewOpts());
+    });
+  });
   document.querySelectorAll('[data-show]').forEach(function (cb) {
     cb.addEventListener('change', function () {
       show[cb.dataset.show] = cb.checked;

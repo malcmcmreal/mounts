@@ -125,9 +125,10 @@ def describe(e):
 def read_grains(mount_dir):
     """Grain coordinate file (mounts/<ID>/grains/*.csv, TrackWorks export): a COORDINATION section
     with the three fiducials (First, Second, Third) and a GRAIN section (G01, G02…), as name,X,Y,Z
-    in stage coordinates (µm). The last file by name that has both sections is used."""
-    import csv
-    found = None
+    in stage coordinates (µm). Every file with both sections is listed, newest upload first;
+    the page shows the newest unless the viewer picks another."""
+    import csv, subprocess
+    found = []
     for path in sorted(glob.glob(os.path.join(mount_dir, "grains", "*.csv"))):
         fids, points, section = [], [], None
         try:
@@ -151,8 +152,17 @@ def read_grains(mount_dir):
         except OSError:
             continue
         if len(fids) >= 3 and points:
-            found = {"file": os.path.basename(path), "fids": fids[:3], "points": points}
-    return found
+            added = 0
+            try:   # when the file was uploaded (committed); file time if there's no git history
+                out = subprocess.run(["git", "log", "-1", "--format=%ct", "--", path], cwd=ROOT,
+                                     capture_output=True, text=True, timeout=20).stdout.strip()
+                added = int(out) if out else 0
+            except Exception:
+                pass
+            added = added or int(os.path.getmtime(path))
+            found.append({"file": os.path.basename(path), "added": added, "fids": fids[:3], "points": points})
+    found.sort(key=lambda g: (-g["added"], g["file"]))
+    return {"files": found} if found else None
 
 
 def build():

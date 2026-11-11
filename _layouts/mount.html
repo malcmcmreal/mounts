@@ -136,7 +136,7 @@ layout: default
     {% if st.grains %}
     <div class="layout-toggles">
       <label class="check"><input type="checkbox" data-show="fids" checked> Fiducial markers</label>
-      <label class="check"><input type="checkbox" data-show="points" checked> Grain points ({{ st.grains.points | size }})</label>
+      <label class="check"><input type="checkbox" data-show="points" checked> Grain points (<span id="grain-count">{{ st.grains.files[0].points | size }}</span>)</label>
       <label class="check"><input type="checkbox" data-show="labels"> Grain labels</label>
     </div>
     <p class="muted small" id="grain-note"></p>
@@ -209,6 +209,7 @@ layout: default
     </div>
 
     {% assign grain_files = "" | split: "" %}{% assign grain_names = "" | split: "" %}
+    {% if st.grains %}{% assign plottable = st.grains.files | map: "file" %}{% else %}{% assign plottable = "" | split: "" %}{% endif %}
     {% for f in site.static_files %}{% capture gp %}{{ gfolder }}{{ f.name }}{% endcapture %}{% if f.path == gp %}{% assign grain_files = grain_files | push: f %}{% assign grain_names = grain_names | push: f.name %}{% endif %}{% endfor %}
     <div class="photos grain-files" id="grain-files">
       <div class="card-head">
@@ -223,6 +224,8 @@ layout: default
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if plottable contains f.name %}<label class="check grain-pick" title="Show this file's points on the layout drawing">
+              <input type="radio" name="grain-show" value="{{ f.name | escape }}"{% if f.name == plottable[0] %} checked{% endif %}> Show on drawing</label>{% endif %}
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
