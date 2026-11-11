@@ -132,7 +132,15 @@ layout: default
       {% if repo != "" %}<button type="button" class="btn small" data-layout-edit>{% if st.layout %}Edit layout{% else %}Draw layout{% endif %}</button>{% endif %}
     </div>
     {% if st.layout %}
-    <div class="layout-view" id="layout-view" data-mount="{{ page.mount_id }}"></div>
+    <div class="layout-wrap">
+      <div class="layout-view" id="layout-view" data-mount="{{ page.mount_id }}"></div>
+      <div class="layout-zoom" id="layout-zoom">
+        <button type="button" class="btn small" data-zoom="in" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="btn small" data-zoom="out" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" class="btn small" data-zoom="reset" title="Show the whole mount"><span id="lz-level">100%</span></button>
+      </div>
+    </div>
+    <p class="muted small layout-zoom-hint">Zoom with the buttons, a double-click, Ctrl/⌘ + scroll or a pinch, then drag to move around.</p>
     {% if st.grains %}
     <div class="layout-toggles">
       <label class="check"><input type="checkbox" data-show="fids" checked> Fiducial markers</label>
@@ -143,7 +151,6 @@ layout: default
     <script type="application/json" id="grain-data">{{ st.grains | jsonify }}</script>
     {% endif %}
     <div class="layout-meta">
-      <div id="layout-fids"></div>
       <div class="code-dl">
         <button type="button" class="btn small" data-layout-dl="svg">SVG</button>
         <button type="button" class="btn small" data-layout-dl="png">PNG</button>

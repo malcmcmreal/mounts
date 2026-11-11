@@ -274,7 +274,13 @@ ul.plain li { margin: 0 0 .2rem; }
 .code.label:not(.wide) .code-img { justify-content: center; }
 
 /* Mount layout */
-.layout-view { max-width: 672px; }
+.layout-view { max-width: 740px; overflow: hidden; border-radius: 8px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.layout-view.zoomed { cursor: grab; touch-action: none; }
+.layout-view.zoomed:active { cursor: grabbing; }
+.layout-wrap { position: relative; max-width: 740px; }
+.layout-zoom { position: absolute; top: .5rem; right: .5rem; display: flex; gap: .3rem; }
+.layout-zoom .btn { min-width: 2rem; padding: .2rem .5rem; background: rgba(40,40,42,.85); }
+.layout-zoom-hint { margin: .35rem 0 0; }
 .layout-view svg { width: 100%; height: auto; border-radius: 8px; display: block; }
 .layout-meta { margin-top: .75rem; display: grid; gap: .6rem; max-width: 672px; }
 .layout-meta table { border-collapse: collapse; }

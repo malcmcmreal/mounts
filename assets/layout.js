@@ -149,10 +149,10 @@
     });
     // measured grain positions (from the grain coordinate file)
     if (opts.points && opts.points.length) {
-      var pr = r2(0.11 * u), pfs = r2(0.42 * u);
+      var ps = opts.pointScale || 1, pr = r2(0.11 * u * ps), pfs = r2(0.42 * u * ps);   // pointScale keeps points readable when zoomed
       o.push('<g class="lay-points">');
       opts.points.forEach(function (p) {
-        o.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="' + pr + '" fill="#0b57d0" stroke="#fff" stroke-width="' + r2(0.04 * u) + '"><title>' + esc(p.n) + '</title></circle>');
+        o.push('<circle cx="' + r2(p.x) + '" cy="' + r2(p.y) + '" r="' + pr + '" fill="#0b57d0" stroke="#fff" stroke-width="' + r2(0.04 * u * ps) + '"><title>' + esc(p.n) + '</title></circle>');
         if (opts.pointLabels) o.push('<text x="' + r2(p.x + pr * 1.3) + '" y="' + r2(p.y - pr * 0.6) + '" font-size="' + pfs + '" fill="#0b3d91">' + esc(p.n) + '</text>');
       });
       o.push('</g>');
@@ -223,16 +223,15 @@
     if (!cx || !cy) { if (note) note.textContent = 'The three fiducials in the file are in a line, so the points can\'t be placed.'; return; }
     gpts = grains.points.map(function (p) { return { n: p[0], x: cx[0] * p[1] + cx[1] * p[2] + cx[2], y: cy[0] * p[1] + cy[1] * p[2] + cy[2] }; });
     if (note) {
-      var k = Math.sqrt(Math.abs(cx[0] * cy[1] - cx[1] * cy[0])) / 0.001;   // drawing mm per real mm
       note.textContent = grains.points.length + ' points from ' + grains.file + ', placed using its fiducials ' +
-        grains.fids.map(function (f) { return f[0]; }).join(', ') + ' on drawn fiducials 1, 2, 3' +
-        (Math.abs(k - 1) > 0.05 ? ' (the drawing is about ' + Math.round(k * 100) + '% of true size).' : '.');
+        grains.fids.map(function (f) { return f[0]; }).join(', ') + ' on drawn fiducials 1, 2, 3. ' +
+        'Positions are approximate: they depend on how closely the drawn fiducials match the real ones.';
     }
   }
   placePoints();
   function viewOpts() {
     return { title: mountId, lines: titleLines, hideFids: !show.fids,
-      points: show.points ? gpts : null, pointLabels: show.labels };
+      points: show.points ? gpts : null, pointLabels: show.labels, pointScale: 1 / Math.sqrt(zoom.k) };
   }
   // Choose which grain coordinate file is shown (Grain coordinate files section)
   document.querySelectorAll('input[name="grain-show"]').forEach(function (r) {
@@ -240,25 +239,92 @@
       (grainSet.files || []).forEach(function (g) { if (g.file === r.value) grains = g; });
       gpts = []; placePoints();
       var c = document.getElementById('grain-count'); if (c) c.textContent = grains.points.length;
-      if (view && saved) view.innerHTML = render(saved, viewOpts());
+      redraw();
     });
   });
   document.querySelectorAll('[data-show]').forEach(function (cb) {
     cb.addEventListener('change', function () {
       show[cb.dataset.show] = cb.checked;
-      if (view && saved) view.innerHTML = render(saved, viewOpts());
+      redraw();
     });
   });
 
-  if (view && saved) {
+  // ---- zoom and pan (buttons, Ctrl/⌘ + scroll, pinch; drag to move when zoomed) ----
+  var zoom = { k: 1, x: 0, y: 0 }, base = null, drawnK = 1;   // k: magnification; x, y: top-left of the visible area
+  function applyZoom() {
+    if (show.points && gpts.length && Math.abs(drawnK - zoom.k) > 0.01) return redraw();   // points shrink as you zoom in
+    var svg = view && view.querySelector('svg');
+    if (!svg || !base) return;
+    var w = base.w / zoom.k, h = base.h / zoom.k;
+    zoom.x = Math.min(base.w - w, Math.max(0, zoom.x)); zoom.y = Math.min(base.h - h, Math.max(0, zoom.y));
+    svg.setAttribute('viewBox', r2(zoom.x) + ' ' + r2(zoom.y) + ' ' + r2(w) + ' ' + r2(h));
+    view.classList.toggle('zoomed', zoom.k > 1.001);
+    var lvl = document.getElementById('lz-level'); if (lvl) lvl.textContent = Math.round(zoom.k * 100) + '%';
+  }
+  function zoomAt(f, px, py) {                       // px, py: point to keep still, as a fraction of the view
+    var k = Math.min(12, Math.max(1, zoom.k * f));
+    var w = base.w / zoom.k, h = base.h / zoom.k, ax = zoom.x + px * w, ay = zoom.y + py * h;
+    zoom.k = k; zoom.x = ax - px * base.w / k; zoom.y = ay - py * base.h / k;
+    applyZoom();
+  }
+  function redraw() {
+    if (!view || !saved) return;
+    drawnK = zoom.k;
     view.innerHTML = render(saved, viewOpts());
-    var tbl = document.getElementById('layout-fids');
-    if (tbl) {
-      var fc = fidCoords(saved);
-      tbl.innerHTML = fc.length ? '<table class="small"><thead><tr><th>Fiducial</th><th>x (mm)</th><th>y (mm)</th></tr></thead><tbody>' +
-        fc.map(function (f) { return '<tr><td>' + f.n + '</td><td class="mono">' + f.x.toFixed(2) + '</td><td class="mono">' + f.y.toFixed(2) + '</td></tr>'; }).join('') +
-        '</tbody></table><p class="muted small">From the centre of the mount, x to the right and y towards the top (orientation mark).</p>' : '';
-    }
+    var vb = view.querySelector('svg').getAttribute('viewBox').split(' ').map(Number);
+    base = { w: vb[2], h: vb[3] };
+    applyZoom();
+  }
+  if (view && saved) {
+    redraw();
+    var bar = document.getElementById('layout-zoom');
+    if (bar) bar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-zoom]');
+      if (!b) return;
+      if (b.dataset.zoom === 'reset') { zoom = { k: 1, x: 0, y: 0 }; applyZoom(); }
+      else zoomAt(b.dataset.zoom === 'in' ? 1.5 : 1 / 1.5, 0.5, 0.5);
+    });
+    view.addEventListener('wheel', function (e) {
+      if (!(e.ctrlKey || e.metaKey)) return;          // plain scrolling still scrolls the page
+      e.preventDefault();
+      var r = view.getBoundingClientRect();
+      zoomAt(Math.exp(-e.deltaY * 0.0025), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    }, { passive: false });
+    view.addEventListener('dblclick', function (e) {
+      var r = view.getBoundingClientRect();
+      zoomAt(2, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    });
+    var ptrs = {}, pan = null, pinch = null;
+    view.addEventListener('pointerdown', function (e) {
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(ptrs);
+      if (ids.length === 2) {
+        var a = ptrs[ids[0]], b2 = ptrs[ids[1]];
+        pinch = { d: Math.hypot(a.x - b2.x, a.y - b2.y), k: zoom.k }; pan = null;
+      } else if (zoom.k > 1.001) {
+        pan = { x: e.clientX, y: e.clientY, zx: zoom.x, zy: zoom.y };
+        view.setPointerCapture(e.pointerId);
+      }
+    });
+    view.addEventListener('pointermove', function (e) {
+      if (!ptrs[e.pointerId]) return;
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var r = view.getBoundingClientRect();
+      if (pinch) {
+        var ids = Object.keys(ptrs), a = ptrs[ids[0]], b2 = ptrs[ids[1]];
+        if (!a || !b2) return;
+        var mx = ((a.x + b2.x) / 2 - r.left) / r.width, my = ((a.y + b2.y) / 2 - r.top) / r.height;
+        zoomAt(pinch.k * Math.hypot(a.x - b2.x, a.y - b2.y) / pinch.d / zoom.k, mx, my);
+        e.preventDefault();
+      } else if (pan) {
+        var s = base.w / zoom.k / r.width;
+        zoom.x = pan.zx - (e.clientX - pan.x) * s; zoom.y = pan.zy - (e.clientY - pan.y) * s;
+        applyZoom();
+      }
+    });
+    function up(e) { delete ptrs[e.pointerId]; pan = null; if (Object.keys(ptrs).length < 2) pinch = null; }
+    view.addEventListener('pointerup', up);
+    view.addEventListener('pointercancel', up);
   }
 
   function download(svg, name, fmt) {
