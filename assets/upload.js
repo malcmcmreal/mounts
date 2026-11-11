@@ -1,5 +1,5 @@
 // Mount page: drag-and-drop file uploads straight to the repository (when signed in).
-// Signed out, the "Add files" button opens GitHub's own upload page instead.
+// Signed out, each "+ Add" button opens GitHub's own upload page instead.
 (function () {
   // Each [data-upload] button names its folder: the mount's own folder, or grains/ for grain coordinate files
   var openers = document.querySelectorAll('[data-upload]');
@@ -11,7 +11,7 @@
   var list = document.getElementById('upload-list'), btn = document.getElementById('upload-btn');
   var errBox = document.getElementById('upload-error'), saved = document.getElementById('upload-saved');
   var cancel = dlg.querySelector('.dialog-foot [data-close]');
-  var MAX = 25 * 1024 * 1024, BIG_IMAGE = 5 * 1024 * 1024;
+  var MAX = 25 * 1024 * 1024, BIG_IMAGE = 5 * 1024 * 1024, max = MAX;
   var files = [];
 
   Array.prototype.forEach.call(openers, function (link) {
@@ -21,10 +21,14 @@
       folder = link.dataset.folder;                 // e.g. "mounts/GR001/"
       mountId = link.dataset.mount;
       kind = link.dataset.kind || '';
+      max = link.dataset.max ? +link.dataset.max * 1024 * 1024 : MAX;
       try { existing = JSON.parse(link.dataset.existing || '[]'); } catch (x) { existing = []; }
       input.accept = link.dataset.accept || '';
-      document.getElementById('upload-title').textContent = (kind === 'grain' ? 'Add grain coordinate files to ' : 'Add files to ') + mountId;
-      if (where) where.textContent = kind === 'grain' ? 'CSV, text or spreadsheet files. Up to 25 MB each.' : whereDefault;
+      document.getElementById('upload-title').textContent =
+        ({ grain: 'Add grain coordinate files to ', image: 'Add photos to ', data: 'Add files to ' }[kind] || 'Add files to ') + mountId;
+      if (where) where.textContent = { grain: 'CSV, text or spreadsheet files. Up to 5 MB each.',
+        image: 'JPG, PNG, GIF or WebP images. Up to 25 MB each.',
+        data: 'Data and other files (not images). Up to 25 MB each.' }[kind] || whereDefault;
       open();
     });
   });
@@ -51,8 +55,10 @@
       var name = safeName(file.name), ext = (name.match(/\.[^.]+$/) || [''])[0];
       var item = { file: file, name: name, problem: '', warn: '' };
       if (/^\.(md|markdown|html?)$/.test(ext)) item.problem = 'Pages can\'t be uploaded here (the site would turn them into pages). Rename to .txt to keep it as a file.';
-      else if (file.size > MAX) item.problem = 'Larger than 25 MB, which GitHub won\'t accept from a browser.';
-      else if (kind === 'grain' && /^\.(jpe?g|png|gif|webp|tiff?|svg|pdf)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (use Add files at the top of the page).';
+      else if (file.size > max) item.problem = max < MAX ? 'Larger than ' + Math.round(max / 1048576) + ' MB, the limit for these files.' : 'Larger than 25 MB, which GitHub won\'t accept from a browser.';
+      else if (kind === 'image' && !/^\.(jpe?g|png|gif|webp)$/.test(ext)) item.problem = 'Not an image this page can show. Use + Add under Data and other files.';
+      else if (kind === 'data' && /^\.(jpe?g|png|gif|webp)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (+ Add there).';
+      else if (kind === 'grain' && /^\.(jpe?g|png|gif|webp|tiff?|svg|pdf)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (+ Add there).';
       else if (/^\.tiff?$/.test(ext)) item.warn = 'Browsers can\'t show TIFF images, so it will be listed as a data file. Upload a JPG or PNG copy to show it as a map.';
       else if (/^\.(jpe?g|png|gif|webp)$/.test(ext) && file.size > BIG_IMAGE) item.warn = 'Large image; it may load slowly on phones.';
       if (name !== file.name) item.warn = (item.warn ? item.warn + ' ' : '') + 'Saved as ' + name + '.';

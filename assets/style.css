@@ -373,3 +373,9 @@ td.separates { font-size: .9rem; }
 .bulk-grid .wide { grid-column: 1 / -1; }
 .bulk-grid .cur { display: block; min-height: 1.1em; margin: .15rem 0 .2rem; font-size: .78rem; color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Section buttons and download links */
+.head-btns { display: flex; flex-wrap: wrap; gap: .4rem; }
+.dl-links { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.dl-links li { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; }
+.dl-links .hires { width: 100%; }

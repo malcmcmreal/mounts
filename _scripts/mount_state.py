@@ -109,6 +109,9 @@ def describe(e):
         changes = e.get("set") if isinstance(e.get("set"), dict) else {}
         return "; ".join(f"{DETAIL_LABELS.get(k, k)} set to {text(v)}" for k, v in changes.items()
                          if k in DETAIL_FIELDS) or "Details updated"
+    if t == "hires" and not text(e.get("file")):
+        what = text(e.get("label")) or text(e.get("url"))
+        return f"Download link removed: {what}" if e.get("remove") else f"Download link added: {what}"
     if t == "hires":
         f = text(e.get("file"))
         return f"Hi-res link removed for {f}" if not text(e.get("url")) else f"Hi-res download linked for {f}"
@@ -134,7 +137,7 @@ def build():
             "text": f"Mount created with {len(samples)} sample{'s' if len(samples) != 1 else ''}"
                     + (f" ({', '.join(s['id'] for s in samples)})" if 0 < len(samples) <= 6 else ""),
         }]
-        analyses, notes, hires = [], [], {}
+        analyses, notes, hires, links = [], [], {}, {}
         layout = None
 
         def find(sid):
@@ -191,6 +194,11 @@ def build():
                     layout = dict(lay, updated=e.get("date"), by=text(e.get("by")))
                 except Exception as err:
                     print(f"skipping layout in {e['_file']}: {err}")
+            elif t == "hires" and not text(e.get("file")) and text(e.get("url")):   # a download link on its own
+                if e.get("remove"):
+                    links.pop(text(e.get("url")), None)
+                else:
+                    links[text(e.get("url"))] = {k: text(e.get(k)) for k in ("url", "label", "date", "by") if text(e.get(k))}
             elif t == "hires" and text(e.get("file")):
                 if text(e.get("url")):
                     hires[text(e.get("file"))] = {k: text(e.get(k)) for k in ("url", "label", "date", "by") if text(e.get(k))}
@@ -215,7 +223,7 @@ def build():
         state[mid] = dict(
             {k: v for k, v in fields.items() if v not in (None, "")},
             samples=current, timeline=timeline, entries=len(timeline) - 1,
-            analyses=list(reversed(analyses)), notes=notes, hires=hires, layout=layout)
+            analyses=list(reversed(analyses)), notes=notes, hires=hires, links=list(links.values()), layout=layout)
 
     out = os.path.join(ROOT, "_data", "mountstate.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)

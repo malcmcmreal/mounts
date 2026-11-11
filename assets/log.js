@@ -31,9 +31,11 @@
   // (optionally data-sample="<ID>" or data-file="<image name>")
   var images = state.images || [], hires = state.hires || {};
   document.querySelectorAll('[data-add-entry]').forEach(function (b) {
-    b.addEventListener('click', function () { open(b.dataset.addEntry || 'sample', b.dataset.sample, b.dataset.file); });
+    b.addEventListener('click', function () { open(b.dataset.addEntry || 'sample', b.dataset.sample, b.dataset.file, b.dataset.url); });
   });
-  function open(which, sampleId, fileName) {
+  var linkUrl = '';      // set when removing a download link that isn't tied to an image
+  function open(which, sampleId, fileName, url) {
+    linkUrl = url || '';
     form.reset();
     dlg.querySelector('.dialog-foot [data-close]').textContent = 'Cancel';
     f.sample_pick.innerHTML = samples.map(function (s, i) {
@@ -43,10 +45,10 @@
     for (var i = 0; i < samples.length; i++) if (!samples[i].earthbank) { pick = i; break; }
     if (sampleId) samples.forEach(function (s, k) { if (String(s.id) === sampleId) pick = k; });
     f.sample_pick.value = samples.length ? String(pick) : NEW;
-    f.hires_file.innerHTML = images.length ? images.map(function (n) {
+    f.hires_file.innerHTML = '<option value="">None (a link on its own)</option>' + images.map(function (n) {
       return '<option value="' + esc(n) + '">' + esc(n) + (hires[n] ? ' · has a link' : '') + '</option>';
-    }).join('') : '<option value="">No images uploaded yet</option>';
-    if (fileName) f.hires_file.value = fileName;
+    }).join('');
+    f.hires_file.value = fileName || '';
     form.querySelector('input[name=type][value="' + which + '"]').checked = true;
     var d = new Date();
     f.date.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -162,6 +164,14 @@
   f.hires_file.addEventListener('change', hiresChanged);
   f.hires_remove.addEventListener('change', function () { document.getElementById('log-hires-fields').hidden = f.hires_remove.checked; });
   function hiresChanged() {
+    if (!f.hires_file.value) {                        // a download link on its own
+      var own = linkUrl;
+      document.getElementById('log-hires-current').textContent = own ? 'Link: ' + own : '';
+      document.getElementById('log-hires-remove-row').hidden = !own;
+      f.hires_remove.checked = !!own; document.getElementById('log-hires-fields').hidden = !!own;
+      f.hires_url.value = ''; f.hires_label.value = '';
+      return;
+    }
     var h = hires[f.hires_file.value];
     document.getElementById('log-hires-current').textContent = h ? 'Current link: ' + h.url : 'No hi-res link yet.';
     document.getElementById('log-hires-remove-row').hidden = !h;
@@ -233,13 +243,22 @@
         lines.push('type: detail', 'field: ' + f.field.value, 'value: ' + q(val('value')));
       }
     } else if (t === 'hires') {
-      if (!val('hires_file')) problem = 'Upload the map image first (Add files), then add its hi-res link.';
+      if (!val('hires_file')) {                       // a download link on its own
+        lines.push('type: hires');
+        if (f.hires_remove.checked && linkUrl) lines.push('url: ' + q(linkUrl), 'remove: true');
+        else {
+          if (!/^https?:\/\/\S+$/i.test(val('hires_url'))) problem = 'Paste the full download link, starting with https://';
+          lines.push('url: ' + q(val('hires_url')));
+          if (val('hires_label')) lines.push('label: ' + q(val('hires_label')));
+        }
+      } else {
       lines.push('type: hires', 'file: ' + q(val('hires_file')));
       if (f.hires_remove.checked) lines.push('url: ""');
       else {
         if (!/^https?:\/\/\S+$/i.test(val('hires_url'))) problem = 'Paste the full download link, starting with https://';
         lines.push('url: ' + q(val('hires_url')));
         if (val('hires_label')) lines.push('label: ' + q(val('hires_label')));
+      }
       }
     } else {
       if (!val('note')) problem = 'Write the note.';

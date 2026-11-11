@@ -447,7 +447,7 @@
       document.getElementById('done-saved-text').innerHTML = editing
         ? 'The page updates in about a minute; refresh it to see the change.'
         : 'The new page will be at <a href="' + url + '">' + url + '</a> in about a minute. ' +
-          'Upload its map and data files there with <strong>Add files</strong>.';
+          'Upload its photos and files there with <strong>+ Add</strong> in each section.';
       document.getElementById('done-saved').hidden = false;
       document.getElementById('done-new').hidden = true;
       document.getElementById('done-edit').hidden = true;

@@ -30,9 +30,6 @@ layout: default
     </div>
     {% if repo != "" %}
     <div class="actions">
-      {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
-      <a class="btn" id="add-files" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}"
-        data-folder="{{ folder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ folder_files | jsonify }}'>Add files</a>
       <details class="menu">
         <summary class="btn" aria-label="More actions" title="More actions">&middot;&middot;&middot;</summary>
         <div class="menu-list">
@@ -118,6 +115,8 @@ layout: default
   </section>
   {% endif %}
 
+  {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
+  {% capture up_attrs %}href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}" data-folder="{{ folder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ folder_files | jsonify }}'{% endcapture %}
   {% assign has_images = false %}{% assign has_files = false %}
   {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
     {% assign ext = f.extname | downcase %}
@@ -148,7 +147,13 @@ layout: default
     {% endif %}
   
     <div class="photos">
-      <h3>Photos and hi-res images</h3>
+      <div class="card-head">
+        <h3>Photos and hi-res images</h3>
+        {% if repo != "" %}<span class="head-btns">
+          <a class="btn small" data-upload {{ up_attrs }} data-accept=".jpg,.jpeg,.png,.gif,.webp" data-kind="image">+ Add</a>
+          <button type="button" class="btn small" data-add-entry="hires" data-file="">+ Add link</button>
+        </span>{% endif %}
+      </div>
     {% if has_images %}
     <div class="gallery gallery-small">
       {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
@@ -178,6 +183,20 @@ layout: default
     {% else %}
     <p class="muted small">No photos yet.</p>
     {% endif %}
+    {% if st.links and st.links.size > 0 %}
+    <ul class="dl-links">
+      {% for l in st.links %}
+      <li>
+        <a class="hires" href="{{ l.url }}" target="_blank" rel="noopener">
+          <span class="hires-icon" aria-hidden="true">&#8681;</span>
+          <span><strong>{% if l.label %}{{ l.label }}{% else %}Hi-res download{% endif %}</strong>
+            <small>{{ l.url | split: "/" | slice: 2 | first }}</small></span>
+        </a>
+        {% if repo != "" %}<button type="button" class="link-btn small" data-add-entry="hires" data-file="" data-url="{{ l.url | escape }}">Remove</button>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     </div>
 
     {% assign grain_files = "" | split: "" %}{% assign grain_names = "" | split: "" %}
@@ -187,7 +206,7 @@ layout: default
         <h3>Grain coordinate files</h3>
         {% if repo != "" %}<a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
           data-folder="{{ gfolder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'
-          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain">Add files</a>{% endif %}
+          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="5">+ Add</a>{% endif %}
       </div>
       {% if grain_files.size > 0 %}
       <ul class="files">
@@ -209,8 +228,11 @@ layout: default
     </div>
   </section>
 
-  <section class="card">
-    <h2>Data files</h2>
+  <section class="card" id="data-files">
+    <div class="card-head">
+      <h2>Data and other files</h2>
+      {% if repo != "" %}<a class="btn small" data-upload {{ up_attrs }} data-kind="data">+ Add</a>{% endif %}
+    </div>
     {% if has_files %}
     <ul class="files">
       {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
@@ -229,7 +251,7 @@ layout: default
       {% endif %}{% endfor %}
     </ul>
     {% else %}
-    <p class="muted">No data files yet.</p>
+    <p class="muted">No files yet.</p>
     {% endif %}
   </section>
 
