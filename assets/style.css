@@ -391,3 +391,8 @@ td.separates { font-size: .9rem; }
 .layout-toggles label.check { margin: 0; }
 #grain-note { margin: .2rem 0 0; }
 .grain-pick { margin: 0 .6rem 0 auto; font-size: .85rem; color: var(--muted); white-space: nowrap; }
+
+/* Remove uploaded files */
+.file-rm { color: var(--muted); }
+.file-rm:hover { color: #e5534b; }
+figure.removed, li.removed { opacity: .4; pointer-events: none; }

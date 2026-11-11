@@ -178,7 +178,8 @@ layout: default
         {% assign hr = st.hires[f.name] %}
         <figure>
           <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
-          <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span></figcaption>
+          <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span>
+            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}</figcaption>
           {% if hr %}
           <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
             <span class="hires-icon" aria-hidden="true">&#8681;</span>
@@ -231,6 +232,7 @@ layout: default
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}
             {% if plottable contains f.name %}<label class="check grain-pick" title="Show this file's points on the layout drawing">
               <input type="radio" name="grain-show" value="{{ f.name | escape }}"{% if f.name == plottable[0] %} checked{% endif %}> Show on drawing</label>{% endif %}
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
@@ -260,6 +262,7 @@ layout: default
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
+            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
@@ -398,6 +401,7 @@ layout: default
 <script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
+<script src="{{ '/assets/remove.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-repo="{{ repo }}" data-branch="{{ branch }}" data-mount="{{ page.mount_id }}"></script>
 {% include layout-dialog.html %}
 {% endif %}
 

@@ -115,6 +115,8 @@ def describe(e):
     if t == "hires":
         f = text(e.get("file"))
         return f"Hi-res link removed for {f}" if not text(e.get("url")) else f"Hi-res download linked for {f}"
+    if t == "file":
+        return f"File removed: {text(e.get('removed'))}"
     if t == "layout":
         return "Mount layout drawn" if e.get("_first_layout") else "Mount layout updated"
     if t == "note":
