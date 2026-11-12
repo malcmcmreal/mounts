@@ -254,7 +254,7 @@ layout: default
   <section class="card" id="data-files">
     <div class="card-head">
       <h2>Data and other files</h2>
-      {% if repo != "" %}<a class="btn small" data-upload {{ up_attrs }} data-kind="data">+ Add</a>{% endif %}
+      {% if repo != "" %}<a class="btn small" data-upload {{ up_attrs }} data-kind="data" data-max="5">+ Add</a>{% endif %}
     </div>
     {% if has_files %}
     <ul class="files">

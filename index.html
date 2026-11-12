@@ -34,8 +34,12 @@ layout: default
 <div class="pick-bar" id="pick-bar" hidden>
   <span id="pick-count"></span>
   <button type="button" class="btn small primary" id="pick-dl">Download QR codes</button>
+  <button type="button" class="btn small" data-dl-files="image">Download images</button>
+  <button type="button" class="btn small" data-dl-files="grain">Download coordinate files</button>
+  <button type="button" class="btn small" data-dl-files="data">Download data files</button>
   {% if site.github.repository_nwo %}<button type="button" class="btn small" id="pick-edit">Edit details</button>{% endif %}
   <button type="button" class="link-btn small" id="pick-clear">Clear selection</button>
+  <span class="small muted" id="pick-msg" role="status"></span>
 </div>
 <div id="mount-groups"></div>
 
@@ -256,6 +260,43 @@ layout: default
 {% endif %}
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/zip.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+{% comment %} Every uploaded file, as [mount, kind, url, name]: kind is image, grain (grains/ folder) or data {% endcomment %}
+<script type="application/json" id="mount-files">[{% assign first = true %}{% for f in site.static_files %}{% assign parts = f.path | split: "/" %}{% if parts[1] == "mounts" %}{% assign kind = "" %}{% if parts.size == 4 %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign kind = "image" %}{% else %}{% assign kind = "data" %}{% endcase %}{% elsif parts.size == 5 and parts[3] == "grains" %}{% assign kind = "grain" %}{% endif %}{% if kind != "" %}{% unless first %},{% endunless %}[{{ parts[2] | jsonify }},"{{ kind }}",{{ f.path | relative_url | jsonify }},{{ f.name | jsonify }}]{% assign first = false %}{% endif %}{% endif %}{% endfor %}]</script>
+<script>
+  // ---------- download the selected mounts' images, coordinate files or data files as one zip ----------
+  (function () {
+    var all = [];
+    try { all = JSON.parse(document.getElementById('mount-files').textContent); } catch (e) {}
+    var msg = document.getElementById('pick-msg');
+    var LABEL = { image: 'images', grain: 'coordinate files', data: 'data files' };
+    var ONE = { image: 'image', grain: 'coordinate file', data: 'data file' };
+    var FILE = { image: 'images', grain: 'coordinate-files', data: 'data-files' };
+    document.querySelectorAll('[data-dl-files]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var kind = btn.dataset.dlFiles;
+        var ids = Array.prototype.map.call(document.querySelectorAll('.mount-row .pick:checked'),
+          function (i) { return i.closest('.mount-row').dataset.id; });
+        var list = all.filter(function (f) { return f[1] === kind && ids.indexOf(f[0]) !== -1; });
+        if (!list.length) { msg.textContent = 'No ' + LABEL[kind] + ' in the selected mounts.'; return; }
+        var text = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Preparing…'; msg.textContent = '';
+        Promise.all(list.map(function (f) {
+          return fetch(f[2]).then(function (r) {
+            if (!r.ok) throw new Error(f[3]);
+            return r.arrayBuffer();
+          }).then(function (b) { return { name: f[0] + '/' + f[3], data: new Uint8Array(b) }; })
+            .catch(function () { return null; });
+        })).then(function (files) {
+          var ok = files.filter(Boolean), missed = files.length - ok.length;
+          if (ok.length) MountCodes.save(makeZip(ok), 'mount-' + FILE[kind] + '-' + new Date().toISOString().slice(0, 10) + '.zip');
+          msg.textContent = ok.length + ' ' + (ok.length === 1 ? ONE : LABEL)[kind] + ' from ' + ids.length + ' mount' + (ids.length === 1 ? '' : 's') +
+            (missed ? '; ' + missed + ' couldn\'t be downloaded.' : '.');
+        }).then(function () { btn.disabled = false; btn.textContent = text; });
+      });
+    });
+    document.addEventListener('change', function (e) { if (e.target.classList.contains('pick')) msg.textContent = ''; });
+  })();
+</script>
 <script>
   // ---------- select mounts and download their codes ----------
   (function () {

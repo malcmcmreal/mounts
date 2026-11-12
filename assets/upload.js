@@ -28,7 +28,7 @@
         ({ grain: 'Add grain coordinate files to ', image: 'Add photos to ', data: 'Add files to ' }[kind] || 'Add files to ') + mountId;
       if (where) where.textContent = { grain: 'CSV, text or spreadsheet files. Up to 1 MB each.',
         image: 'JPG, PNG, GIF or WebP images. Up to 5 MB each.',
-        data: 'Data and other files (not images). Up to 25 MB each.' }[kind] || whereDefault;
+        data: 'Data and other files (not images). Up to 5 MB each.' }[kind] || whereDefault;
       open();
     });
   });
