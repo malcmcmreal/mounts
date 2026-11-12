@@ -125,13 +125,14 @@ def describe(e):
 
 
 def read_grains(mount_dir):
-    """Grain coordinate file (mounts/<ID>/grains/*.csv, TrackWorks export): a COORDINATION section
+    """Grain coordinate file (mounts/<ID>/grains/*.csv or *.dcd, TrackWorks export): a COORDINATION section
     with the three fiducials (First, Second, Third) and a GRAIN section (G01, G02…), as name,X,Y,Z
     in stage coordinates (µm). Every file with both sections is listed, newest upload first;
     the page shows the newest unless the viewer picks another."""
     import csv, subprocess
     found = []
-    for path in sorted(glob.glob(os.path.join(mount_dir, "grains", "*.csv"))):
+    paths = [p for p in glob.glob(os.path.join(mount_dir, "grains", "*")) if p.lower().endswith((".csv", ".dcd"))]
+    for path in sorted(paths):
         fids, points, section = [], [], None
         try:
             with open(path, encoding="utf-8-sig", errors="replace") as fh:

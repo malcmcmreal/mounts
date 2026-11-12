@@ -224,7 +224,7 @@ layout: default
         <h3>Grain coordinate files</h3>
         {% if repo != "" %}<a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
           data-folder="{{ gfolder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'
-          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="1">+ Add</a>{% endif %}
+          data-accept=".csv,.dcd,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="1">+ Add</a>{% endif %}
       </div>
       {% if grain_files.size > 0 %}
       <ul class="files">
@@ -235,7 +235,7 @@ layout: default
             {% if plottable contains f.name %}<label class="check grain-pick" title="Show this file's points on the layout drawing">
               <input type="radio" name="grain-show" value="{{ f.name | escape }}"{% if f.name == plottable[0] %} checked{% endif %}> Show on drawing</label>{% endif %}
             <span class="file-acts">
-            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
+            {% if ext == ".csv" or ext == ".dcd" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
             {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
