@@ -7,6 +7,28 @@
   if (!repo) return;
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
+  // The site takes a minute or so to rebuild, and browsers may keep the old page for up to
+  // 10 minutes, so files deleted recently are hidden straight away and on reloads for a while.
+  var KEY = 'mounts.deleted', KEEP = 20 * 60 * 1000;
+  function recent() {
+    var d = {}, now = Date.now();
+    try { d = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (x) {}
+    Object.keys(d).forEach(function (p) { if (now - d[p] > KEEP) delete d[p]; });
+    return d;
+  }
+  function remember(path) {
+    var d = recent(); d[path] = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (x) {}
+  }
+  function hideItem(b) {
+    var item = b.closest('figure, li');
+    if (item) item.hidden = true;
+  }
+  var gone = recent();
+  document.querySelectorAll('[data-remove-file]').forEach(function (b) {
+    if (gone[b.dataset.removeFile]) hideItem(b);
+  });
+
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-remove-file]');
     if (!b) return;
@@ -28,9 +50,16 @@
     GH.commit([{ path: path, remove: true },
       { path: '_data/log/' + mountId + '/' + stamp + '-file.yml', text: entry }], 'Delete ' + name + ' from ' + mountId)
       .then(function () {
+        remember(path);
         var item = b.closest('figure, li');
-        if (item) { item.classList.add('removed'); item.title = 'Deleted; the page updates in about a minute.'; }
-        b.textContent = 'Deleted';
+        if (item) {
+          var note = document.createElement(item.tagName === 'LI' ? 'li' : 'p');
+          note.className = 'muted small deleted-note';
+          note.textContent = 'Deleted ' + name + '.';
+          item.parentNode.insertBefore(note, item);
+          item.hidden = true;
+          setTimeout(function () { note.remove(); }, 8000);
+        }
       })
       .catch(function (err) { b.disabled = false; b.textContent = 'Delete'; window.alert(err.message); });
   });

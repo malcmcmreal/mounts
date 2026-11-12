@@ -439,3 +439,4 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
   font-size: 1.6rem; line-height: 1; text-decoration: none; color: var(--ink); font-family: system-ui, sans-serif; }
 .nav-arrow:hover { border-color: var(--link); color: var(--link); }
 .nav-arrow.off { opacity: .25; }
+.deleted-note { list-style: none; padding: .5rem 0; }
