@@ -278,8 +278,12 @@ ul.plain li { margin: 0 0 .2rem; }
 .layout-view.zoomed { cursor: grab; touch-action: none; }
 .layout-view.zoomed:active { cursor: grabbing; }
 .layout-wrap { position: relative; max-width: 740px; }
-.layout-zoom { position: absolute; top: .5rem; right: .5rem; display: flex; gap: .3rem; }
-.layout-zoom .btn { min-width: 2rem; padding: .2rem .5rem; background: rgba(40,40,42,.85); }
+.layout-zoom { position: absolute; left: .6rem; bottom: .6rem; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.layout-zoom .btn { width: 2.2rem; height: 2.2rem; padding: 0; border: 0; border-radius: 0; font-size: 1.25rem; line-height: 1;
+  background: #fff; color: #444; }
+.layout-zoom .btn:hover { background: #f1f1f1; color: #111; }
+.layout-zoom .btn + .btn { border-top: 1px solid #ddd; }
 .layout-zoom-hint { margin: .35rem 0 0; }
 .layout-view svg { width: 100%; height: auto; border-radius: 8px; display: block; }
 .layout-meta { margin-top: .75rem; display: grid; gap: .6rem; max-width: 672px; }

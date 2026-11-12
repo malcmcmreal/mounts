@@ -259,7 +259,6 @@
     zoom.x = Math.min(base.w - w, Math.max(0, zoom.x)); zoom.y = Math.min(base.h - h, Math.max(0, zoom.y));
     svg.setAttribute('viewBox', r2(zoom.x) + ' ' + r2(zoom.y) + ' ' + r2(w) + ' ' + r2(h));
     view.classList.toggle('zoomed', zoom.k > 1.001);
-    var lvl = document.getElementById('lz-level'); if (lvl) lvl.textContent = Math.round(zoom.k * 100) + '%';
   }
   function zoomAt(f, px, py) {                       // px, py: point to keep still, as a fraction of the view
     var k = Math.min(12, Math.max(1, zoom.k * f));
