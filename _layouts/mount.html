@@ -25,7 +25,14 @@ layout: default
   <div class="page-head">
     <div>
       <p class="eyebrow">Sample mount</p>
-      <h1 class="mono">{{ page.mount_id }}</h1>
+      {% assign all_mounts = site.pages | where: "layout", "mount" | sort: "mount_id" %}
+      {% assign prev_m = nil %}{% assign next_m = nil %}{% assign found = false %}
+      {% for m in all_mounts %}{% if found %}{% assign next_m = m %}{% break %}{% endif %}{% if m.mount_id == page.mount_id %}{% assign found = true %}{% else %}{% assign prev_m = m %}{% endif %}{% endfor %}
+      <h1 class="mono mount-nav">
+        {% if prev_m %}<a class="nav-arrow" href="{{ prev_m.url | relative_url }}" title="Previous mount: {{ prev_m.mount_id }}" aria-label="Previous mount, {{ prev_m.mount_id }}">&#8249;</a>{% else %}<span class="nav-arrow off" aria-hidden="true">&#8249;</span>{% endif %}
+        <span>{{ page.mount_id }}</span>
+        {% if next_m %}<a class="nav-arrow" href="{{ next_m.url | relative_url }}" title="Next mount: {{ next_m.mount_id }}" aria-label="Next mount, {{ next_m.mount_id }}">&#8250;</a>{% else %}<span class="nav-arrow off" aria-hidden="true">&#8250;</span>{% endif %}
+      </h1>
       {% if page.minerals %}<p class="lede">{{ page.minerals }}</p>{% endif %}
     </div>
     {% if repo != "" %}
@@ -184,6 +191,7 @@ layout: default
           <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
           <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span>
           {% endif %}
+            <a class="link-btn small" href="{{ f.path | relative_url }}" download>Download</a>
             {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}</figcaption>
           {% if hr %}
           <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
@@ -243,6 +251,7 @@ layout: default
             {% if ext == ".csv" or ext == ".dcd" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
+            <a class="btn small" href="{{ f.path | relative_url }}" download>Download</a>
             {% if repo != "" and ext == ".dcd" %}<button type="button" class="btn small" data-dcd-edit="{{ f.path | remove_first: '/' }}" data-url="{{ f.path | relative_url }}">Edit .dcd</button>{% endif %}
             {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
             </span>
@@ -274,6 +283,7 @@ layout: default
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
+            <a class="btn small" href="{{ f.path | relative_url }}" download>Download</a>
             {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
             </span>
           </div>

@@ -428,3 +428,10 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .mount-row.drop-over .mr-drop { color: var(--link); }
 .mount-row.drop-over .mr-drop-box { border-color: var(--link); }
 @media (max-width: 560px) { .mr-drop { display: none; } .mount-row:has(.mr-drop) { grid-template-columns: auto 60px minmax(0, 1fr) 48px; } }
+
+/* Mount page: previous / next mount */
+.mount-nav { display: flex; align-items: center; gap: .6rem; }
+.nav-arrow { display: inline-grid; place-items: center; width: 2.2rem; height: 2.2rem; border: 1px solid var(--line); border-radius: 8px;
+  font-size: 1.6rem; line-height: 1; text-decoration: none; color: var(--ink); font-family: system-ui, sans-serif; }
+.nav-arrow:hover { border-color: var(--link); color: var(--link); }
+.nav-arrow.off { opacity: .25; }
