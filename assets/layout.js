@@ -381,6 +381,7 @@
       undo = []; sel = {}; setTool('select'); errBox.textContent = '';
       syncControls(); draw();
       showStep(1);
+      dlg.querySelector('.dialog-foot [data-close]').textContent = 'Cancel';
       dlg.showModal();
     });
   });
@@ -726,6 +727,7 @@
       GH.commit([{ path: path, text: text }], 'History: ' + mountId + ' (layout)').then(function () {
         showStep(2); ghBtn.hidden = true; backBtn.hidden = true;
         document.getElementById('lay-saved').hidden = false; document.getElementById('lay-gh').hidden = true;
+        dlg.querySelector('.dialog-foot [data-close]').textContent = 'Close';   // nothing left to cancel
       }).catch(function (err) { errBox.textContent = err.message; })
         .then(function () { saveBtn.disabled = false; setSaveLabel(); });
       return;
