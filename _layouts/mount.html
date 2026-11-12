@@ -166,7 +166,7 @@ layout: default
       <div class="card-head">
         <h3>Photos and hi-res images</h3>
         {% if repo != "" %}<span class="head-btns">
-          <a class="btn small" data-upload {{ up_attrs }} data-accept=".jpg,.jpeg,.png,.gif,.webp" data-kind="image">+ Add</a>
+          <a class="btn small" data-upload {{ up_attrs }} data-accept=".jpg,.jpeg,.png,.gif,.webp" data-kind="image" data-max="5">+ Add image</a>
           <button type="button" class="btn small" data-add-entry="hires" data-file="">+ Add link</button>
         </span>{% endif %}
       </div>
@@ -224,7 +224,7 @@ layout: default
         <h3>Grain coordinate files</h3>
         {% if repo != "" %}<a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
           data-folder="{{ gfolder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'
-          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="5">+ Add</a>{% endif %}
+          data-accept=".csv,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="1">+ Add</a>{% endif %}
       </div>
       {% if grain_files.size > 0 %}
       <ul class="files">
