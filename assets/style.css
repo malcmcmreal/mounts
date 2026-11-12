@@ -422,8 +422,8 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .mr-files:not(.open) .more { display: none; }
 .mr-more { font-size: .72rem; }
 .mount-row:has(.mr-drop) { grid-template-columns: auto 76px minmax(0, 1fr) 64px 64px; }
-.mr-drop { display: flex; flex-direction: column; align-items: center; gap: .2rem; color: var(--muted); }
-.mr-drop-box { display: grid; place-items: center; width: 64px; height: 64px; border: 2px dashed var(--line); border-radius: 6px; }
+.mr-drop { display: block; color: var(--muted); }
+.mr-drop-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; width: 64px; height: 64px; box-sizing: border-box; border: 2px dashed var(--line); border-radius: 6px; }
 .mr-drop-label { font-size: .7rem; line-height: 1; }
 .mount-row.drop-over .mr-drop { color: var(--link); }
 .mount-row.drop-over .mr-drop-box { border-color: var(--link); }
