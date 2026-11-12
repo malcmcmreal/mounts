@@ -8,7 +8,7 @@
   var me = document.currentScript;
   var mountId = me.dataset.mount, existing = [];
   try { existing = JSON.parse(me.dataset.existing || '[]'); } catch (e) {}
-  var NAME = /^(.*G\d+)([a-z]?)$/;
+  var NAME = /^(.*?\d+)([a-z]?)$/;   // GR001_G01b, GR006_Grain01b … → grain + sub-grain letter
 
   var dlg = document.createElement('dialog');
   dlg.className = 'dialog';
@@ -137,7 +137,7 @@
       return r.text();
     }).then(function (t) {
       file = parse(t); file.path = path; file.name = name;
-      if (!file.points) throw new Error('No grain points found (names like GR001_G01, GR001_G01b in the 5th column).');
+      if (!file.points) throw new Error('No grain points found (names like GR001_G01 or GR001_G01b in the 5th column).');
       info.textContent = file.grains + ' grains, ' + file.points + ' points' +
         (file.maxSubs ? ', up to ' + file.maxSubs + ' sub-grains per grain.' : ', no sub-grains.');
       f.n.max = Math.max(1, file.maxSubs);
