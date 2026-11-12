@@ -179,7 +179,7 @@ layout: default
         <figure>
           <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
           <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span>
-            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}</figcaption>
+            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}</figcaption>
           {% if hr %}
           <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
             <span class="hires-icon" aria-hidden="true">&#8681;</span>
@@ -232,12 +232,14 @@ layout: default
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
-            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}
             {% if plottable contains f.name %}<label class="check grain-pick" title="Show this file's points on the layout drawing">
               <input type="radio" name="grain-show" value="{{ f.name | escape }}"{% if f.name == plottable[0] %} checked{% endif %}> Show on drawing</label>{% endif %}
+            <span class="file-acts">
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
+            {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
+            </span>
           </div>
           <div class="preview" hidden></div>
         </li>
@@ -262,10 +264,12 @@ layout: default
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
-            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Remove</button>{% endif %}
+            <span class="file-acts">
             {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
+            {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
+            </span>
           </div>
           <div class="preview" hidden></div>
         </li>
