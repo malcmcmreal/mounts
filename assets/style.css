@@ -421,7 +421,10 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .mr-file { overflow-wrap: anywhere; }
 .mr-files:not(.open) .more { display: none; }
 .mr-more { font-size: .72rem; }
-.mr-drop { position: absolute; top: .45rem; right: calc(64px + 1.6rem); display: grid; place-items: center; width: 26px; height: 26px;
-  border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
-.mount-row.drop-over .mr-drop { border-color: var(--link); color: var(--link); }
-@media (max-width: 560px) { .mr-drop { right: calc(48px + 1.2rem); top: .3rem; } }
+.mount-row:has(.mr-drop) { grid-template-columns: auto 76px minmax(0, 1fr) 64px 64px; }
+.mr-drop { display: flex; flex-direction: column; align-items: center; gap: .2rem; color: var(--muted); }
+.mr-drop-box { display: grid; place-items: center; width: 64px; height: 64px; border: 2px dashed var(--line); border-radius: 6px; }
+.mr-drop-label { font-size: .7rem; line-height: 1; }
+.mount-row.drop-over .mr-drop { color: var(--link); }
+.mount-row.drop-over .mr-drop-box { border-color: var(--link); }
+@media (max-width: 560px) { .mr-drop { display: none; } .mount-row:has(.mr-drop) { grid-template-columns: auto 60px minmax(0, 1fr) 48px; } }
