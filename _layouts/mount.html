@@ -238,6 +238,7 @@ layout: default
             {% if ext == ".csv" or ext == ".dcd" or ext == ".txt" or ext == ".tsv" or ext == ".dat" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
+            {% if repo != "" and ext == ".dcd" %}<button type="button" class="btn small" data-dcd-edit="{{ f.path | remove_first: '/' }}" data-url="{{ f.path | relative_url }}">Edit .dcd</button>{% endif %}
             {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}
             </span>
           </div>
@@ -406,6 +407,7 @@ layout: default
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
 <script src="{{ '/assets/remove.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-repo="{{ repo }}" data-branch="{{ branch }}" data-mount="{{ page.mount_id }}"></script>
+<script src="{{ '/assets/dcd.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'></script>
 {% include layout-dialog.html %}
 {% endif %}
 

@@ -399,3 +399,4 @@ td.separates { font-size: .9rem; }
 .link-btn.file-rm:hover { color: #ff7b72; }
 figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .grain-pick + .file-acts { margin-left: .6rem; }
+.dcd-n { width: 4rem !important; display: inline-block; margin: 0 .3rem !important; padding: .15rem .35rem; }
