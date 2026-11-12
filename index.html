@@ -31,6 +31,7 @@ layout: default
     <button type="button" class="link-btn small" id="select-all">Select all</button>
   </span>
 </div>
+{% if site.github.repository_nwo %}<p class="muted small drop-hint">Tip: drop files onto a mount to upload them. Coordinate files (.dcd, .csv) and images go to their sections; spreadsheets ask where they belong.</p>{% endif %}
 <div class="pick-bar" id="pick-bar" hidden>
   <span id="pick-count"></span>
   <button type="button" class="btn small primary" id="pick-dl">Download QR codes</button>
@@ -52,7 +53,7 @@ layout: default
   {% assign thumb = "" %}{% for f in site.static_files %}{% if thumb == "" and f.path contains folder %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".webp", ".gif" %}{% assign thumb = f.path %}{% endcase %}{% endif %}{% endfor %}
   {% assign linked = "" | split: "" %}{% for s in ms %}{% if s.earthbank %}{% assign e = s.earthbank | append: "" %}{% assign linked = linked | push: e %}{% endif %}{% endfor %}
   {% assign last = st.timeline | last %}
-  <li class="mount-row" data-id="{{ m.mount_id }}" data-nsamples="{{ ms | size }}" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
+  <li class="mount-row" data-id="{{ m.mount_id }}" data-folder="{{ folder | remove_first: '/' }}" data-nsamples="{{ ms | size }}" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
     data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}"
     data-format="{{ cur.mount_format | escape }}" data-polish="{{ cur.polish | escape }}" data-etch="{{ cur.etch | escape }}" data-coating="{{ cur.coating | escape }}" data-storage="{{ cur.storage | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
     <label class="mr-pick"><input type="checkbox" class="pick" aria-label="Select {{ m.mount_id }}"></label>
@@ -261,7 +262,8 @@ layout: default
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/zip.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 {% comment %} Every uploaded file, as [mount, kind, url, name]: kind is image, grain (grains/ folder) or data {% endcomment %}
-<script type="application/json" id="mount-files">[{% assign first = true %}{% for f in site.static_files %}{% assign parts = f.path | split: "/" %}{% if parts[1] == "mounts" %}{% assign kind = "" %}{% if parts.size == 4 %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign kind = "image" %}{% else %}{% assign kind = "data" %}{% endcase %}{% elsif parts.size == 5 and parts[3] == "grains" %}{% assign kind = "grain" %}{% endif %}{% if kind != "" %}{% unless first %},{% endunless %}[{{ parts[2] | jsonify }},"{{ kind }}",{{ f.path | relative_url | jsonify }},{{ f.name | jsonify }}]{% assign first = false %}{% endif %}{% endif %}{% endfor %}]</script>
+<script type="application/json" id="mount-files">[{% assign first = true %}{% for f in site.static_files %}{% assign parts = f.path | split: "/" %}{% if parts[1] == "mounts" %}{% assign kind = "" %}{% if parts.size == 4 %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}{% assign kind = "image" %}{% else %}{% assign kind = "data" %}{% endcase %}{% elsif parts.size == 5 and parts[3] == "grains" %}{% assign kind = "grain" %}{% endif %}{% if kind != "" %}{% unless first %},{% endunless %}[{{ parts[2] | jsonify }},"{{ kind }}",{{ f.path | relative_url | jsonify }},{{ f.name | jsonify }}]{% assign first = false %}{% endif %}{% endif %}{% endfor %}]</script>
+{% if site.github.repository_nwo %}<script src="{{ '/assets/home-drop.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
 <script>
   // ---------- download the selected mounts' images, coordinate files or data files as one zip ----------
   (function () {

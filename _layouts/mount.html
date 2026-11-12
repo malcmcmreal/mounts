@@ -121,7 +121,7 @@ layout: default
   {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
     {% assign ext = f.extname | downcase %}
     {% case ext %}
-      {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign has_images = true %}
+      {% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}{% assign has_images = true %}
       {% else %}{% assign has_files = true %}
     {% endcase %}
   {% endif %}{% endfor %}
@@ -166,7 +166,7 @@ layout: default
       <div class="card-head">
         <h3>Photos and hi-res images</h3>
         {% if repo != "" %}<span class="head-btns">
-          <a class="btn small" data-upload {{ up_attrs }} data-accept=".jpg,.jpeg,.png,.gif,.webp" data-kind="image" data-max="5">+ Add image</a>
+          <a class="btn small" data-upload {{ up_attrs }} data-accept=".jpg,.jpeg,.png,.gif,.webp,.tif,.tiff" data-kind="image" data-max="5">+ Add image</a>
           <button type="button" class="btn small" data-add-entry="hires" data-file="">+ Add link</button>
         </span>{% endif %}
       </div>
@@ -174,11 +174,16 @@ layout: default
     <div class="gallery gallery-small">
       {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
         {% assign ext = f.extname | downcase %}
-        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}
         {% assign hr = st.hires[f.name] %}
         <figure>
+          {% if ext == ".tif" or ext == ".tiff" %}
+          <a class="tiff-tile" href="{{ f.path | relative_url }}" download title="Download the TIFF"><span>TIFF</span><small>Browsers can't preview TIFF images. Tap to download.</small></a>
+          <figcaption>{{ f.name }}
+          {% else %}
           <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
           <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span>
+          {% endif %}
             {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}</figcaption>
           {% if hr %}
           <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
@@ -261,7 +266,7 @@ layout: default
     <ul class="files">
       {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
         {% assign ext = f.extname | downcase %}
-        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% else %}
+        {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}{% else %}
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
@@ -402,7 +407,7 @@ layout: default
 {% if repo != "" %}
 <script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "project": {{ page.project | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
-{% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
+{% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
 <script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}

@@ -27,7 +27,7 @@
       document.getElementById('upload-title').textContent =
         ({ grain: 'Add grain coordinate files to ', image: 'Add photos to ', data: 'Add files to ' }[kind] || 'Add files to ') + mountId;
       if (where) where.textContent = { grain: 'CSV, DCD, text or spreadsheet files. Up to 1 MB each.',
-        image: 'JPG, PNG, GIF or WebP images. Up to 5 MB each.',
+        image: 'JPG, PNG, TIFF, GIF or WebP images. Up to 5 MB each.',
         data: 'Data and other files (not images). Up to 5 MB each.' }[kind] || whereDefault;
       open();
     });
@@ -56,10 +56,10 @@
       var item = { file: file, name: name, problem: '', warn: '' };
       if (/^\.(md|markdown|html?)$/.test(ext)) item.problem = 'Pages can\'t be uploaded here (the site would turn them into pages). Rename to .txt to keep it as a file.';
       else if (file.size > max) item.problem = max < MAX ? 'Larger than ' + Math.round(max / 1048576) + ' MB, the limit for these files.' : 'Larger than 25 MB, which GitHub won\'t accept from a browser.';
-      else if (kind === 'image' && !/^\.(jpe?g|png|gif|webp)$/.test(ext)) item.problem = 'Not an image this page can show. Use + Add under Data and other files.';
-      else if (kind === 'data' && /^\.(jpe?g|png|gif|webp)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (+ Add there).';
+      else if (kind === 'image' && !/^\.(jpe?g|png|gif|webp|tiff?)$/.test(ext)) item.problem = 'Not an image this page can show. Use + Add under Data and other files.';
+      else if (kind === 'data' && /^\.(jpe?g|png|gif|webp|tiff?)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (+ Add there).';
       else if (kind === 'grain' && /^\.(jpe?g|png|gif|webp|tiff?|svg|pdf)$/.test(ext)) item.problem = 'Images go under Photos and hi-res images (+ Add there).';
-      else if (/^\.tiff?$/.test(ext)) item.warn = 'Browsers can\'t show TIFF images, so it will be listed as a data file. Upload a JPG or PNG copy to show it as a map.';
+      else if (/^\.tiff?$/.test(ext)) item.warn = 'Browsers can\'t preview TIFF images; it will be listed as a download. Upload a JPG or PNG copy too to show it.';
       else if (/^\.(jpe?g|png|gif|webp)$/.test(ext) && file.size > BIG_IMAGE) item.warn = 'Large image; it may load slowly on phones.';
       if (name !== file.name) item.warn = (item.warn ? item.warn + ' ' : '') + 'Saved as ' + name + '.';
       if (existing.indexOf(name) !== -1) item.warn = (item.warn ? item.warn + ' ' : '') + 'Replaces the existing file with this name.';
