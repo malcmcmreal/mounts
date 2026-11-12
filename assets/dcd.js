@@ -22,7 +22,9 @@
     '<label class="check"><input type="radio" name="mode" value="some" checked> Remove ' +
     '<input type="number" name="n" min="1" value="2" class="dcd-n"> sub-grains from each grain (the last ones: f, then e…)</label>' +
     '<label class="check"><input type="radio" name="mode" value="parents"> Keep parent grains only</label>' +
+    '<label class="check"><input type="radio" name="mode" value="all"> Keep all sub-grains</label>' +
     '</fieldset>' +
+    '<label class="check"><input type="checkbox" name="swap"> Swap XY (the first two columns, on every line)</label>' +
     '<label class="check"><input type="checkbox" name="renumber" checked> Renumber the points without gaps (columns 6 and 9)</label>' +
     '<fieldset class="dl-set"><legend>Save</legend>' +
     '<label class="check"><input type="radio" name="save" value="new" checked> Upload as a new file</label>' +
@@ -65,30 +67,42 @@
 
   // Which lines stay, given the options
   function result() {
-    var parents = f.mode.value === 'parents', n = Math.max(1, Math.floor(+f.n.value || 1));
+    var parents = f.mode.value === 'parents', keepAll = f.mode.value === 'all', n = Math.max(1, Math.floor(+f.n.value || 1));
+    var swap = f.swap.checked;
     var subsOf = {};
     file.lines.forEach(function (l) { if (l.grain && l.sub) (subsOf[l.grain] = subsOf[l.grain] || []).push(l.sub); });
     Object.keys(subsOf).forEach(function (g) { subsOf[g].sort(); });
     var out = [], k = 0, removed = 0;
     file.lines.forEach(function (l) {
-      if (l.grain && l.sub) {
+      if (l.grain && l.sub && !keepAll) {
         var subs = subsOf[l.grain], keepCount = parents ? 0 : Math.max(0, subs.length - n);
         if (subs.indexOf(l.sub) >= keepCount) { removed++; return; }
       }
-      if (l.grain && f.renumber.checked) {
+      var c = l.cols.slice(), changed = false;
+      if (l.grain && f.renumber.checked && !keepAll) {
         k++;
-        var c = l.cols.slice();
         if (c.length > 5) c[5] = String(k);
         if (c.length > 8) c[8] = String(k);
-        out.push(c.join(','));
-      } else out.push(l.text);
+        changed = true;
+      }
+      if (swap && c.length > 1 && c[0].trim() !== '' && !isNaN(+c[0]) && !isNaN(+c[1])) {
+        var t = c[0]; c[0] = c[1]; c[1] = t; changed = true;
+      }
+      out.push(changed ? c.join(',') : l.text);
     });
-    return { text: out.join(file.eol) + (file.ends ? file.eol : ''), removed: removed, kept: file.points - removed, n: n, parents: parents };
+    return { text: out.join(file.eol) + (file.ends ? file.eol : ''), removed: removed, kept: file.points - removed, n: n,
+      parents: parents, keepAll: keepAll, swap: swap };
   }
   function suggestName() {
-    var base = file.name.replace(/\.dcd$/i, ''), r = result(), left = file.maxSubs - (r.parents ? file.maxSubs : r.n);
-    var tag = r.parents || left <= 0 ? 'ParentGrains' : (left + 1) + '_SubGrains';
-    var name = /\d+_SubGrains|ParentGrains?/.test(base) ? base.replace(/\d+_SubGrains|ParentGrains?/, tag) : base + '_' + tag;
+    var base = file.name.replace(/\.dcd$/i, '').replace(/_XYswap$/i, ''), r = result(), name = base;
+    if (!r.keepAll) {
+      var left = file.maxSubs - (r.parents ? file.maxSubs : r.n);
+      var tag = r.parents || left <= 0 ? 'ParentGrains' : (left + 1) + '_SubGrains';
+      name = /\d+_SubGrains|ParentGrains?/.test(base) ? base.replace(/\d+_SubGrains|ParentGrains?/, tag) : base + '_' + tag;
+    }
+    // swapping a file that was already swapped turns it back
+    var wasSwapped = /_XYswap\.dcd$/i.test(file.name);
+    if (r.swap !== wasSwapped) name += '_XYswap';
     return name + '.dcd';
   }
   var nameTouched = false;
@@ -97,10 +111,11 @@
     var r = result();
     if (!nameTouched) f.fname.value = suggestName();
     dlg.querySelector('#dcd-newname').hidden = f.save.value !== 'new';
-    sum.textContent = 'Keeps ' + r.kept + ' of ' + file.points + ' points (removes ' + r.removed + ').';
+    sum.textContent = 'Keeps ' + r.kept + ' of ' + file.points + ' points (removes ' + r.removed + ')' + (r.swap ? '; X and Y swapped.' : '.');
+    f.renumber.disabled = r.keepAll;
     var signedIn = window.GH && GH.canWrite();
     dlg.querySelector('#dcd-signin').hidden = signedIn;
-    go.disabled = !signedIn || !r.removed;
+    go.disabled = !signedIn || !(r.removed || r.swap);
   }
   form.addEventListener('input', function (e) { if (e.target.name === 'fname') nameTouched = true; update(); });
   form.addEventListener('change', update);
@@ -143,7 +158,8 @@
     } else target = file.path;
     err.textContent = '';
     go.disabled = true; go.innerHTML = '<span class="spinner"></span> Saving…';
-    var what = r.parents ? 'parent grains only' : r.n + ' sub-grain' + (r.n === 1 ? '' : 's') + ' removed per grain';
+    var what = [r.keepAll ? '' : r.parents ? 'parent grains only' : r.n + ' sub-grain' + (r.n === 1 ? '' : 's') + ' removed per grain',
+      r.swap ? 'X and Y swapped' : ''].filter(Boolean).join(', ');
     var fname = target.split('/').pop();
     GH.commit([{ path: target, text: r.text }], (target === file.path ? 'Edit ' + fname + ' in ' : 'Add ' + fname + ' to ') + mountId + ' (' + what + ')')
       .then(function () {
