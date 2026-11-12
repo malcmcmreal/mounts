@@ -414,3 +414,14 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .tiff-tile { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: .3rem; aspect-ratio: 4 / 3;
   border: 1px dashed var(--line); border-radius: 8px; text-decoration: none; color: var(--muted); text-align: center; padding: .6rem; }
 .tiff-tile span { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+
+/* Home: file names under each mount, and the drop indicator */
+.mount-row { position: relative; }
+.mr-files { margin: .35rem 0 0; display: flex; flex-wrap: wrap; gap: .1rem .7rem; color: var(--muted); font-size: .72rem; line-height: 1.5; }
+.mr-file { overflow-wrap: anywhere; }
+.mr-files:not(.open) .more { display: none; }
+.mr-more { font-size: .72rem; }
+.mr-drop { position: absolute; top: .45rem; right: calc(64px + 1.6rem); display: grid; place-items: center; width: 26px; height: 26px;
+  border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
+.mount-row.drop-over .mr-drop { border-color: var(--link); color: var(--link); }
+@media (max-width: 560px) { .mr-drop { right: calc(48px + 1.2rem); top: .3rem; } }

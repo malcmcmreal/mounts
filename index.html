@@ -80,7 +80,12 @@ layout: default
       <p class="mr-extra muted small">
         {% if cur.storage %}{{ cur.storage }}{% endif %}{% if cur.storage and linked.size > 0 %} · {% endif %}{% if linked.size > 0 %}{{ linked.size }} linked to EarthBank{% endif %}{% if last and last.type != "created" %}{% if cur.storage or linked.size > 0 %} · {% endif %}updated {{ last.date | date: "%-d %b %Y" }}{% endif %}
       </p>
+      {% assign fnames = "" | split: "" %}{% for f in site.static_files %}{% if f.path contains folder %}{% assign fnames = fnames | push: f.name %}{% endif %}{% endfor %}
+      {% assign fnames = fnames | sort %}{% if fnames.size > 0 %}
+      <p class="mr-files small">{% for n in fnames %}<span class="mr-file mono{% if forloop.index > 5 %} more{% endif %}">{{ n }}</span>{% endfor %}{% if fnames.size > 5 %}<button type="button" class="link-btn small mr-more" data-more="… {{ fnames.size | minus: 5 }} more">… {{ fnames.size | minus: 5 }} more</button>{% endif %}</p>
+      {% endif %}
     </div>
+    {% if site.github.repository_nwo %}<span class="mr-drop" title="Drop files on this mount to upload them" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 15v4h14v-4"/></svg></span>{% endif %}
     <a class="mr-qr" href="{{ m.url | relative_url }}" title="{{ qr }}" data-qr="{{ qr }}" aria-label="QR code for {{ m.mount_id }}"></a>
   </li>
   {% endfor %}
@@ -89,6 +94,15 @@ layout: default
 <p class="muted count">{{ mounts | size }} mount{% if mounts.size != 1 %}s{% endif %} in the catalogue.</p>
 
 <script src="{{ '/assets/qrcode.js' | relative_url }}"></script>
+<script>
+  // Mount rows: show all file names
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.mr-more');
+    if (!b) return;
+    var p = b.closest('.mr-files'), open = p.classList.toggle('open');
+    b.textContent = open ? 'Show less' : b.dataset.more;
+  });
+</script>
 <script src="{{ '/assets/layout.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script>
   (function () {
