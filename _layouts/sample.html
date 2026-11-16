@@ -49,8 +49,9 @@ layout: default
         <thead><tr><th>Catalogue number</th><th>Mineral</th><th>Split</th></tr></thead>
         <tbody>
           {% for v in page.vials %}
-          <tr id="vial-{{ v.catalogue | escape }}"><td class="mono">{{ v.catalogue }}</td><td>{{ v.mineral }}</td>
-            <td>{% if v.prep == "Concentrate" %}<span class="pill good">Concentrate</span>{% else %}{{ v.prep }}{% endif %}</td></tr>
+          <tr id="vial-{{ v.catalogue | escape }}"><td class="mono">{{ v.catalogue }}</td>{% assign m1 = v.mineral | split: " + " | first %}{% assign m2 = v.mineral | split: " + " | last %}{% capture tone %}{% case m1 %}{% when "Apatite" %}ap{% when "Zircon" %}zr{% when "Titanite" %}ti{% else %}other{% endcase %}{% endcapture %}{% capture tone2 %}{% if m2 != m1 %}{% case m2 %}{% when "Apatite" %} m2-ap{% when "Zircon" %} m2-zr{% when "Titanite" %} m2-ti{% else %} m2-other{% endcase %}{% endif %}{% endcapture %}
+            <td><span class="vchip m-{{ tone | strip }}{{ tone2 | rstrip }}{% if v.prep == "Concentrate" %} conc{% endif %}">{{ v.mineral }}</span></td>
+            <td>{% if v.prep == "Concentrate" %}<strong class="conc-label">Concentrate</strong>{% else %}{{ v.prep }}{% endif %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

@@ -10,10 +10,11 @@
   var all = [], hits = [], shown = 0, PAGE = 100;
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  var SHORT = { Apatite: 'Ap', Zircon: 'Zr', Titanite: 'Ttn' };
+  var SHORT = { Apatite: 'Ap', Zircon: 'Zr', Titanite: 'Ti' }, TONE = { Apatite: 'ap', Zircon: 'zr', Titanite: 'ti' };
   function chip(v) {
-    var m = v[1].split(' + ').map(function (x) { return SHORT[x] || x; }).join('+');
-    return '<span class="vchip' + (v[2] === 'Concentrate' ? ' conc' : '') + '" title="' + esc(v[1] + (v[2] ? ' ' + v[2].toLowerCase() : '')) + '">' +
+    var parts = v[1].split(' + '), m = parts.map(function (x) { return SHORT[x] || x; }).join('+');
+    var tones = parts.map(function (x) { return TONE[x] || 'other'; });
+    return '<span class="vchip m-' + tones[0] + (tones[1] ? ' m2-' + tones[1] : '') + (v[2] === 'Concentrate' ? ' conc' : '') + '" title="' + esc(v[1] + (v[2] ? ' ' + v[2].toLowerCase() : '')) + '">' +
       esc(m) + (v[2] ? ' ' + esc(v[2].replace('Concentrate', 'conc').replace('Fraction', 'frac').toLowerCase()) : '') +
       (v[0] ? '<span class="mono">' + esc(v[0]) + '</span>' : '') + '</span>';
   }

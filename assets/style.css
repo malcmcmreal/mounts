@@ -466,8 +466,6 @@ table.vials tr:target td { background: var(--raised); }
 .split-list td { vertical-align: top; }
 .split-list .vial-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
 .vchip { font-size: .8rem; padding: .1rem .45rem; border-radius: 5px; background: var(--raised); white-space: nowrap; }
-.vchip .mono { color: var(--muted); margin-left: .3rem; }
-.vchip.conc { box-shadow: inset 2px 0 0 #8fd18f; }
 .list-more { text-align: center; margin: 1rem 0; }
 .split-pop { position: absolute; z-index: 30; background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
   max-height: 260px; overflow: auto; min-width: 280px; }
@@ -479,3 +477,15 @@ table.vials tr:target td { background: var(--raised); }
 .codes-fold > summary { cursor: pointer; display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
 .codes-fold > summary h2 { display: inline; margin: 0; }
 .codes-fold[open] > summary { margin-bottom: .9rem; }
+/* Vial chips: pale colour by mineral (apatite green, zircon blue, titanite yellow); concentrates bold with a ring */
+.vchip { color: #1c1f23; background: #d9dde2; }
+.vchip .mono { color: #4a5058; margin-left: .3rem; }
+.vchip.m-ap { background: #cdeccd; }
+.vchip.m-zr { background: #cfe3f7; }
+.vchip.m-ti { background: #f6ecb4; }
+.vchip.m-ap.m2-zr { background: linear-gradient(90deg, #cdeccd 50%, #cfe3f7 50%); }
+.vchip.m-ap.m2-ti { background: linear-gradient(90deg, #cdeccd 50%, #f6ecb4 50%); }
+.vchip.m-zr.m2-ti { background: linear-gradient(90deg, #cfe3f7 50%, #f6ecb4 50%); }
+.vchip.conc { font-weight: 700; box-shadow: 0 0 0 2px var(--ink); }
+.vchip.conc .mono { color: #1c1f23; }
+.conc-label { color: var(--ink); }
