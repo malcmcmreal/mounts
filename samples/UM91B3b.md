@@ -1,11 +1,14 @@
 ---
 layout: sample
 sample_id: "UM91B3b"
-permalink: "/samples/UM91B3b/"
+permalink: "/s/UM91B3b/"
 igsn: ""
 associated_pids: []
 collected_by: "PB O'Sullivan"
 notes: ""
+region: "USA-Alaska"
+lat: null
+lon: null
 vials:
   - {"catalogue": "22G36", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "22H01", "mineral": "Apatite", "prep": "Fraction"}

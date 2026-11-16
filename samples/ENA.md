@@ -1,11 +1,14 @@
 ---
 layout: sample
 sample_id: "ENA"
-permalink: "/samples/ENA/"
+permalink: "/s/ENA/"
 igsn: ""
 associated_pids: ["R31729"]
 collected_by: "A Gleadow"
 notes: "- granodiorite\n- sample collected from:\n  Yule Bay, beside Fortenberry Glacier,\n  Northern Victoria Land\n- sample number from Ed Stump (U. Arizona)"
+region: "Antarctica"
+lat: null
+lon: null
 vials:
   - {"catalogue": "5M03", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "5M04", "mineral": "Zircon", "prep": "Concentrate"}

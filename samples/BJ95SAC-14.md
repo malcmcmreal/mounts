@@ -1,11 +1,14 @@
 ---
 layout: sample
 sample_id: "BJ95SAC-14"
-permalink: "/samples/BJ95SAC-14/"
+permalink: "/s/BJ95SAC-14/"
 igsn: ""
 associated_pids: []
 collected_by: "D Foster"
 notes: ""
+region: "USA-California"
+lat: null
+lon: null
 vials:
   - {"catalogue": "28K36", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "28L01", "mineral": "Apatite", "prep": "Concentrate"}

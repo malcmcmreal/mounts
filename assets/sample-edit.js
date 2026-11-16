@@ -18,6 +18,10 @@
     '<div class="row"><label class="grow">IGSN of the parent rock sample <input name="igsn" class="mono"></label></div>' +
     '<label>Associated PIDs <small class="muted">(registered numbers etc., separated by commas)</small> <input name="pids" class="mono"></label>' +
     '<label>Collected by <input name="collected_by"></label>' +
+    '<label>Region <input name="region" placeholder="e.g. Australia-Tas"></label>' +
+    '<div class="row"><label class="grow">Latitude <input name="lat" class="mono" inputmode="decimal" placeholder="-41.8"></label>' +
+    '<label class="grow">Longitude <input name="lon" class="mono" inputmode="decimal" placeholder="145.4"></label></div>' +
+    '<p class="hint">Decimal degrees, south and west negative. Used for the map when EarthBank has no location.</p>' +
     '<label>Sample and separation notes <textarea name="notes" rows="4"></textarea></label>' +
     '<fieldset class="dl-set"><legend>Vials</legend>' +
     '<div class="vial-rows" id="se-vials"></div>' +
@@ -58,6 +62,12 @@
   box.addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (b) b.closest('.vial-row').remove(); });
   dlg.querySelector('#se-add').addEventListener('click', function () { addVial(); box.lastChild.querySelector('input').focus(); });
 
+  function num(v, max) {
+    v = String(v).trim();
+    if (!v) return null;
+    var n = +v;
+    return isNaN(n) || Math.abs(n) > max ? undefined : n;
+  }
   function signedIn() { return window.GH && GH.canWrite(); }
   function updateSignin() { dlg.querySelector('#se-signin').hidden = signedIn(); go.disabled = !signedIn(); }
   document.addEventListener('gh-auth', updateSignin);
@@ -75,6 +85,9 @@
       f.pids.value = (rec.associated_pids || []).join(', ');
       f.collected_by.value = rec.collected_by || '';
       f.notes.value = rec.notes || '';
+      f.region.value = rec.region || '';
+      f.lat.value = rec.lat == null ? '' : rec.lat;
+      f.lon.value = rec.lon == null ? '' : rec.lon;
       (rec.vials || []).forEach(addVial);
     }
     if (!box.children.length) addVial();
@@ -94,13 +107,14 @@
     if (current) return;
     var s = slug(f.sample_id.value.trim());
     idMsg.textContent = s && index && index[s.toLowerCase()] ? 'Sample ' + index[s.toLowerCase()] + ' already exists. Open its page to add vials.' :
-      s ? 'Its page will be /samples/' + s + '/' : '';
+      s ? 'Its page will be /s/' + s : '';
   });
 
   function build(rec) {
     var q = function (v) { return JSON.stringify(v); };
-    var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/samples/' + slug(rec.sample_id) + '/'),
-      'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes)];
+    var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/s/' + slug(rec.sample_id) + '/'),
+      'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes),
+      'region: ' + q(rec.region), 'lat: ' + q(rec.lat), 'lon: ' + q(rec.lon)];
     if (rec.vials.length) { lines.push('vials:'); rec.vials.forEach(function (v) {
       lines.push('  - {' + Object.keys(v).map(function (k) { return q(k) + ': ' + q(v[k]); }).join(', ') + '}');
     }); }
@@ -121,7 +135,10 @@
     }).filter(function (v) { return v.catalogue || v.mineral; });
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),
       associated_pids: f.pids.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
-      collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials };
+      collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials,
+      region: f.region.value.trim(), lat: num(f.lat.value, 90), lon: num(f.lon.value, 180) };
+    if (rec.lat === undefined || rec.lon === undefined) { err.textContent = 'Latitude and longitude must be numbers in decimal degrees.'; return; }
+    if ((rec.lat === null) !== (rec.lon === null)) { err.textContent = 'Enter both latitude and longitude, or neither.'; return; }
     var path = current ? current.path : 'samples/' + s + '.md';
     err.textContent = '';
     go.disabled = true; go.innerHTML = '<span class="spinner"></span> Saving…';
@@ -132,7 +149,7 @@
     }).then(function () {
       dlg.querySelector('#se-done-text').innerHTML = (current ? 'Updated' : 'Added') + ' sample <span class="mono">' + esc(sid) + '</span> with ' +
         vials.length + ' vial' + (vials.length === 1 ? '' : 's') + '.' +
-        (current ? '' : ' Its page: <a href="' + esc((document.querySelector('.site-title') || {}).getAttribute ? document.querySelector('.site-title').getAttribute('href') : '/') + 'samples/' + esc(s) + '/">/samples/' + esc(s) + '/</a>.');
+        (current ? '' : ' Its page: <a href="' + esc((document.querySelector('.site-title') || {}).getAttribute ? document.querySelector('.site-title').getAttribute('href') : '/') + 's/' + esc(s) + '/">mnts.au/s/' + esc(s) + '</a>.');
       dlg.querySelector('#se-body').hidden = true; dlg.querySelector('#se-done').hidden = false; go.hidden = true;
       dlg.querySelector('.dialog-foot [data-close]').textContent = 'Close';
       if (index) index[s.toLowerCase()] = sid;

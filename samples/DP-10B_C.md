@@ -1,11 +1,14 @@
 ---
 layout: sample
 sample_id: "DP-10B/C"
-permalink: "/samples/DP-10B_C/"
+permalink: "/s/DP-10B_C/"
 igsn: ""
 associated_pids: []
 collected_by: "D Kendrick"
 notes: ""
+region: "Indonesia"
+lat: null
+lon: null
 vials:
   - {"catalogue": "26J20", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "26J21", "mineral": "Apatite", "prep": "Concentrate"}

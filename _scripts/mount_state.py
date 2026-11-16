@@ -221,6 +221,28 @@ def link_samples(state):
         for v in vials:
             if text(v.get("catalogue")):
                 by_vial.setdefault(text(v.get("catalogue")).upper(), []).append(slug)
+    # The same samples in EarthBank: names there often carry a prefix up to the first dash
+    # (LITH00728954-7959-122 is sample 7959-122). Uses the weekly list of public samples.
+    eb = {}
+    try:
+        with open(os.path.join(ROOT, "assets", "earthbank", "samples.json"), encoding="utf-8") as f:
+            ebl = json.load(f)
+        want = {r["id"].lower(): slug for slug, r in records.items()}
+        places = ebl.get("places") or []
+        for row in ebl.get("samples") or []:
+            name = text(row[1])
+            base = re.sub(r"^LITH[^-]*-", "", name, flags=re.I).lower()
+            slug = want.get(base) or want.get(name.lower())
+            if not slug:
+                continue
+            place = places[row[3]] if len(row) > 3 and isinstance(row[3], int) and 0 <= row[3] < len(places) else ""
+            lat, lon = (row[4], row[5]) if len(row) > 5 else (None, None)
+            eb.setdefault(slug, []).append({k: v for k, v in {"id": row[0], "name": name, "place": place,
+                                                              "lat": lat, "lon": lon}.items() if v not in (None, "")})
+    except (OSError, ValueError) as err:
+        print(f"no EarthBank list for samples: {err}")
+    with open(os.path.join(ROOT, "_data", "sampleeb.json"), "w", encoding="utf-8") as f:
+        json.dump(eb, f, ensure_ascii=False)
     links = {}
     for mid, st in state.items():
         for smp in st.get("samples") or []:
@@ -244,7 +266,7 @@ def link_samples(state):
              for slug, r in records.items()]
     with open(os.path.join(ROOT, "assets", "samples-index.json"), "w", encoding="utf-8") as f:
         json.dump({"samples": index}, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"{len(records)} sample records, {len(links)} linked to mounts")
+    print(f"{len(records)} sample records, {len(links)} linked to mounts, {len(eb)} found in EarthBank")
 
 
 def build():

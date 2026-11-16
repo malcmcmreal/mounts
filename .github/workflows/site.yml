@@ -45,7 +45,8 @@ jobs:
         run: |
           if [ ! -f assets/earthbank/samples.json ] \
              || [ "${{ github.event.schedule }}" = "30 15 * * 6" ] \
-             || [ "${{ inputs.refresh_index }}" = "true" ]; then
+             || [ "${{ inputs.refresh_index }}" = "true" ] \
+             || ! grep -q '"lat"' assets/earthbank/samples.json; then
             echo "run=yes" >> "$GITHUB_OUTPUT"
           fi
       - name: Download the EarthBank sample list

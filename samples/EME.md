@@ -1,11 +1,14 @@
 ---
 layout: sample
 sample_id: "EME"
-permalink: "/samples/EME/"
+permalink: "/s/EME/"
 igsn: ""
 associated_pids: ["R31717"]
 collected_by: "A Gleadow"
 notes: "- hbl-biotite granite\n- sample collected from:\n  near summit, Mt Murchison,\n  Northern Victoria Land\n- sample number from Ed Stump (U. Arizona)"
+region: "Antarctica"
+lat: null
+lon: null
 vials:
   - {"catalogue": "5K28", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "5K29", "mineral": "Zircon", "prep": "Concentrate"}

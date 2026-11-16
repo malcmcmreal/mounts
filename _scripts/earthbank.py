@@ -105,7 +105,10 @@ def build_index():
                     place_index[place] = len(places)
                     places.append(place)
                 li = place_index[place]
-            samples.append([r.get("id") or s.get("id"), s.get("name") or "", pi, li])
+            lat, lon = loc.get("lat"), loc.get("lon")
+            ok = isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and (loc.get("celestialName") or "Earth") == "Earth"
+            samples.append([r.get("id") or s.get("id"), s.get("name") or "", pi, li,
+                            round(lat, 5) if ok else None, round(lon, 5) if ok else None])
         page += 1
         if page % 50 == 0:
             print(f"  {len(samples)} samples so far", flush=True)
@@ -113,7 +116,7 @@ def build_index():
             break
     write_json("assets/earthbank/samples.json", {
         "updated": now(), "web": WEB,
-        "fields": ["id", "name", "package", "place"],
+        "fields": ["id", "name", "package", "place", "lat", "lon"],
         "packages": packages, "places": places, "samples": samples})
 
 

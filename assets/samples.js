@@ -19,7 +19,7 @@
       (v[0] ? '<span class="mono">' + esc(v[0]) + '</span>' : '') + '</span>';
   }
   function row(s) {
-    return '<tr><td><a class="mono" href="' + base + 'samples/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a></td>' +
+    return '<tr><td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a></td>' +
       '<td><div class="vial-chips">' + s[2].map(chip).join('') + '</div></td>' +
       '<td class="small">' + esc(s[3]) + '</td>' +
       '<td>' + s[5].map(function (m) { return '<a class="mono small" href="' + base + encodeURIComponent(m) + '/">' + esc(m) + '</a>'; }).join(' ') + '</td></tr>';
