@@ -1,4 +1,5 @@
-// Mount page: edit a .dcd grain coordinate file (comma-separated stage points).
+// Mount page: edit a .dcd or TrackWorks .csv grain coordinate file (comma-separated stage points).
+// .csv: COORDINATION section (fiducials) and GRAIN section, rows name,X,Y,Z.
 // Each point line has its name in the 5th column, e.g. GR001_G01, GR001_G01b … GR001_G01f:
 // a parent grain (G01) followed by sub-grains (letters). Lines that aren't grain points
 // (fiducials such as RecMark P1, P2) are always kept.
@@ -24,7 +25,7 @@
     '<label class="check"><input type="radio" name="mode" value="parents"> Keep parent grains only</label>' +
     '<label class="check"><input type="radio" name="mode" value="all"> Keep all sub-grains</label>' +
     '</fieldset>' +
-    '<label class="check"><input type="checkbox" name="swap"> Swap XY (the first two columns, on every line)</label>' +
+    '<label class="check"><input type="checkbox" name="swap"> Swap XY (on every point, fiducials included)</label>' +
     '<label class="check"><input type="checkbox" name="renumber" checked> Renumber the points without gaps (columns 6 and 9)</label>' +
     '<fieldset class="dl-set"><legend>Save</legend>' +
     '<label class="check"><input type="radio" name="save" value="new" checked> Upload as a new file</label>' +
@@ -48,15 +49,28 @@
 
   var file = null;   // { path, name, eol, endsWithEol, lines: [{ text, cols, grain, sub }], maxSubs }
 
-  function parse(text) {
+  function numXY(cols) { return cols.length > 1 && cols[0].trim() !== '' && !isNaN(+cols[0]) && !isNaN(+cols[1]); }
+  function parse(text, csv) {
     var eol = text.indexOf('\r\n') !== -1 ? '\r\n' : '\n';
     var raw = text.split(eol), ends = raw.length && raw[raw.length - 1] === '';
     if (ends) raw.pop();
-    var counts = {}, lines = raw.map(function (t) {
-      var cols = t.split(','), m = cols.length > 4 ? NAME.exec(cols[4].trim()) : null;
-      var point = m && cols[3] && cols[3].trim() !== 'RecMark';
+    var counts = {}, sec = null, lines = raw.map(function (t) {
+      var cols = t.split(','), m, point, xy;
+      if (csv) {                                       // name,X,Y,Z rows inside sections
+        var head = (cols[0] || '').trim().toUpperCase();
+        if (head === 'COORDINATION' || head === 'GRAIN') { sec = head; return { text: t, cols: cols }; }
+        if (cols.every(function (c) { return !c.trim(); })) sec = null;
+        m = sec === 'GRAIN' ? NAME.exec(cols[0].trim()) : null;
+        point = !!m;
+        // X and Y are columns 2 and 3
+        xy = (sec === 'GRAIN' || sec === 'COORDINATION') && cols.length > 2 && cols[1].trim() !== '' && !isNaN(+cols[1]) && !isNaN(+cols[2]) ? 1 : -1;
+      } else {
+        m = cols.length > 4 ? NAME.exec(cols[4].trim()) : null;
+        point = m && cols[3] && cols[3].trim() !== 'RecMark';
+        xy = numXY(cols) ? 0 : -1;
+      }
       if (point && m[2]) counts[m[1]] = (counts[m[1]] || 0) + 1;
-      return { text: t, cols: cols, grain: point ? m[1] : null, sub: point ? m[2] : null };
+      return { text: t, cols: cols, grain: point ? m[1] : null, sub: point ? m[2] : null, xy: xy };
     });
     var maxSubs = 0, grains = {};
     lines.forEach(function (l) { if (l.grain) grains[l.grain] = 1; });
@@ -79,14 +93,14 @@
         if (subs.indexOf(l.sub) >= keepCount) { removed++; return; }
       }
       var c = l.cols.slice(), changed = false;
-      if (l.grain && f.renumber.checked && !keepAll) {
+      if (l.grain && f.renumber.checked && !keepAll && !file.csv) {
         k++;
         if (c.length > 5) c[5] = String(k);
         if (c.length > 8) c[8] = String(k);
         changed = true;
       }
-      if (swap && c.length > 1 && c[0].trim() !== '' && !isNaN(+c[0]) && !isNaN(+c[1])) {
-        var t = c[0]; c[0] = c[1]; c[1] = t; changed = true;
+      if (swap && l.xy >= 0) {
+        var t = c[l.xy]; c[l.xy] = c[l.xy + 1]; c[l.xy + 1] = t; changed = true;
       }
       out.push(changed ? c.join(',') : l.text);
     });
@@ -94,16 +108,16 @@
       parents: parents, keepAll: keepAll, swap: swap };
   }
   function suggestName() {
-    var base = file.name.replace(/\.dcd$/i, '').replace(/_XYswap$/i, ''), r = result(), name = base;
+    var base = file.name.replace(/\.(dcd|csv)$/i, '').replace(/_XYswap$/i, ''), r = result(), name = base;
     if (!r.keepAll) {
       var left = file.maxSubs - (r.parents ? file.maxSubs : r.n);
       var tag = r.parents || left <= 0 ? 'ParentGrains' : (left + 1) + '_SubGrains';
       name = /\d+_SubGrains|ParentGrains?/.test(base) ? base.replace(/\d+_SubGrains|ParentGrains?/, tag) : base + '_' + tag;
     }
     // swapping a file that was already swapped turns it back
-    var wasSwapped = /_XYswap\.dcd$/i.test(file.name);
+    var wasSwapped = /_XYswap\.(dcd|csv)$/i.test(file.name);
     if (r.swap !== wasSwapped) name += '_XYswap';
-    return name + '.dcd';
+    return name + file.ext;
   }
   var nameTouched = false;
   function update() {
@@ -113,6 +127,7 @@
     dlg.querySelector('#dcd-newname').hidden = f.save.value !== 'new';
     sum.textContent = 'Keeps ' + r.kept + ' of ' + file.points + ' points (removes ' + r.removed + ')' + (r.swap ? '; X and Y swapped.' : '.');
     f.renumber.disabled = r.keepAll;
+    f.renumber.closest('label').style.display = file.csv ? 'none' : '';
     var signedIn = window.GH && GH.canWrite();
     dlg.querySelector('#dcd-signin').hidden = signedIn;
     go.disabled = !signedIn || !(r.removed || r.swap);
@@ -136,8 +151,10 @@
       if (!r.ok) throw new Error('Couldn\'t load the file.');
       return r.text();
     }).then(function (t) {
-      file = parse(t); file.path = path; file.name = name;
-      if (!file.points) throw new Error('No grain points found (names like GR001_G01 or GR001_G01b in the 5th column).');
+      var csv = /\.csv$/i.test(name);
+      file = parse(t, csv); file.path = path; file.name = name; file.csv = csv; file.ext = csv ? '.csv' : '.dcd';
+      if (!file.points) throw new Error(csv ? 'No grain points found (a GRAIN section with names like G01, G01b).'
+        : 'No grain points found (names like GR001_G01 or GR001_G01b in the 5th column).');
       info.textContent = file.grains + ' grains, ' + file.points + ' points' +
         (file.maxSubs ? ', up to ' + file.maxSubs + ' sub-grains per grain.' : ', no sub-grains.');
       f.n.max = Math.max(1, file.maxSubs);
@@ -152,7 +169,7 @@
     var r = result(), target;
     if (f.save.value === 'new') {
       var nm = f.fname.value.trim().replace(/\s+/g, '_').replace(/[^A-Za-z0-9._-]/g, '');
-      if (!/\.dcd$/i.test(nm)) nm += '.dcd';
+      if (!new RegExp('\\' + file.ext + '$', 'i').test(nm)) nm += file.ext;
       if (nm === file.name || existing.indexOf(nm) !== -1) { err.textContent = 'A file called ' + nm + ' already exists. Choose another name, or pick Replace this file.'; return; }
       target = file.path.replace(/[^/]+$/, nm);
     } else target = file.path;
