@@ -127,13 +127,13 @@ def describe(e):
 def read_grains(mount_dir):
     """Grain coordinate file (mounts/<ID>/grains/*.csv or *.dcd, TrackWorks export): a COORDINATION section
     with the three fiducials (First, Second, Third) and a GRAIN section (G01, G02…), as name,X,Y,Z
-    in stage coordinates (µm). Every file with both sections is listed, newest upload first;
+    in stage coordinates (µm); GStar (Y,X,Z,name) and ESL (X,Y,Z,Name,Type) exports are read too. Every file with both sections is listed, newest upload first;
     the page shows the newest unless the viewer picks another."""
     import csv, subprocess
     found = []
     paths = [p for p in glob.glob(os.path.join(mount_dir, "grains", "*")) if p.lower().endswith((".csv", ".dcd"))]
     for path in sorted(paths):
-        fids, points, section = [], [], None
+        fids, points, section, cols = [], [], None, None
         try:
             with open(path, encoding="utf-8-sig", errors="replace") as fh:
                 for row in csv.reader(fh):
@@ -142,6 +142,27 @@ def read_grains(mount_dir):
                         section = None if not any(row) else section
                         continue
                     head = row[0].upper()
+                    up = [c.upper() for c in row]
+                    # GStar ("Y,X,Z," then "Y,X,Z,GRAIN") and ESL ("X,Y,Z,Name,Type") headers
+                    if len(up) >= 3 and up[0] in ("X", "Y") and up[1] in ("X", "Y") and up[0] != up[1]:
+                        cols = {"x": up.index("X"), "y": up.index("Y")}
+                        if "TYPE" in up:
+                            cols.update(name=up.index("NAME") if "NAME" in up else 3, type=up.index("TYPE"))
+                            section = "esl"
+                        else:
+                            cols["name"] = 3
+                            section = "grain" if len(up) > 3 and up[3] in ("GRAIN", "GRAINS") else "fid"
+                        continue
+                    if cols and section in ("esl", "fid", "grain") and len(row) > max(cols.values()):
+                        try:
+                            x, y = float(row[cols["x"]]), float(row[cols["y"]])
+                        except ValueError:
+                            continue
+                        sec = section
+                        if sec == "esl":
+                            sec = "fid" if row[cols["type"]].lower().startswith("ref") else "grain"
+                        (fids if sec == "fid" else points).append([row[cols["name"]], round(x, 2), round(y, 2)])
+                        continue
                     if head in ("COORDINATION", "COORDINATES", "FIDUCIALS"):
                         section = "fid"; continue
                     if head in ("GRAIN", "GRAINS", "POINT", "POINTS"):
