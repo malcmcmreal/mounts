@@ -1,4 +1,5 @@
 ---
+grain_default: GR003_ParentGrain.csv
 layout: mount
 mount_id: "GR003"
 permalink: /GR003/

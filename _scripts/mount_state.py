@@ -124,7 +124,7 @@ def describe(e):
     return t or "Entry"
 
 
-def read_grains(mount_dir):
+def read_grains(mount_dir, default=None):
     """Grain coordinate file (mounts/<ID>/grains/*.csv or *.dcd, TrackWorks export): a COORDINATION section
     with the three fiducials (First, Second, Third) and a GRAIN section (G01, G02…), as name,X,Y,Z
     in stage coordinates (µm); GStar (Y,X,Z,name) and ESL (X,Y,Z,Name,Type) exports are read too. Every file with both sections is listed, newest upload first;
@@ -186,6 +186,9 @@ def read_grains(mount_dir):
             added = added or int(os.path.getmtime(path))
             found.append({"file": os.path.basename(path), "added": added, "fids": fids[:3], "points": points})
     found.sort(key=lambda g: (-g["added"], g["file"]))
+    # a mount can name the file to show first (front matter grain_default); otherwise newest first
+    if default:
+        found.sort(key=lambda g: g["file"].lower() != str(default).strip().lower())
     return {"files": found} if found else None
 
 
@@ -287,7 +290,7 @@ def build():
                 notes.append(item)
 
         current = [{k: v for k, v in s.items() if k != "_removed"} for s in samples if not s.get("_removed")]
-        grains = read_grains(os.path.dirname(path))
+        grains = read_grains(os.path.dirname(path), page.get("grain_default"))
         state[mid] = dict(
             {k: v for k, v in fields.items() if v not in (None, "")},
             samples=current, timeline=timeline, entries=len(timeline) - 1,
