@@ -1,0 +1,142 @@
+// Mineral split records: "Edit" on a sample's page and "+ New sample" on the Mineral Split Database page.
+// Writes samples/<slug>.md (front matter only, one JSON value per key) in a single commit.
+(function () {
+  var me = document.currentScript;
+  var dataEl = document.getElementById('sample-data');
+  var editBtn = document.getElementById('sample-edit-btn'), newBtn = document.getElementById('sample-new-btn');
+  if (!editBtn && !newBtn) return;
+  var PREPS = ['Concentrate', 'Fraction', 'Magnetic', 'Non-magnetic', 'Fraction + concentrate', ''];
+
+  var dlg = document.createElement('dialog');
+  dlg.className = 'dialog';
+  dlg.innerHTML =
+    '<form method="dialog" novalidate>' +
+    '<div class="dialog-head"><h2 id="se-title">Edit sample</h2>' +
+    '<button type="button" class="icon-btn" data-close aria-label="Close">&times;</button></div>' +
+    '<div class="dialog-body" id="se-body">' +
+    '<label>Sample number * <input name="sample_id" class="mono" autocomplete="off"><small class="hint" id="se-id-msg"></small></label>' +
+    '<div class="row"><label class="grow">IGSN of the parent rock sample <input name="igsn" class="mono"></label></div>' +
+    '<label>Associated PIDs <small class="muted">(registered numbers etc., separated by commas)</small> <input name="pids" class="mono"></label>' +
+    '<label>Collected by <input name="collected_by"></label>' +
+    '<label>Sample and separation notes <textarea name="notes" rows="4"></textarea></label>' +
+    '<fieldset class="dl-set"><legend>Vials</legend>' +
+    '<div class="vial-rows" id="se-vials"></div>' +
+    '<button type="button" class="btn small" id="se-add">+ Add vial</button>' +
+    '</fieldset>' +
+    '<datalist id="se-minerals"><option value="Apatite"><option value="Zircon"><option value="Titanite"><option value="Apatite + Zircon">' +
+    '<option value="Epidote"><option value="Allanite"><option value="Garnet"><option value="Monazite"><option value="Other"></datalist>' +
+    '<p class="hint" id="se-signin" hidden>Sign in with GitHub (top right) to save.</p>' +
+    '<p class="hint error" id="se-error"></p>' +
+    '</div>' +
+    '<div class="dialog-body" id="se-done" hidden><div class="saved"><span aria-hidden="true">✓</span>' +
+    '<div><strong>Saved.</strong> <span id="se-done-text"></span> It appears on the site in about a minute.</div></div></div>' +
+    '<div class="dialog-foot"><button type="button" class="btn" data-close>Cancel</button>' +
+    '<button type="submit" class="btn primary" id="se-go">Save</button></div>' +
+    '</form>';
+  document.body.appendChild(dlg);
+  var form = dlg.querySelector('form'), f = form.elements, box = dlg.querySelector('#se-vials');
+  var err = dlg.querySelector('#se-error'), go = dlg.querySelector('#se-go'), idMsg = dlg.querySelector('#se-id-msg');
+  dlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { dlg.close(); }); });
+
+  var current = null;   // the record being edited, or null for a new sample
+  var index = null;     // slugs already taken (new samples)
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function slug(s) { return s.replace(/[^A-Za-z0-9.-]+/g, '_').replace(/^_+|_+$/g, ''); }
+  function addVial(v) {
+    v = v || {};
+    var div = document.createElement('div');
+    div.className = 'vial-row';
+    div.innerHTML = '<input data-k="catalogue" class="mono" placeholder="Catalogue number" value="' + esc(v.catalogue) + '">' +
+      '<input data-k="mineral" list="se-minerals" placeholder="Mineral" value="' + esc(v.mineral) + '">' +
+      '<select data-k="prep">' + PREPS.concat(v.prep && PREPS.indexOf(v.prep) === -1 ? [v.prep] : []).map(function (p) {
+        return '<option value="' + esc(p) + '"' + (p === (v.prep || '') ? ' selected' : '') + '>' + (p || '—') + '</option>';
+      }).join('') + '</select>' +
+      '<button type="button" class="icon-btn" data-del title="Remove this vial" aria-label="Remove this vial">&times;</button>';
+    box.appendChild(div);
+  }
+  box.addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (b) b.closest('.vial-row').remove(); });
+  dlg.querySelector('#se-add').addEventListener('click', function () { addVial(); box.lastChild.querySelector('input').focus(); });
+
+  function signedIn() { return window.GH && GH.canWrite(); }
+  function updateSignin() { dlg.querySelector('#se-signin').hidden = signedIn(); go.disabled = !signedIn(); }
+  document.addEventListener('gh-auth', updateSignin);
+
+  function open(rec) {
+    current = rec; form.reset(); box.innerHTML = ''; err.textContent = ''; idMsg.textContent = '';
+    dlg.querySelector('#se-title').textContent = rec ? 'Edit sample ' + rec.sample_id : 'New sample';
+    dlg.querySelector('#se-body').hidden = false; dlg.querySelector('#se-done').hidden = true; go.hidden = false;
+    dlg.querySelector('.dialog-foot [data-close]').textContent = 'Cancel';
+    f.sample_id.readOnly = !!rec;
+    if (rec) {
+      f.sample_id.value = rec.sample_id || '';
+      idMsg.textContent = 'The sample number can\'t be changed here, because links point to it.';
+      f.igsn.value = rec.igsn || '';
+      f.pids.value = (rec.associated_pids || []).join(', ');
+      f.collected_by.value = rec.collected_by || '';
+      f.notes.value = rec.notes || '';
+      (rec.vials || []).forEach(addVial);
+    }
+    if (!box.children.length) addVial();
+    updateSignin();
+    dlg.showModal();
+    if (!rec) {
+      f.sample_id.focus();
+      if (!index && me.dataset.index) fetch(me.dataset.index).then(function (r) { return r.json(); }).then(function (d) {
+        index = {}; d.samples.forEach(function (s) { index[s[0].toLowerCase()] = s[1]; });
+      }).catch(function () {});
+    }
+  }
+  if (editBtn) editBtn.addEventListener('click', function () { open(JSON.parse(dataEl.textContent)); });
+  if (newBtn) newBtn.addEventListener('click', function () { open(null); });
+
+  f.sample_id.addEventListener('input', function () {
+    if (current) return;
+    var s = slug(f.sample_id.value.trim());
+    idMsg.textContent = s && index && index[s.toLowerCase()] ? 'Sample ' + index[s.toLowerCase()] + ' already exists. Open its page to add vials.' :
+      s ? 'Its page will be /samples/' + s + '/' : '';
+  });
+
+  function build(rec) {
+    var q = function (v) { return JSON.stringify(v); };
+    var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/samples/' + slug(rec.sample_id) + '/'),
+      'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes)];
+    if (rec.vials.length) { lines.push('vials:'); rec.vials.forEach(function (v) {
+      lines.push('  - {' + Object.keys(v).map(function (k) { return q(k) + ': ' + q(v[k]); }).join(', ') + '}');
+    }); }
+    else lines.push('vials: []');
+    return lines.concat(['---', '']).join('\n');
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!signedIn()) { updateSignin(); return; }
+    var sid = f.sample_id.value.trim(), s = slug(sid);
+    if (!sid || !s) { err.textContent = 'Enter the sample number.'; return; }
+    if (!current && index && index[s.toLowerCase()]) { err.textContent = 'Sample ' + index[s.toLowerCase()] + ' already exists.'; return; }
+    var vials = Array.prototype.map.call(box.querySelectorAll('.vial-row'), function (r) {
+      var v = {};
+      ['catalogue', 'mineral', 'prep'].forEach(function (k) { v[k] = r.querySelector('[data-k=' + k + ']').value.trim(); });
+      return v;
+    }).filter(function (v) { return v.catalogue || v.mineral; });
+    var rec = { sample_id: sid, igsn: f.igsn.value.trim(),
+      associated_pids: f.pids.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
+      collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials };
+    var path = current ? current.path : 'samples/' + s + '.md';
+    err.textContent = '';
+    go.disabled = true; go.innerHTML = '<span class="spinner"></span> Saving…';
+    var check = current ? Promise.resolve(null) : GH.getFile(path).catch(function () { return null; });
+    check.then(function (existing) {
+      if (existing) throw new Error('Sample ' + sid + ' already exists.');
+      return GH.commit([{ path: path, text: build(rec) }], (current ? 'Edit' : 'Add') + ' sample ' + sid);
+    }).then(function () {
+      dlg.querySelector('#se-done-text').innerHTML = (current ? 'Updated' : 'Added') + ' sample <span class="mono">' + esc(sid) + '</span> with ' +
+        vials.length + ' vial' + (vials.length === 1 ? '' : 's') + '.' +
+        (current ? '' : ' Its page: <a href="' + esc((document.querySelector('.site-title') || {}).getAttribute ? document.querySelector('.site-title').getAttribute('href') : '/') + 'samples/' + esc(s) + '/">/samples/' + esc(s) + '/</a>.');
+      dlg.querySelector('#se-body').hidden = true; dlg.querySelector('#se-done').hidden = false; go.hidden = true;
+      dlg.querySelector('.dialog-foot [data-close]').textContent = 'Close';
+      if (index) index[s.toLowerCase()] = sid;
+    }).catch(function (x) { err.textContent = x.message; })
+      .then(function () { go.disabled = false; go.textContent = 'Save'; });
+  });
+})();

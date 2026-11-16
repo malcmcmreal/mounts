@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page.mount_id %}{{ page.mount_id }} · {% endif %}{{ site.title }}</title>
+  <title>{% if page.mount_id %}{{ page.mount_id }} · {% elsif page.sample_id %}{{ page.sample_id }} · {% elsif page.tab_title %}{{ page.tab_title }} · {% endif %}{{ site.title }}</title>
   <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}?v={{ site.time | date: '%s' }}">
   <meta name="mounts-auth" content="{{ site.auth_url }}">
   <meta name="mounts-repo" content="{{ site.github.repository_nwo }}">
@@ -13,7 +13,14 @@
 <body>
   <header class="site-header">
     <div class="wrap">
-      <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+      {% if page.layout == "sample" or page.tab == "splits" %}{% assign tab = "splits" %}{% else %}{% assign tab = "mounts" %}{% endif %}
+      <div class="site-brand">
+        <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+        <nav class="site-tabs" aria-label="Sections">
+          <a href="{{ '/' | relative_url }}"{% if tab == "mounts" %} aria-current="page"{% endif %}>Sample Mount Catalogue</a>
+          <a href="{{ '/samples/' | relative_url }}"{% if tab == "splits" %} aria-current="page"{% endif %}>Mineral Split Database</a>
+        </nav>
+      </div>
       <div id="gh-auth" class="gh-auth"></div>
     </div>
   </header>

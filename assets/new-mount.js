@@ -21,7 +21,7 @@
   var ghBtn = document.getElementById('github-btn');
   var editMsg = document.getElementById('edit-msg');
   var FIELDS = ['project', 'year', 'created_by', 'affiliation', 'mount_format', 'resin', 'minerals',
-                'polish', 'etch', 'coating', 'storage'];
+                'polish', 'etch', 'coating', 'storage', 'irradiation', 'irr_glass', 'irr_notes'];
   // Editing: { id, path, original file text } or null for a new mount
   var editing = null;
 
@@ -205,7 +205,7 @@
         '<input data-k="position" placeholder="Position">' +
         '<button type="button" class="btn small eb-btn">EarthBank…</button>' +
         '<button type="button" class="icon-btn row-del" title="Remove this sample" aria-label="Remove this sample">&times;</button>' +
-        '<input data-k="separates" class="sep-input" placeholder="Separates location">' +
+        '<input data-k="separates" class="sep-input" placeholder="Mineral split: type a sample or catalogue number to search" autocomplete="off">' +
         '<div class="eb-tag" hidden></div>';
       rowsBox.appendChild(div);
     }

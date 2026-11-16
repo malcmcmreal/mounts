@@ -1,0 +1,95 @@
+---
+layout: default
+---
+{% comment %} A sample's mineral split record: its vials, and the mounts it's in (see _scripts/mount_state.py) {% endcomment %}
+{% assign repo = site.github.repository_nwo | default: "" %}
+{% assign slug = page.url | remove_first: "/samples/" | remove: "/" %}
+{% assign links = site.data.samplelinks[slug] %}
+{% if site.qr_base and site.qr_base != "" %}
+  {% assign qr_text = site.qr_base | append: page.url %}
+{% else %}
+  {% assign qr_text = page.url | absolute_url %}
+{% endif %}
+{% assign minerals = page.vials | map: "mineral" | uniq | join: ", " %}
+
+<article class="sample">
+  <p class="crumb"><a href="{{ '/samples/' | relative_url }}">&larr; All samples</a></p>
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Sample</p>
+      <h1 class="mono">{{ page.sample_id }}</h1>
+      <p class="lede">{% if page.vials.size > 0 %}{{ page.vials.size }} vial{% if page.vials.size != 1 %}s{% endif %} · {{ minerals }}{% else %}No vials recorded{% endif %}{% if links %} · in {{ links.size }} mount{% if links.size != 1 %}s{% endif %}{% endif %}</p>
+    </div>
+    {% if repo != "" %}<button type="button" class="btn" id="sample-edit-btn">Edit</button>{% endif %}
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Details</h2>
+      <dl class="facts">
+        <dt>Sample number</dt><dd class="mono">{{ page.sample_id }}</dd>
+        <dt>IGSN</dt><dd>{% if page.igsn and page.igsn != "" %}<a class="mono" href="https://igsn.org/{{ page.igsn }}" target="_blank" rel="noopener">{{ page.igsn }}</a>{% else %}<span class="muted">—</span>{% endif %}</dd>
+        <dt>Associated PIDs</dt><dd>{% if page.associated_pids.size > 0 %}<span class="mono">{{ page.associated_pids | join: ", " }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
+        <dt>Collected by</dt><dd>{% if page.collected_by and page.collected_by != "" %}{{ page.collected_by }}{% else %}<span class="muted">—</span>{% endif %}</dd>
+        {% assign ebs = "" | split: "" %}{% for l in links %}{% if l.earthbank %}{% assign e = l.earthbank | append: "" %}{% assign ebs = ebs | push: e %}{% endif %}{% endfor %}{% assign ebs = ebs | uniq %}
+        {% if ebs.size > 0 %}<dt>EarthBank</dt><dd>{% for e in ebs %}<a class="mono" href="{{ site.earthbank_web }}/show/sample/{{ e }}" target="_blank" rel="noopener">{{ e }}</a>{% unless forloop.last %}, {% endunless %}{% endfor %}</dd>{% endif %}
+      </dl>
+      {% if page.notes and page.notes != "" %}
+      <h3 class="sub">Sample and separation notes</h3>
+      <p class="pre">{{ page.notes | escape }}</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Vials</h2>
+      {% if page.vials.size > 0 %}
+      <div class="table-scroll">
+      <table class="vials">
+        <thead><tr><th>Catalogue number</th><th>Mineral</th><th>Split</th></tr></thead>
+        <tbody>
+          {% for v in page.vials %}
+          <tr id="vial-{{ v.catalogue | escape }}"><td class="mono">{{ v.catalogue }}</td><td>{{ v.mineral }}</td>
+            <td>{% if v.prep == "Concentrate" %}<span class="pill good">Concentrate</span>{% else %}{{ v.prep }}{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <p class="muted small">No vials recorded.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Mounts</h2>
+    {% if links %}
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>Mount</th><th>Position in mount</th><th>From vial</th></tr></thead>
+      <tbody>
+        {% for l in links %}
+        <tr><td><a class="mono" href="{{ '/' | append: l.mount | append: '/' | relative_url }}">{{ l.mount }}</a></td><td>{{ l.position }}</td><td class="mono">{{ l.vial }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted small">Not in any mount yet. Mounts made with this sample's ID or one of its vial numbers show up here.</p>
+    {% endif %}
+  </section>
+
+  <details class="card codes-fold">
+    <summary><h2>QR codes for this sample</h2> <span class="muted small">Download a QR or other code that opens this page</span></summary>
+    <section id="codes" data-text="{{ qr_text }}" data-id="{{ page.sample_id | escape }}" data-minerals="{{ minerals | escape }}">
+      <p class="muted small">Address: <span class="mono break">{{ qr_text }}</span></p>
+      <div class="codes"></div>
+    </section>
+  </details>
+</article>
+
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+{% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
+<script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

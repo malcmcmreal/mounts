@@ -23,7 +23,7 @@
           <label class="grow">Sample ID <input name="sample_id" class="mono" autocomplete="off"></label>
           <label class="grow">Position in the mount <input name="position"></label>
         </div>
-        <label>Separates location <input name="separates"></label>
+        <label>Mineral split (vial catalogue number) <input name="separates" autocomplete="off"></label>
         <p class="hint" id="log-rename-hint" hidden>Renaming keeps the old ID in the history.</p>
         <div class="eb-box">
           <p class="eb-box-head"><strong>EarthBank</strong> <span class="muted" id="log-current-link"></span></p>
@@ -79,6 +79,9 @@
                 <option value="etch">Etching</option>
                 <option value="coating">Coating</option>
                 <option value="storage">Stored at</option>
+                <option value="irradiation">Irradiation batch</option>
+                <option value="irr_glass">Standard glass</option>
+                <option value="irr_notes">Irradiation notes</option>
               </select>
             </label>
             <label class="grow">Correct value <input name="value"></label>
