@@ -209,6 +209,7 @@ kbd { font-family: var(--mono); font-size: .8em; padding: .05rem .3rem; border: 
 .chips input:checked + span { background: var(--accent); border-color: #8e8e93; color: #fff; }
 .chips input:focus-visible + span { outline: 2px solid var(--link); }
 .dialog label.check { display: flex !important; gap: .5rem; align-items: center; color: var(--ink); }
+.dialog label.check.off { display: none !important; }
 .dialog label.check input { width: auto; margin: 0; }
 ul.plain { list-style: none; margin: 0; padding: 0; }
 ul.plain li { margin: 0 0 .2rem; }
@@ -440,3 +441,8 @@ figure.removed, li.removed { opacity: .4; pointer-events: none; }
 .nav-arrow:hover { border-color: var(--link); color: var(--link); }
 .nav-arrow.off { opacity: .25; }
 .deleted-note { list-style: none; padding: .5rem 0; }
+.head-btns { display: inline-flex; gap: .4rem; flex-wrap: wrap; }
+.file-group { margin: .25rem 0 .5rem; }
+.file-group > summary { cursor: pointer; font-weight: 600; font-size: .95rem; padding: .3rem 0; border-bottom: 1px solid var(--line); }
+.file-group > summary .muted { font-weight: 400; }
+.file-group > .files { margin-top: .4rem; }

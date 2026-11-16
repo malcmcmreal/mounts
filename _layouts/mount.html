@@ -234,13 +234,20 @@ layout: default
     <div class="photos grain-files" id="grain-files">
       <div class="card-head">
         <h3>Grain coordinate files</h3>
-        {% if repo != "" %}<a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
+        {% if repo != "" %}<span class="head-btns">{% if grain_files.size > 0 %}<button type="button" class="btn small" data-grain-create title="Make a GStar or ESL coordinate file from one of these files">+ Create</button>{% endif %}
+          <a class="btn small" data-upload href="https://github.com/{{ repo }}/upload/{{ branch }}{{ gfolder }}"
           data-folder="{{ gfolder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ grain_names | jsonify }}'
-          data-accept=".csv,.dcd,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="1">+ Add</a>{% endif %}
+          data-accept=".csv,.dcd,.txt,.tsv,.dat,.xls,.xlsx,.ods,.json,.xml,.log" data-kind="grain" data-max="1">+ Add</a></span>{% endif %}
       </div>
       {% if grain_files.size > 0 %}
+      {% assign groups = ".dcd|.csv|other" | split: "|" %}
+      {% for g in groups %}{% assign n = 0 %}
+      {% for f in grain_files %}{% assign ext = f.extname | downcase %}{% if ext == g or g == "other" and ext != ".dcd" and ext != ".csv" %}{% assign n = n | plus: 1 %}{% endif %}{% endfor %}
+      {% if n > 0 %}
+      <details class="file-group" open data-group="{{ g }}">
+        <summary>{% if g == "other" %}Other files{% else %}{{ g }} files{% endif %} <span class="muted">({{ n }})</span></summary>
       <ul class="files">
-        {% for f in grain_files %}{% assign ext = f.extname | downcase %}
+        {% for f in grain_files %}{% assign ext = f.extname | downcase %}{% if ext == g or g == "other" and ext != ".dcd" and ext != ".csv" %}
         <li>
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
@@ -257,8 +264,10 @@ layout: default
           </div>
           <div class="preview" hidden></div>
         </li>
-        {% endfor %}
+        {% endif %}{% endfor %}
       </ul>
+      </details>
+      {% endif %}{% endfor %}
       {% else %}
       <p class="muted small">No grain coordinate files yet.</p>
       {% endif %}
