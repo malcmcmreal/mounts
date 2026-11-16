@@ -9,7 +9,7 @@
   var err = document.getElementById('bulk-error');
   var go = document.getElementById('bulk-go');
   var body = document.getElementById('bulk-body'), done = document.getElementById('bulk-done');
-  var FIELDS = ['project', 'year', 'created_by', 'mount_format', 'minerals', 'polish', 'etch', 'coating', 'storage'];
+  var FIELDS = ['project', 'year', 'created_by', 'mount_format', 'minerals', 'polish', 'etch', 'coating', 'storage', 'irradiation', 'irr_glass'];
 
   function q(s) { return JSON.stringify(String(s)); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }

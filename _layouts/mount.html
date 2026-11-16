@@ -68,6 +68,9 @@ layout: default
         {% if cur.etch %}<dt>Etching</dt><dd>{{ cur.etch }}</dd>{% endif %}
         {% if cur.coating %}<dt>Coating</dt><dd>{{ cur.coating }}</dd>{% endif %}
         {% if cur.storage %}<dt>Stored at</dt><dd>{{ cur.storage }}</dd>{% endif %}
+        {% if cur.irradiation %}<dt>Irradiation batch</dt><dd class="mono">{{ cur.irradiation }}</dd>{% endif %}
+        {% if cur.irr_glass %}<dt>Standard glass</dt><dd>{{ cur.irr_glass }}</dd>{% endif %}
+        {% if cur.irr_notes %}<dt>Irradiation notes</dt><dd class="pre">{{ cur.irr_notes }}</dd>{% endif %}
         {% if st.analyses.size > 0 %}<dt>Analyses</dt><dd><ul class="plain">
           {% for a in st.analyses limit: 3 %}<li>{{ a.technique }}{% if a.instrument %}, {{ a.instrument }}{% endif %}
             <span class="muted">· {{ a.date | date: "%-d %b %Y" }}</span>{% if a.link %} · <a href="{{ a.link }}" target="_blank" rel="noopener">data</a>{% endif %}</li>{% endfor %}
@@ -92,10 +95,10 @@ layout: default
     </div>
     <div class="table-scroll">
     <table>
-      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Separates location</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Mineral split</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
       <tbody>
         {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}"><span class="mono">{{ s.id }}</span>{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{{ s.separates }}</td>
+        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}">{% if s.record %}<a class="mono" href="{{ '/samples/' | append: s.record | append: '/' | relative_url }}" title="Mineral split record">{{ s.id }}</a>{% else %}<span class="mono">{{ s.id }}</span>{% endif %}{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{% if s.vial %}<a class="mono" href="{{ '/samples/' | append: s.record | append: '/' | relative_url }}#vial-{{ s.vial | escape }}">{{ s.separates }}</a>{% else %}{{ s.separates }}{% endif %}</td>
           {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
         </tr>
         {% endfor %}
@@ -423,10 +426,10 @@ layout: default
 </article>
 
 {% if repo != "" %}
-<script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "project": {{ page.project | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
+<script type="application/json" id="mount-data">{"mount_id": {{ page.mount_id | jsonify }}, "project": {{ page.project | jsonify }}, "year": {{ page.year | jsonify }}, "created_by": {{ page.created_by | jsonify }}, "affiliation": {{ page.affiliation | jsonify }}, "mount_format": {{ page.mount_format | jsonify }}, "resin": {{ page.resin | jsonify }}, "minerals": {{ page.minerals | jsonify }}, "polish": {{ page.polish | jsonify }}, "etch": {{ page.etch | jsonify }}, "coating": {{ page.coating | jsonify }}, "storage": {{ page.storage | jsonify }}, "irradiation": {{ page.irradiation | jsonify }}, "irr_glass": {{ page.irr_glass | jsonify }}, "irr_notes": {{ page.irr_notes | jsonify }}, "samples": {{ page.samples | jsonify }}}</script>
 {% include new-mount-dialog.html %}
 {% assign image_names = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign ext = f.extname | downcase %}{% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}{% assign image_names = image_names | push: f.name %}{% endcase %}{% endif %}{% endfor %}
-<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}}}</script>
+<script type="application/json" id="mount-state">{"mount_id": {{ page.mount_id | jsonify }}, "samples": {{ samples | jsonify }}, "images": {{ image_names | jsonify }}, "hires": {{ st.hires | jsonify }}, "fields": {"project": {{ cur.project | jsonify }}, "year": {{ cur.year | jsonify }}, "created_by": {{ cur.created_by | jsonify }}, "affiliation": {{ cur.affiliation | jsonify }}, "mount_format": {{ cur.mount_format | jsonify }}, "resin": {{ cur.resin | jsonify }}, "minerals": {{ cur.minerals | jsonify }}, "polish": {{ cur.polish | jsonify }}, "etch": {{ cur.etch | jsonify }}, "coating": {{ cur.coating | jsonify }}, "storage": {{ cur.storage | jsonify }}, "irradiation": {{ cur.irradiation | jsonify }}, "irr_glass": {{ cur.irr_glass | jsonify }}, "irr_notes": {{ cur.irr_notes | jsonify }}}}</script>
 {% include log-dialog.html %}
 {% include upload-dialog.html %}
 <script src="{{ '/assets/remove.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-repo="{{ repo }}" data-branch="{{ branch }}" data-mount="{{ page.mount_id }}"></script>

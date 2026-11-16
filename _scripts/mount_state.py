@@ -56,10 +56,11 @@ def load_entries(mount_id):
 
 
 DETAIL_FIELDS = ["project", "year", "created_by", "affiliation", "mount_format", "resin", "minerals",
-                 "polish", "etch", "coating", "storage"]
+                 "polish", "etch", "coating", "storage", "irradiation", "irr_glass", "irr_notes"]
 DETAIL_LABELS = {"project": "Project", "year": "Year made", "created_by": "Made by", "affiliation": "Affiliation",
                  "mount_format": "Mount format", "resin": "Resin / epoxy", "minerals": "Minerals",
-                 "polish": "Polish", "etch": "Etching", "coating": "Coating", "storage": "Stored at"}
+                 "polish": "Polish", "etch": "Etching", "coating": "Coating", "storage": "Stored at",
+                 "irradiation": "Irradiation batch", "irr_glass": "Standard glass", "irr_notes": "Irradiation notes"}
 
 
 def describe(e):
@@ -192,6 +193,60 @@ def read_grains(mount_dir, default=None):
     return {"files": found} if found else None
 
 
+def sample_slug(s):
+    return re.sub(r"[^A-Za-z0-9.-]+", "_", s).strip("_")
+
+
+def link_samples(state):
+    """Mineral split records (samples/<slug>.md, one per sample number with its vials) and mounts
+    point at each other: a mount sample matches a record by its separates (vial catalogue number)
+    or, failing that, by its sample ID. Writes _data/samplelinks.json (record → mounts) and
+    assets/samples-index.json (the search list for the Mineral splits page and New mount form)."""
+    loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+    records, by_id, by_vial = {}, {}, {}
+    for path in sorted(glob.glob(os.path.join(ROOT, "samples", "*.md"))):
+        try:
+            with open(path, encoding="utf-8") as f:
+                m = re.match(r"^---\s*\n(.*?)\n---", f.read(), re.S)
+            d = yaml.load(m.group(1), Loader=loader) or {} if m else {}
+        except Exception as err:
+            print(f"skipping {path}: {err}")
+            continue
+        slug = os.path.basename(path)[:-3]
+        sid = text(d.get("sample_id")) or slug
+        vials = [v for v in (d.get("vials") or []) if isinstance(v, dict)]
+        records[slug] = {"id": sid, "vials": vials, "by": text(d.get("collected_by")),
+                         "pids": [text(p) for p in (d.get("associated_pids") or []) if text(p)], "igsn": text(d.get("igsn"))}
+        by_id.setdefault(sid.lower(), slug)
+        for v in vials:
+            if text(v.get("catalogue")):
+                by_vial.setdefault(text(v.get("catalogue")).upper(), []).append(slug)
+    links = {}
+    for mid, st in state.items():
+        for smp in st.get("samples") or []:
+            sid, sep = text(smp.get("id")), text(smp.get("separates"))
+            hits = by_vial.get(sep.upper(), []) if sep else []
+            slug = next((h for h in hits if records[h]["id"].lower() == sid.lower()), hits[0] if hits else None)
+            if not slug:
+                slug = by_id.get(sid.lower()) or by_id.get(sample_slug(sid).lower())
+            if not slug:
+                continue
+            smp["record"] = slug
+            if hits and slug in hits:
+                smp["vial"] = sep
+            links.setdefault(slug, []).append({k: v for k, v in {
+                "mount": mid, "position": text(smp.get("position")), "vial": smp.get("vial", ""),
+                "earthbank": smp.get("earthbank")}.items() if v})
+    with open(os.path.join(ROOT, "_data", "samplelinks.json"), "w", encoding="utf-8") as f:
+        json.dump(links, f, ensure_ascii=False)
+    index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],
+              r["by"], " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])]]
+             for slug, r in records.items()]
+    with open(os.path.join(ROOT, "assets", "samples-index.json"), "w", encoding="utf-8") as f:
+        json.dump({"samples": index}, f, ensure_ascii=False, separators=(",", ":"))
+    print(f"{len(records)} sample records, {len(links)} linked to mounts")
+
+
 def build():
     state = {}
     for path in sorted(glob.glob(os.path.join(ROOT, "mounts", "*", "index.md"))):
@@ -296,6 +351,7 @@ def build():
             samples=current, timeline=timeline, entries=len(timeline) - 1,
             analyses=list(reversed(analyses)), notes=notes, hires=hires, links=list(links.values()), layout=layout, grains=grains)
 
+    link_samples(state)
     out = os.path.join(ROOT, "_data", "mountstate.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:

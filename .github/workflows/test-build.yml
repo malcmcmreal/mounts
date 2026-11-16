@@ -1,0 +1,25 @@
+name: Test build (samples branch)
+on:
+  push:
+    branches: [samples-test]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          pip install --quiet pyyaml
+          python3 _scripts/mount_state.py
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - run: |
+          ls _site/samples | wc -l
+          du -sh _site
+          head -c 1500 _site/samples/SWY-16/index.html | tail -c 600
+          grep -o 'EarthBank</dt><dd>[^/]*' _site/samples/SWY-16/index.html
+          grep -c 'href="/samples/' _site/GR001/index.html
+          ls _site/samples/index.html _site/assets/samples-index.json

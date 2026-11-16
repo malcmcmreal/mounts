@@ -7,7 +7,7 @@ layout: default
 
 <div class="page-head">
   <div>
-    <h1>{{ site.title }}</h1>
+    <h1>Sample Mount Catalogue</h1>
     <p class="lede">{{ site.description }}</p>
   </div>
   <button type="button" id="new-mount-btn" class="btn primary">+ New mount</button>
@@ -55,7 +55,7 @@ layout: default
   {% assign last = st.timeline | last %}
   <li class="mount-row" data-id="{{ m.mount_id }}" data-folder="{{ folder | remove_first: '/' }}" data-nsamples="{{ ms | size }}" data-project="{{ cur.project | escape }}" data-year="{{ cur.year }}" data-affiliation="{{ cur.affiliation | escape }}"
     data-minerals="{{ cur.minerals | escape }}" data-maker="{{ cur.created_by | escape }}"
-    data-format="{{ cur.mount_format | escape }}" data-polish="{{ cur.polish | escape }}" data-etch="{{ cur.etch | escape }}" data-coating="{{ cur.coating | escape }}" data-storage="{{ cur.storage | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }}">
+    data-format="{{ cur.mount_format | escape }}" data-polish="{{ cur.polish | escape }}" data-etch="{{ cur.etch | escape }}" data-coating="{{ cur.coating | escape }}" data-storage="{{ cur.storage | escape }}" data-irradiation="{{ cur.irradiation | escape }}" data-glass="{{ cur.irr_glass | escape }}" data-search="{{ m.mount_id }} {{ ms | map: 'id' | join: ' ' }} {{ linked | join: ' ' }} {{ cur.minerals }} {{ cur.year }} {{ cur.created_by }} {{ cur.storage }} {{ cur.affiliation }} {{ cur.irradiation }} {{ ms | map: 'separates' | join: ' ' }}">
     <label class="mr-pick"><input type="checkbox" class="pick" aria-label="Select {{ m.mount_id }}"></label>
     <a class="mr-thumb" href="{{ m.url | relative_url }}" tabindex="-1" aria-hidden="true">
       {% if st.layout %}<span class="mr-layout" data-layout="{{ st.layout | jsonify | escape }}" data-order="{{ ms | map: 'id' | jsonify | escape }}"></span>
@@ -254,6 +254,8 @@ layout: default
         <label>Etching <input name="etch"><span class="cur" data-cur="etch"></span></label>
         <label>Coating <input name="coating" list="coatings"><span class="cur" data-cur="coating"></span></label>
         <label class="wide">Stored at <input name="storage"><span class="cur" data-cur="storage"></span></label>
+        <label>Irradiation batch <input name="irradiation" class="mono"><span class="cur" data-cur="irradiation"></span></label>
+        <label>Standard glass <input name="irr_glass" list="glasses"><span class="cur" data-cur="glass"></span></label>
       </div>
       <label>New note <textarea name="note" rows="3"></textarea></label>
       <div class="row">

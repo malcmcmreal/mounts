@@ -54,6 +54,15 @@
         <label>Where the mount is stored <input name="storage"></label>
       </fieldset>
 
+      <details class="fieldset-more">
+        <summary>Irradiation (fission track)</summary>
+        <div class="row">
+          <label class="grow">Irradiation batch number <input name="irradiation" class="mono"></label>
+          <label class="grow">Standard glass <input name="irr_glass" list="glasses"></label>
+        </div>
+        <label>Irradiation notes <textarea name="irr_notes" rows="2"></textarea></label>
+      </details>
+
       <fieldset>
         <legend>Samples in this mount</legend>
         <label class="narrow">Number of samples
@@ -134,8 +143,12 @@
     <option value="9, 3, 1 µm diamond"><option value="1 µm diamond">
     <option value="0.25 µm diamond"><option value="Final 0.04 µm colloidal silica">
   </datalist>
+  <datalist id="glasses">
+    <option value="CN5"><option value="CN1"><option value="IRMM-540R"><option value="IRMM-541"><option value="NIST SRM 612"><option value="U3">
+  </datalist>
   <datalist id="coatings">
     <option value="None"><option value="Carbon, ~20 nm"><option value="Gold"><option value="Platinum">
   </datalist>
 </dialog>
 <script src="{{ '/assets/new-mount.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/split-pick.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}"></script>
