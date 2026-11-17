@@ -9,6 +9,9 @@
   var q = document.getElementById('split-q'), selM = document.getElementById('split-mineral'),
     selP = document.getElementById('split-prep'), mounted = document.getElementById('split-mounted'),
     selG = document.getElementById('split-group'), selJ = document.getElementById('split-project');
+  var qLo = document.getElementById('qty-lo'), qHi = document.getElementById('qty-hi'), qUn = document.getElementById('qty-unrated'),
+    qOut = document.getElementById('qty-out'), qFill = document.getElementById('qty-fill');
+  function amtOn() { return qLo && (+qLo.value > 0 || +qHi.value < 5 || !qUn.checked); }
   var more = document.getElementById('split-more'), allBox = document.getElementById('split-all');
   var addBtn = document.getElementById('split-add');
   var all = [], hits = [], shown = 0, PAGE = 100;
@@ -51,6 +54,10 @@
   // Does a vial match the Mineral and Split filters? (also used by the drawer grid)
   function vialOk(v) {
     var m = selM.value, p = selP.value;
+    if (amtOn()) {
+      var lo = +qLo.value, hi = +qHi.value;
+      if (typeof v[3] === 'number' ? v[3] < lo || v[3] > hi : !qUn.checked || v[3] === 'missing') return false;
+    }
     return (!m || v[1].split(' + ').indexOf(m) !== -1 || (m === 'Other' && !/^(Apatite|Zircon|Titanite)( \+ |$)/.test(v[1]))) && (!p || v[2] === p);
   }
   function filterQuery() {
@@ -60,6 +67,7 @@
     if (selP.value) ps.push('split=' + encodeURIComponent(selP.value));
     if (selJ && selJ.value) ps.push('project=' + encodeURIComponent(selJ.value));
     if (mounted && mounted.checked) ps.push('mounted=1');
+    if (amtOn()) ps.push('amount=' + qLo.value + '-' + qHi.value + (qUn.checked ? '' : '&unrated=0'));
     return ps;
   }
   function apply() {
@@ -67,7 +75,7 @@
     hits = all.filter(function (s) {
       if (mo && !s[5].length) return false;
       if (pj && (pj === '-' ? s[10] : s[10] !== pj)) return false;
-      if ((m || p) && !s._v.some(vialOk)) return false;
+      if ((m || p || amtOn()) && !s._v.some(vialOk)) return false;
       return words.every(function (w) { return s._t.indexOf(w) !== -1; });
     });
     if (selG && selG.value) {
@@ -126,6 +134,16 @@
   });
   if (window.PullList) PullList.onChange(syncPicks);
   more.addEventListener('click', page);
+  function qty(e) {
+    if (+qLo.value > +qHi.value) { if (e && e.target === qLo) qHi.value = qLo.value; else qLo.value = qHi.value; }
+    qOut.textContent = qLo.value === qHi.value ? qLo.value : qLo.value + '–' + qHi.value;
+    qFill.style.left = (qLo.value * 20) + '%'; qFill.style.right = ((5 - qHi.value) * 20) + '%';
+  }
+  if (qLo) {
+    [qLo, qHi].forEach(function (el) { el.addEventListener('input', function (e) { qty(e); clearTimeout(t); t = setTimeout(apply, 120); }); });
+    qUn.addEventListener('change', apply);
+    qty();
+  }
   var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(apply, 120); });
   [selM, selP, mounted, selG, selJ].forEach(function (el) { if (el) el.addEventListener('change', apply); });
 
@@ -163,6 +181,9 @@
     function pick(sel, v) { if (sel && v && sel.querySelector('option[value="' + v.replace(/"/g, '') + '"]')) sel.value = v; }
     pick(selM, param('mineral')); pick(selP, param('split'));
     if (mounted && param('mounted')) mounted.checked = true;
+    var am = /^(\d)-(\d)$/.exec(param('amount'));
+    if (qLo && am) { qLo.value = am[1]; qHi.value = am[2]; qty(); }
+    if (qLo && param('unrated') === '0') qUn.checked = false;
     if (selJ && param('project')) { if (!selJ.querySelector('option[value="' + param('project').replace(/"/g, '') + '"]')) selJ.add(new Option(param('project'), param('project'))); selJ.value = param('project'); }
     apply();
     document.dispatchEvent(new CustomEvent('splits-loaded', { detail: { all: d.samples, listed: all } }));
