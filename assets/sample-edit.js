@@ -70,7 +70,8 @@
         return '<option value="' + q + '"' + (String(q) === String(v.qty == null ? '' : v.qty) ? ' selected' : '') + '>' +
           (q === '' ? 'Amount —' : q === 'missing' ? 'Not found' : q + '/5') + '</option>';
       }).join('') + '</select>' +
-      '<button type="button" class="icon-btn" data-del title="Remove this vial" aria-label="Remove this vial">&times;</button>';
+      '<button type="button" class="icon-btn" data-del title="Remove this vial" aria-label="Remove this vial">&times;</button>' +
+      '<input data-k="note" class="vial-note" placeholder="Vial note (optional)" value="' + esc(v.note) + '">';
     box.appendChild(div);
   }
   box.addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (b) b.closest('.vial-row').remove(); });
@@ -157,6 +158,8 @@
       ['catalogue', 'mineral', 'prep'].forEach(function (k) { v[k] = r.querySelector('[data-k=' + k + ']').value.trim(); });
       var qv = r.querySelector('[data-k=qty]').value;
       if (qv !== '') v.qty = qv === 'missing' ? 'missing' : +qv;
+      var nv = r.querySelector('[data-k=note]').value.trim();
+      if (nv) v.note = nv;
       return v;
     }).filter(function (v) { return v.catalogue || v.mineral; });
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),

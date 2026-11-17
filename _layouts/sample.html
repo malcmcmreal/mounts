@@ -59,13 +59,14 @@ layout: default
       {% if page.vials.size > 0 %}
       <div class="table-scroll">
       <table class="vials">
-        <thead><tr><th>Catalogue number</th><th>Mineral</th><th>Split</th><th>Amount</th></tr></thead>
+        {% assign has_notes = false %}{% for v in page.vials %}{% if v.note and v.note != "" %}{% assign has_notes = true %}{% endif %}{% endfor %}
+        <thead><tr><th>Catalogue number</th><th>Mineral</th><th>Split</th><th>Amount</th>{% if has_notes %}<th>Vial notes</th>{% endif %}</tr></thead>
         <tbody>
           {% for v in page.vials %}
           <tr id="vial-{{ v.catalogue | escape }}"><td class="mono">{{ v.catalogue }}</td>{% assign m1 = v.mineral | split: " + " | first %}{% assign m2 = v.mineral | split: " + " | last %}{% capture tone %}{% case m1 %}{% when "Apatite" %}ap{% when "Zircon" %}zr{% when "Titanite" %}ti{% else %}other{% endcase %}{% endcapture %}{% capture tone2 %}{% if m2 != m1 %}{% case m2 %}{% when "Apatite" %} m2-ap{% when "Zircon" %} m2-zr{% when "Titanite" %} m2-ti{% else %} m2-other{% endcase %}{% endif %}{% endcapture %}
             <td><span class="vchip m-{{ tone | strip }}{{ tone2 | rstrip }}{% if v.prep == "Concentrate" %} conc{% endif %}">{{ v.mineral }}</span></td>
             <td>{% if v.prep == "Concentrate" %}<strong class="conc-label">Concentrate</strong>{% else %}{{ v.prep }}{% endif %}</td>
-            <td class="qty-cell">{% if v.qty == "missing" %}<span class="muted small">Vial not found</span>{% elsif v.qty or v.qty == 0 %}{% assign fh = v.qty | times: 3.6 %}{% assign fy = 22 | minus: fh %}<svg class="vial-icon" viewBox="0 0 12 24" aria-hidden="true"><rect class="vial-cap" x="2" y="0.5" width="8" height="2.5" rx="0.6"/><rect class="vial-body" x="1" y="3" width="10" height="20" rx="1.6"/>{% if v.qty > 0 %}<rect class="vial-fill m-{{ tone | strip }}" x="2" y="{{ fy }}" width="8" height="{{ fh }}" rx="0.8"/>{% endif %}</svg> <span class="small" title="Rated by eye: 0 empty, 3 about half full, 5 full">{{ v.qty }}/5</span>{% else %}<span class="muted small">—</span>{% endif %}</td></tr>
+            <td class="qty-cell">{% if v.qty == "missing" %}<span class="muted small">Vial not found</span>{% elsif v.qty or v.qty == 0 %}{% assign fh = v.qty | times: 3.6 %}{% assign fy = 22 | minus: fh %}<svg class="vial-icon" viewBox="0 0 12 24" aria-hidden="true"><rect class="vial-cap" x="2" y="0.5" width="8" height="2.5" rx="0.6"/><rect class="vial-body" x="1" y="3" width="10" height="20" rx="1.6"/>{% if v.qty > 0 %}<rect class="vial-fill m-{{ tone | strip }}" x="2" y="{{ fy }}" width="8" height="{{ fh }}" rx="0.8"/>{% endif %}</svg> <span class="small" title="Rated by eye: 0 empty, 3 about half full, 5 full">{{ v.qty }}/5</span>{% else %}<span class="muted small">—</span>{% endif %}</td>{% if has_notes %}<td class="small">{{ v.note }}</td>{% endif %}</tr>
           {% endfor %}
         </tbody>
       </table>

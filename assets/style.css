@@ -520,3 +520,5 @@ a:hover .tray-other { fill: #8a8f99; }
 .vial-icon .vial-fill.m-ap { fill: #7fcf7f; }
 .vial-icon .vial-fill.m-zr { fill: #74b0ec; }
 .vial-icon .vial-fill.m-ti { fill: #e6cf5c; }
+.vial-rows .vial-row .vial-note { grid-column: 1 / -1; margin-top: -.15rem; font-size: .85rem; }
+.vial-rows .vial-row { padding-bottom: .4rem; border-bottom: 1px dashed var(--line); }
