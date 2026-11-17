@@ -74,6 +74,13 @@ layout: default
     </section>
   </div>
 
+  {% if page.vials.size > 0 %}
+  <section class="card">
+    <h2>Where to find the vials</h2>
+    <div id="tray-map"><p class="muted small">Loading the tray map…</p></div>
+  </section>
+  {% endif %}
+
   {% if map_src != "" %}
   {% assign w = map_lon | minus: 1.5 %}{% assign e2 = map_lon | plus: 1.5 %}{% assign so = map_lat | minus: 1 %}{% assign no = map_lat | plus: 1 %}
   <section class="card">
@@ -114,6 +121,7 @@ layout: default
 
 <script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
+<script src="{{ '/assets/tray-map.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/codes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

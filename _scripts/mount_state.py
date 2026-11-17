@@ -203,6 +203,45 @@ ALSO_IN = ("phanerozoic thermochronology record of afro-arabia", "hallberg yilga
            "canadian thermochronology (catch) database")
 
 
+TRAY_ROWS = "ABCDEFGHIJKLMN"
+
+
+def tray_positions(codes):
+    """Where each vial sits in its tray. A catalogue number is tray, row letter, column (17B05).
+    Trays have rows A–N (A at the bottom) and columns 01–36 (01 at the left). Typos that skip a
+    row letter, or skip a column number and so run past 36, are read as the next position:
+    a missing letter between letters in use closes up, and in a row numbered past the tray's
+    width the numbers in use are counted in order."""
+    rows = {}
+    for c in codes:
+        m = re.fullmatch(r"(\d+)([A-Z])(\d+)", c)
+        if m:
+            rows.setdefault(m.group(1), {}).setdefault(m.group(2), set()).add(int(m.group(3)))
+    pos, width = {}, {}
+    for tray, letters in rows.items():
+        used = sorted(letters)
+        idx = {l: TRAY_ROWS.index(l) for l in used if l in TRAY_ROWS}
+        if used and all(l in TRAY_ROWS for l in used):
+            first = TRAY_ROWS.index(used[0])
+            span = TRAY_ROWS[first:TRAY_ROWS.index(used[-1]) + 1]
+            if len(span) > len(used):            # a skipped letter: close up
+                idx = {l: first + i for i, l in enumerate(used)}
+        w = 36
+        for l, nums in letters.items():
+            if l not in idx:
+                continue
+            ordered = sorted(nums)
+            if ordered[-1] > 36 and len(ordered) < ordered[-1]:   # skipped a number: close up
+                cols = {n: i for i, n in enumerate(ordered)}
+            else:
+                cols = {n: n - 1 for n in ordered}
+            w = max(w, max(cols.values()) + 1)
+            for n, ci in cols.items():
+                pos[f"{tray}{l}{n:02d}"] = (idx[l], ci)
+        width[tray] = w
+    return pos, width
+
+
 def link_samples(state):
     """Mineral split records (samples/<slug>.md, one per sample number with its vials) and mounts
     point at each other: a mount sample matches a record by its separates (vial catalogue number)
@@ -294,6 +333,34 @@ def link_samples(state):
                 "earthbank": smp.get("earthbank")}.items() if v})
     with open(os.path.join(ROOT, "_data", "samplelinks.json"), "w", encoding="utf-8") as f:
         json.dump(links, f, ensure_ascii=False)
+    # Tray map: every vial position ever written (so removed vials leave gaps), plus vials added since
+    try:
+        with open(os.path.join(ROOT, "_scripts", "tray_codes.txt"), encoding="utf-8") as f:
+            codes = {l.strip() for l in f if l.strip() and not l.startswith("#")}
+    except OSError:
+        codes = set()
+    def cnorm(c):
+        m = re.fullmatch(r"(\d+)([A-Z])(\d+)", c.upper().replace(" ", ""))
+        return f"{int(m.group(1))}{m.group(2)}{int(m.group(3)):02d}" if m else None
+    held = {}
+    for slug, r in records.items():
+        for v in r["vials"]:
+            c = cnorm(text(v.get("catalogue")))
+            if c:
+                held.setdefault(c, (slug, r["id"], text(v.get("mineral")), text(v.get("prep")), text(v.get("catalogue"))))
+                codes.add(c)
+    pos, width = tray_positions(codes)
+    trays = {}
+    for c, (slug, sid, mineral, prep, raw) in held.items():
+        if c in pos:
+            tray = re.match(r"\d+", c).group()
+            t = trays.setdefault(tray, {"cols": width[tray], "v": []})
+            m1 = mineral.split(" + ")[0]
+            tone = {"Apatite": "ap", "Zircon": "zr", "Titanite": "ti"}.get(m1, "o")
+            # [row (0 = A, bottom), column (0 = 01, left), catalogue number, sample page, mineral tone, concentrate]
+            t["v"].append([pos[c][0], pos[c][1], raw, slug, tone, 1 if prep == "Concentrate" else 0])
+    with open(os.path.join(ROOT, "assets", "trays.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": TRAY_ROWS, "trays": trays}, f, ensure_ascii=False, separators=(",", ":"))
     index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],
               r["by"], " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])], r["geo"]]
              for slug, r in records.items()]

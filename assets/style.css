@@ -487,3 +487,23 @@ table.vials tr:target td { background: var(--raised); }
 .vchip .mono { color: var(--muted); margin-left: .3rem; }
 .conc-label { color: var(--ink); }
 .sample-map { width: 100%; height: 340px; border: 1px solid var(--line); border-radius: 8px; display: block; }
+/* Tray map on sample pages */
+.tray { margin: 0 0 1rem; }
+.tray figcaption { margin-bottom: .35rem; }
+.tray-scroll { overflow-x: auto; }
+.tray-svg { display: block; width: 100%; min-width: 560px; max-width: 760px; height: auto; }
+.tray-lab { font-size: 8.5px; fill: var(--muted); font-family: ui-monospace, monospace; }
+.tray-empty { fill: none; stroke: var(--line); stroke-width: 1; }
+.tray-other { fill: #4a4d55; }
+a:hover .tray-other { fill: #8a8f99; }
+.tray-own { stroke: none; }
+.tray-own.m-ap, .tray-key .m-ap { fill: #7fcf7f; background: #7fcf7f; }
+.tray-own.m-zr, .tray-key .m-zr { fill: #74b0ec; background: #74b0ec; }
+.tray-own.m-ti, .tray-key .m-ti { fill: #e6cf5c; background: #e6cf5c; }
+.tray-own.m-o, .tray-key .m-o { fill: #b9b9c0; background: #b9b9c0; }
+.tray-own.conc { stroke: var(--ink); stroke-width: 2; }
+.tray-own.hot { stroke: #ff9a3c; stroke-width: 2.5; }
+.tray-key .dot { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; vertical-align: -1px; margin: 0 .2rem 0 .6rem; }
+.tray-key .dot.conc { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+.tray-key .dot.other { background: #4a4d55; }
+.tray-key .dot.empty { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
