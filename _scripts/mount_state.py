@@ -232,13 +232,15 @@ def link_samples(state):
         places = ebl.get("places") or []
         for row in ebl.get("samples") or []:
             name = text(row[1])
-            base = re.sub(r"^LITH[^-]*-", "", name, flags=re.I).lower()
-            slug = want.get(base) or want.get(name.lower())
+            # LITH00728954-7959-122 is sample 7959-122; newer names carry a PID after "//" (8122-15//…)
+            short = name.split("//")[0].strip()
+            base = re.sub(r"^LITH[^-]*-", "", short, flags=re.I).lower()
+            slug = want.get(base) or want.get(short.lower())
             if not slug:
                 continue
             place = places[row[3]] if len(row) > 3 and isinstance(row[3], int) and 0 <= row[3] < len(places) else ""
             lat, lon = (row[4], row[5]) if len(row) > 5 else (None, None)
-            eb.setdefault(slug, []).append({k: v for k, v in {"id": row[0], "name": name, "place": place,
+            eb.setdefault(slug, []).append({k: v for k, v in {"id": row[0], "name": short, "place": place,
                                                               "lat": lat, "lon": lon}.items() if v not in (None, "")})
     except (OSError, ValueError) as err:
         print(f"no EarthBank list for samples: {err}")
