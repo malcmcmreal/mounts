@@ -245,6 +245,10 @@ def country(region, places, lat, lon):
     return ", ".join(out)
 
 
+# Drawers wider than the usual 36 columns (checked in the drawer): numbered straight through.
+TRAY_WIDTH = {"9": 37}
+
+
 def tray_positions(codes):
     """Where each vial sits in its tray. A catalogue number is tray, row letter, column (17B05).
     Trays have rows A–N (A at the bottom) and columns 01–36 (01 at the left). Typos that skip a
@@ -265,12 +269,12 @@ def tray_positions(codes):
             span = TRAY_ROWS[first:TRAY_ROWS.index(used[-1]) + 1]
             if len(span) > len(used):            # a skipped letter: close up
                 idx = {l: first + i for i, l in enumerate(used)}
-        w = 36
+        w = TRAY_WIDTH.get(tray, 36)
         for l, nums in letters.items():
             if l not in idx:
                 continue
             ordered = sorted(nums)
-            if ordered[-1] > 36 and len(ordered) < ordered[-1]:   # skipped a number: close up
+            if ordered[-1] > TRAY_WIDTH.get(tray, 36) and len(ordered) < ordered[-1]:   # skipped a number: close up
                 cols = {n: i for i, n in enumerate(ordered)}
             else:
                 cols = {n: n - 1 for n in ordered}

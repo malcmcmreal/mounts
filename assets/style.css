@@ -637,3 +637,4 @@ button.drawer { font: inherit; text-align: left; cursor: pointer; width: 100%; }
 .cab-head .sub-head { margin-bottom: .6rem; }
 .cabinet.filtered a.drawer { border-color: #7a5a3a; }
 .cab-note { grid-column: 1 / -1; margin: .3rem 0 0; color: #ffb877; }
+.drawer.none { visibility: hidden; }

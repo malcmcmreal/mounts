@@ -1,7 +1,7 @@
-// Mineral Split Database: the vial cabinet. Three columns of fifteen drawers (1–15, 16–30, 31–45,
+// Mineral Split Database: the vial cabinet. Three columns of fifteen drawers (1–15, 16–30, 31–44,
 // top to bottom); a drawer is the first number of a catalogue number (17B05 is in drawer 17).
 // Each drawer shows how many samples and vials it holds and its mix of minerals; any drawers past
-// 45 are listed underneath.
+// 45 are listed underneath. The cabinet has 44 drawers.
 (function () {
   var me = document.currentScript, base = me.dataset.base || '/', box = document.getElementById('drawers');
   if (!box) return;
@@ -40,10 +40,10 @@
         '<span class="dnum">' + d + '</span><span class="dbar">' + bar + '</span>' +
         '<span class="dstat">' + x.samples + ' <small>sample' + (x.samples === 1 ? '' : 's') + '</small> · ' + x.vials + ' <small>vial' + (x.vials === 1 ? '' : 's') + '</small></span></a>';
     }
-    var ROWS = 15, html = '';
+    var ROWS = 15, LAST = 44, html = '';   // 44 drawers in the cabinet
     for (var c = 0; c < 3; c++) {
       html += '<div class="cab-col">';
-      for (var r = 1; r <= ROWS; r++) html += cell(c * ROWS + r);
+      for (var r = 1; r <= ROWS; r++) { var dn = c * ROWS + r; html += dn <= LAST || st[dn] ? cell(dn) : '<div class="drawer none" aria-hidden="true"></div>'; }
       html += '</div>';
     }
     var extra = Object.keys(st).map(Number).filter(function (d) { return d > 3 * ROWS; }).sort(function (a, b) { return a - b; });

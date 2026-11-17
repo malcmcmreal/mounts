@@ -85,13 +85,14 @@
       var x = st[o.at.d] || (st[o.at.d] = { n: 0, ap: 0, zr: 0, ti: 0, o: 0 });
       x.n++; x[tone(o.v[1])]++;
     });
-    var max = 45, html = '';
+    var max = 44, html = '';
     Object.keys(st).forEach(function (d) { if (+d > max) max = +d; });
     var R = Math.ceil(max / 3);
     for (var c = 0; c < 3; c++) {
       html += '<div class="cab-col">';
       for (var r = 1; r <= R; r++) {
         var d = c * R + r, x = st[d];
+        if (d > max) { html += '<div class="drawer none" aria-hidden="true"></div>'; continue; }
         if (!x) { html += '<div class="drawer empty"><span class="dnum">' + d + '</span><span></span><span></span></div>'; continue; }
         html += '<button type="button" class="drawer has-pull" data-drawer="' + d + '" title="Show the ' + x.n + ' vial' + (x.n === 1 ? '' : 's') + ' to pull in drawer ' + d + '">' +
           '<span class="dnum">' + d + '</span><span class="dbar">' + ['ap', 'zr', 'ti', 'o'].map(function (k) { return x[k] ? '<i class="m-' + k + '" style="flex:' + x[k] + '"></i>' : ''; }).join('') + '</span>' +
