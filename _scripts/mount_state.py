@@ -357,8 +357,11 @@ def link_samples(state):
             t = trays.setdefault(tray, {"cols": width[tray], "v": []})
             m1 = mineral.split(" + ")[0]
             tone = {"Apatite": "ap", "Zircon": "zr", "Titanite": "ti"}.get(m1, "o")
-            # [row (0 = A, bottom), column (0 = 01, left), catalogue number, sample page, mineral tone, concentrate]
-            t["v"].append([pos[c][0], pos[c][1], raw, slug, tone, 1 if prep == "Concentrate" else 0])
+            # [row (0 = A, bottom), column (0 = 01, left), catalogue number, sample page, mineral tone,
+            #  concentrate, split, mineral (only when not apatite/zircon/titanite), sample ID (only when
+            #  it differs from the page name)]
+            t["v"].append([pos[c][0], pos[c][1], raw, slug, tone, 1 if prep == "Concentrate" else 0, prep,
+                           mineral if tone == "o" or " + " in mineral else "", sid if sid != slug else ""])
     with open(os.path.join(ROOT, "assets", "trays.json"), "w", encoding="utf-8") as f:
         json.dump({"rows": TRAY_ROWS, "trays": trays}, f, ensure_ascii=False, separators=(",", ":"))
     index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],

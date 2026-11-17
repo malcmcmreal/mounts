@@ -30,11 +30,11 @@
         out.push('<text class="tray-lab" x="' + (L - 8) + '" y="' + (y + 3.5) + '" text-anchor="end">' + d.rows[r] + '</text>');
         for (var c = 0; c < cols; c++) {
           var x = L + c * S + S / 2, v = at[r + ',' + c];
-          if (!v) { out.push('<circle class="tray-empty" cx="' + x + '" cy="' + y + '" r="' + (R - 1.5) + '"/>'); continue; }
+          if (!v) { out.push('<circle class="tray-empty" cx="' + x + '" cy="' + y + '" r="' + (R - 1.5) + '" data-tip="' + k + ':' + r + ':' + c + '"/>'); continue; }
           var own = mineN.indexOf(norm(v[2].toUpperCase().replace(/\s+/g, ''))) !== -1 && v[3] === data.slug;
-          var title = '<title>' + esc(v[2]) + (own ? '' : ' · ' + esc(v[3])) + '</title>';
-          if (own) out.push('<circle class="tray-own m-' + v[4] + (v[5] ? ' conc' : '') + '" cx="' + x + '" cy="' + y + '" r="' + R + '" data-cat="' + esc(v[2]) + '">' + title + '</circle>');
-          else out.push('<a href="' + base + 's/' + encodeURIComponent(v[3]) + '/"><circle class="tray-other" cx="' + x + '" cy="' + y + '" r="' + (R - 1) + '">' + title + '</circle></a>');
+          var tip = ' data-tip="' + k + ':' + r + ':' + c + '"';
+          if (own) out.push('<circle class="tray-own m-' + v[4] + (v[5] ? ' conc' : '') + '" cx="' + x + '" cy="' + y + '" r="' + R + '" data-cat="' + esc(v[2]) + '"' + tip + '/>');
+          else out.push('<a href="' + base + 's/' + encodeURIComponent(v[3]) + '/"><circle class="tray-other" cx="' + x + '" cy="' + y + '" r="' + (R - 1) + '"' + tip + '/></a>');
         }
       }
       for (var c2 = 0; c2 < cols; c2++) {
@@ -50,6 +50,31 @@
       '<p class="tray-key small muted"><span class="dot m-ap"></span> Apatite <span class="dot m-zr"></span> Zircon <span class="dot m-ti"></span> Titanite ' +
       '<span class="dot m-o"></span> Other <span class="dot conc"></span> Concentrate (ring) <span class="dot other"></span> Other samples\' vials (click to open) ' +
       '<span class="dot empty"></span> Empty. Row A is at the bottom, column 01 on the left.</p>';
+    // Instant tooltip: sample, fraction and position (row letter + column, e.g. N03)
+    var tipBox = document.createElement('div');
+    tipBox.className = 'tray-tip'; tipBox.hidden = true;
+    document.body.appendChild(tipBox);
+    var MIN = { ap: 'Apatite', zr: 'Zircon', ti: 'Titanite' };
+    function cell(key) {
+      var p = key.split(':'), t = d.trays[p[0]], r = +p[1], c = +p[2];
+      var v = t.v.filter(function (x) { return x[0] === r && x[1] === c; })[0];
+      return { tray: p[0], pos: d.rows[r] + ('0' + (c + 1)).slice(-2), v: v };
+    }
+    box.addEventListener('mouseover', function (e) {
+      var el = e.target.closest('[data-tip]');
+      if (!el) { tipBox.hidden = true; return; }
+      var c = cell(el.dataset.tip), v = c.v;
+      tipBox.innerHTML = v
+        ? '<strong class="mono">' + esc(v[8] || v[3]) + '</strong><br>' + esc(v[7] || MIN[v[4]] || '') + (v[6] ? ' ' + esc(v[6].toLowerCase()) : '') +
+          '<br><span class="muted">Vial</span> <span class="mono">' + esc(v[2]) + '</span> <span class="muted">· tray ' + esc(c.tray) + ', position</span> <span class="mono">' + c.pos + '</span>'
+        : '<span class="muted">Empty · tray ' + esc(c.tray) + ', position</span> <span class="mono">' + c.pos + '</span>';
+      tipBox.hidden = false;
+      var r = el.getBoundingClientRect();
+      tipBox.style.left = (window.scrollX + r.left + r.width / 2) + 'px';
+      tipBox.style.top = (window.scrollY + r.top - 8) + 'px';
+    });
+    box.addEventListener('mouseleave', function () { tipBox.hidden = true; });
+
     // pointing at a vial in the Vials table lights it up in the tray
     document.querySelectorAll('table.vials tbody tr').forEach(function (tr) {
       var cat = tr.querySelector('td').textContent.trim();
