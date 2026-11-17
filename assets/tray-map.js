@@ -66,6 +66,7 @@
       var c = cell(el.dataset.tip), v = c.v;
       tipBox.innerHTML = v
         ? '<strong class="mono">' + esc(v[8] || v[3]) + '</strong><br>' + esc(v[7] || MIN[v[4]] || '') + (v[6] ? ' ' + esc(v[6].toLowerCase()) : '') +
+          (v[9] === 'missing' ? '<br><span class="muted">Vial not found when checked</span>' : v[9] !== '' && v[9] != null ? '<br><span class="muted">Amount</span> ' + v[9] + '/5' : '') +
           '<br><span class="muted">Vial</span> <span class="mono">' + esc(v[2]) + '</span> <span class="muted">· tray ' + esc(c.tray) + ', position</span> <span class="mono">' + c.pos + '</span>'
         : '<span class="muted">Empty · tray ' + esc(c.tray) + ', position</span> <span class="mono">' + c.pos + '</span>';
       tipBox.hidden = false;

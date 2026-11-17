@@ -18,5 +18,5 @@ depth_max_m: null
 elevation_m: 170
 vials:
   - {"catalogue": "13K28", "mineral": "Zircon", "prep": "Fraction"}
-  - {"catalogue": "13K29", "mineral": "Apatite", "prep": "Fraction"}
+  - {"catalogue": "13K29", "mineral": "Apatite", "prep": "Fraction", "qty": 3}
 ---

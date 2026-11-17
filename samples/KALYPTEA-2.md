@@ -10,6 +10,6 @@ region: "Australia-NW Shelf"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "27N11", "mineral": "Apatite", "prep": "Fraction"}
+  - {"catalogue": "27N11", "mineral": "Apatite", "prep": "Fraction", "qty": 1}
   - {"catalogue": "27N12", "mineral": "Zircon", "prep": "Fraction"}
 ---

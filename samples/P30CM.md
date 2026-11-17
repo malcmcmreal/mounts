@@ -10,5 +10,5 @@ region: "Australia-Vic"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "22L19", "mineral": "Apatite", "prep": "Fraction"}
+  - {"catalogue": "22L19", "mineral": "Apatite", "prep": "Fraction", "qty": 1}
 ---

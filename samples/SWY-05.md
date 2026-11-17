@@ -17,5 +17,5 @@ depth_m: null
 depth_max_m: null
 elevation_m: 170
 vials:
-  - {"catalogue": "13K31", "mineral": "Zircon", "prep": "Fraction"}
+  - {"catalogue": "13K31", "mineral": "Zircon", "prep": "Fraction", "qty": 2}
 ---

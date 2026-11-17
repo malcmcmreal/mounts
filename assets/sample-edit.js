@@ -65,6 +65,10 @@
       '<select data-k="prep">' + PREPS.concat(v.prep && PREPS.indexOf(v.prep) === -1 ? [v.prep] : []).map(function (p) {
         return '<option value="' + esc(p) + '"' + (p === (v.prep || '') ? ' selected' : '') + '>' + (p || '—') + '</option>';
       }).join('') + '</select>' +
+      '<select data-k="qty" title="Amount in the vial: 0 empty, 3 about half, 5 full">' + ['', 0, 1, 2, 3, 4, 5, 'missing'].map(function (q) {
+        return '<option value="' + q + '"' + (String(q) === String(v.qty == null ? '' : v.qty) ? ' selected' : '') + '>' +
+          (q === '' ? 'Amount —' : q === 'missing' ? 'Not found' : q + '/5') + '</option>';
+      }).join('') + '</select>' +
       '<button type="button" class="icon-btn" data-del title="Remove this vial" aria-label="Remove this vial">&times;</button>';
     box.appendChild(div);
   }
@@ -149,6 +153,8 @@
     var vials = Array.prototype.map.call(box.querySelectorAll('.vial-row'), function (r) {
       var v = {};
       ['catalogue', 'mineral', 'prep'].forEach(function (k) { v[k] = r.querySelector('[data-k=' + k + ']').value.trim(); });
+      var qv = r.querySelector('[data-k=qty]').value;
+      if (qv !== '') v.qty = qv === 'missing' ? 'missing' : +qv;
       return v;
     }).filter(function (v) { return v.catalogue || v.mineral; });
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),

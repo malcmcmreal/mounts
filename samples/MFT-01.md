@@ -10,6 +10,6 @@ region: "Australia-NSW"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "26H16", "mineral": "Apatite", "prep": "Fraction"}
+  - {"catalogue": "26H16", "mineral": "Apatite", "prep": "Fraction", "qty": 2}
   - {"catalogue": "26H17", "mineral": "Zircon", "prep": "Fraction"}
 ---

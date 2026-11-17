@@ -10,6 +10,6 @@ region: "Australia-Vic"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "30N15", "mineral": "Apatite", "prep": "Fraction"}
-  - {"catalogue": "30N16", "mineral": "Apatite", "prep": "Non-magnetic"}
+  - {"catalogue": "30N15", "mineral": "Apatite", "prep": "Fraction", "qty": 2}
+  - {"catalogue": "30N16", "mineral": "Apatite", "prep": "Non-magnetic", "qty": 1}
 ---

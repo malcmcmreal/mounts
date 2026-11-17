@@ -10,5 +10,5 @@ region: "Australia-SA"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "26B29", "mineral": "Apatite", "prep": "Concentrate"}
+  - {"catalogue": "26B29", "mineral": "Apatite", "prep": "Concentrate", "qty": 3}
 ---

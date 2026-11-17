@@ -11,5 +11,5 @@ lat: null
 lon: null
 vials:
   - {"catalogue": "13F36", "mineral": "Zircon", "prep": "Fraction"}
-  - {"catalogue": "13G01", "mineral": "Apatite", "prep": "Fraction"}
+  - {"catalogue": "13G01", "mineral": "Apatite", "prep": "Fraction", "qty": 2}
 ---

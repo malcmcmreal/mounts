@@ -472,7 +472,7 @@ table.vials tr:target td { background: var(--raised); }
 .split-pop button { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--ink); font: inherit; font-size: .88rem; padding: .4rem .7rem; cursor: pointer; }
 .split-pop button:hover, .split-pop button.on { background: var(--raised); }
 .split-pop .muted { font-size: .8rem; }
-.vial-rows .vial-row { display: grid; grid-template-columns: 1fr 1.3fr 1.2fr 1.6rem; gap: .5rem; align-items: center; margin-bottom: .4rem; }
+.vial-rows .vial-row { display: grid; grid-template-columns: 1fr 1.2fr 1.1fr .9fr 1.6rem; gap: .5rem; align-items: center; margin-bottom: .4rem; }
 .vial-rows .vial-row input, .vial-rows .vial-row select { margin-top: 0; }
 .codes-fold > summary { cursor: pointer; display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
 .codes-fold > summary h2 { display: inline; margin: 0; }
@@ -511,3 +511,12 @@ a:hover .tray-other { fill: #8a8f99; }
   border: 1px solid var(--line); border-radius: 6px; padding: .35rem .55rem; font-size: .8rem; line-height: 1.35; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
 .tray-svg [data-tip] { cursor: pointer; }
 .tray-svg .tray-empty { cursor: default; }
+/* Vial amount: a 10 x 20 mm vial drawn to scale, filled to the hand-checked rating (0 empty, 5 full) */
+.qty-cell { white-space: nowrap; }
+.vial-icon { width: 14px; height: 28px; vertical-align: middle; }
+.vial-icon .vial-body { fill: none; stroke: var(--muted); stroke-width: 1; }
+.vial-icon .vial-cap { fill: var(--muted); }
+.vial-icon .vial-fill { fill: #b9b9c0; }
+.vial-icon .vial-fill.m-ap { fill: #7fcf7f; }
+.vial-icon .vial-fill.m-zr { fill: #74b0ec; }
+.vial-icon .vial-fill.m-ti { fill: #e6cf5c; }

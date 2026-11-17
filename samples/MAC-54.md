@@ -10,6 +10,6 @@ region: "Australia-Vic"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "23A29", "mineral": "Apatite", "prep": "Concentrate"}
+  - {"catalogue": "23A29", "mineral": "Apatite", "prep": "Concentrate", "qty": 2}
   - {"catalogue": "23A30", "mineral": "Zircon + Titanite", "prep": "Concentrate"}
 ---

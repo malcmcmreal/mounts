@@ -347,11 +347,11 @@ def link_samples(state):
         for v in r["vials"]:
             c = cnorm(text(v.get("catalogue")))
             if c:
-                held.setdefault(c, (slug, r["id"], text(v.get("mineral")), text(v.get("prep")), text(v.get("catalogue"))))
+                held.setdefault(c, (slug, r["id"], text(v.get("mineral")), text(v.get("prep")), text(v.get("catalogue")), v.get("qty")))
                 codes.add(c)
     pos, width = tray_positions(codes)
     trays = {}
-    for c, (slug, sid, mineral, prep, raw) in held.items():
+    for c, (slug, sid, mineral, prep, raw, qty) in held.items():
         if c in pos:
             tray = re.match(r"\d+", c).group()
             t = trays.setdefault(tray, {"cols": width[tray], "v": []})
@@ -361,7 +361,8 @@ def link_samples(state):
             #  concentrate, split, mineral (only when not apatite/zircon/titanite), sample ID (only when
             #  it differs from the page name)]
             t["v"].append([pos[c][0], pos[c][1], raw, slug, tone, 1 if prep == "Concentrate" else 0, prep,
-                           mineral if tone == "o" or " + " in mineral else "", sid if sid != slug else ""])
+                           mineral if tone == "o" or " + " in mineral else "", sid if sid != slug else "",
+                           "" if qty is None else qty])
     with open(os.path.join(ROOT, "assets", "trays.json"), "w", encoding="utf-8") as f:
         json.dump({"rows": TRAY_ROWS, "trays": trays}, f, ensure_ascii=False, separators=(",", ":"))
     index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],

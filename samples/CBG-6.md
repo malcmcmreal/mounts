@@ -17,7 +17,7 @@ depth_m: 1006
 depth_max_m: 1007
 elevation_m: null
 vials:
-  - {"catalogue": "29I35", "mineral": "Apatite", "prep": "Fraction"}
-  - {"catalogue": "29I36", "mineral": "Apatite", "prep": "Concentrate"}
+  - {"catalogue": "29I35", "mineral": "Apatite", "prep": "Fraction", "qty": 2}
+  - {"catalogue": "29I36", "mineral": "Apatite", "prep": "Concentrate", "qty": 1}
   - {"catalogue": "29J01", "mineral": "Zircon", "prep": "Fraction"}
 ---

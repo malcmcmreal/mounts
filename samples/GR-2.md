@@ -10,7 +10,7 @@ region: "Australia-Tas"
 lat: null
 lon: null
 vials:
-  - {"catalogue": "29J35", "mineral": "Apatite", "prep": "Fraction"}
-  - {"catalogue": "29J36", "mineral": "Apatite", "prep": "Concentrate"}
+  - {"catalogue": "29J35", "mineral": "Apatite", "prep": "Fraction", "qty": 4}
+  - {"catalogue": "29J36", "mineral": "Apatite", "prep": "Concentrate", "qty": 3}
   - {"catalogue": "29K01", "mineral": "Zircon", "prep": "Fraction"}
 ---
