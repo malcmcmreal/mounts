@@ -26,7 +26,8 @@
         var m = /^(\d+)/.exec(v[0] || '');
         if (!m) return;
         var d = +m[1], x = st[d] || (st[d] = { vials: 0, samples: 0, ap: 0, zr: 0, ti: 0, o: 0 });
-        x.vials++; x[tone(v[1])]++;
+        if (!seen['v' + v[0]]) { x.vials++; seen['v' + v[0]] = 1; }   // a mixed vial is listed once per mineral
+        x[tone(v[1])]++;
         if (!seen[d]) { x.samples++; seen[d] = 1; }
       });
     });

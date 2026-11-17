@@ -21,8 +21,13 @@
     slugs.forEach(function (slug) {
       var s = index[slug];
       if (!s) { missingSamples.push(slug); return; }
-      var any = false;
-      s[2].forEach(function (v) {
+      var any = false, merged = [], byCat = {};
+      s[2].forEach(function (v) {   // a mixed vial is listed once per mineral: show it once
+        var k = v[0] && byCat[v[0]];
+        if (k && k[2] === v[2]) { if (k[1].split(' + ').indexOf(v[1]) === -1) k[1] += ' + ' + v[1]; return; }
+        var c = v.slice(); merged.push(c); if (v[0]) byCat[v[0]] = c;
+      });
+      merged.forEach(function (v) {
         var ms = v[1].split(' + ');
         if (m && !(m === 'Other' ? !/^(Apatite|Zircon|Titanite)$/.test(ms[0]) : ms.indexOf(m) !== -1)) return;
         if (p && v[2] !== p) return;
@@ -53,7 +58,7 @@
         '<td>' + (go ? '<button type="button" class="loc-btn mono"' + go + ' title="Show where this vial is in drawer ' + d + '">' + esc(v[0]) + '</button>' : esc(v ? v[0] : '')) + '</td>' +
         '<td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a></td>' +
         '<td>' + (v ? mchip(v) : '<span class="muted small">No vials match the filters</span>') + '</td><td>' + esc(v ? v[2] : '') + '</td>' +
-        '<td class="small">' + (v ? esc(amount(v[3])) : '') + '</td><td class="small">' + esc(s[7]) + '</td><td class="small">' + esc(s[3]) + '</td>' +
+        '<td class="small">' + (v ? esc(amount(v[3])) : '') + '</td><td class="small">' + esc(s[7]) + '</td><td class="small">' + esc(s[10] || '') + '</td>' +
         '<td class="no-print"><button type="button" class="link-btn small" data-remove="' + esc(s[0]) + '" title="Take ' + esc(s[1]) + ' off the pull list">Remove</button></td></tr>';
     });
     if (!slugs.length) html = '<tr><td colspan="10" class="muted">The pull list is empty. Tick samples in the <a href="' + base + 'samples/">Mineral Split Database</a> or pick them on the <a href="' + base + 'samples/map/">map</a>.</td></tr>';

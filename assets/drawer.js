@@ -29,7 +29,8 @@
       if (x[2] === 'Concentrate') conc++;
       if (tone(x[1]) === 'ap' && typeof x[3] === 'number') q.push(x[3]);
     });
-    var html = stat(listed.length, 'samples') + stat(v.length, 'vials');
+    var uniq = {}; v.forEach(function (x) { uniq[x[0]] = 1; });   // a mixed vial is listed once per mineral
+    var html = stat(listed.length, 'samples') + stat(Object.keys(uniq).length, 'vials');
     ['ap', 'zr', 'ti', 'o'].forEach(function (k) { if (by[k]) html += stat(by[k], MIN[k].toLowerCase(), 'm-' + k); });
     html += stat(conc, 'concentrates');
     if (trayInfo) {

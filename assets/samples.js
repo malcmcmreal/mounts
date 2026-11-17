@@ -108,7 +108,7 @@
     });
     tbody.insertAdjacentHTML('beforeend', html);
     shown += next.length;
-    var vials = 0; hits.forEach(function (s) { vials += s._v.length; });
+    var vials = 0; hits.forEach(function (s) { var u = {}; s._v.forEach(function (v) { u[v[0] || Math.random()] = 1; }); vials += Object.keys(u).length; });
     count.textContent = hits.length.toLocaleString() + ' sample' + (hits.length === 1 ? '' : 's') + ', ' + vials.toLocaleString() + ' vial' + (vials === 1 ? '' : 's') +
       (hits.length > shown ? ' · showing ' + shown.toLocaleString() : '');
     more.hidden = shown >= hits.length;

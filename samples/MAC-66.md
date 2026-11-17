@@ -11,5 +11,6 @@ lat: null
 lon: null
 vials:
   - {"catalogue": "23A21", "mineral": "Apatite", "prep": "Concentrate", "qty": 2}
-  - {"catalogue": "23A22", "mineral": "Zircon + Titanite", "prep": "Concentrate"}
+  - {"catalogue": "23A22", "mineral": "Zircon", "prep": "Concentrate"}
+  - {"catalogue": "23A22", "mineral": "Titanite", "prep": "Concentrate"}
 ---

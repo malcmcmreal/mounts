@@ -388,7 +388,13 @@ def link_samples(state):
         for v in r["vials"]:
             c = cnorm(text(v.get("catalogue")))
             if c:
-                held.setdefault(c, (slug, r["id"], text(v.get("mineral")), text(v.get("prep")), text(v.get("catalogue")), v.get("qty")))
+                mineral = text(v.get("mineral"))
+                h = held.get(c)
+                if h and h[0] == slug:   # one vial listed once per mineral (a mixed separate): name them all
+                    if mineral and mineral not in h[2].split(" + "):
+                        held[c] = (h[0], h[1], (h[2] + " + " + mineral) if h[2] else mineral) + h[3:]
+                else:
+                    held.setdefault(c, (slug, r["id"], mineral, text(v.get("prep")), text(v.get("catalogue")), v.get("qty")))
                 codes.add(c)
     pos, width = tray_positions(codes)
     trays = {}

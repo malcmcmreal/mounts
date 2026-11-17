@@ -18,5 +18,6 @@ depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7H34", "mineral": "Apatite", "prep": "Fraction"}
-  - {"catalogue": "7H35", "mineral": "Apatite + Zircon", "prep": ""}
+  - {"catalogue": "7H35", "mineral": "Apatite", "prep": ""}
+  - {"catalogue": "7H35", "mineral": "Zircon", "prep": ""}
 ---

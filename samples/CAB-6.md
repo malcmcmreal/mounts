@@ -11,5 +11,6 @@ lat: null
 lon: null
 vials:
   - {"catalogue": "7G33", "mineral": "Apatite", "prep": "Fraction"}
-  - {"catalogue": "7G34", "mineral": "Apatite + Zircon", "prep": ""}
+  - {"catalogue": "7G34", "mineral": "Apatite", "prep": ""}
+  - {"catalogue": "7G34", "mineral": "Zircon", "prep": ""}
 ---
