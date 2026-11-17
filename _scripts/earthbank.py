@@ -209,8 +209,8 @@ def sample_details(h, points):
     return clean({
         "id": sid,
         # plain name, without the LITH00000000- prefix EarthBank adds in some places
-        # LITH00728954-7959-122 and 8122-15//<PID> are shown as 7959-122 and 8122-15
-        "name": re.sub(r"^LITH\d+-", "", (s.get("name") or "").split("//")[0]).strip() or None,
+        # LITH00728954-7959-122 and 8122-15\\<PID> (or 8122-15//<PID>) are shown as 7959-122 and 8122-15
+        "name": re.sub(r"^LITH\d+-", "", re.split(r"[\\/]{2}", s.get("name") or "")[0]).strip() or None,
         "url": f"{WEB}/show/sample/{sid}",
         "igsn": ident,
         "igsn_url": ident_url(ident),

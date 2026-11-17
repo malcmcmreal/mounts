@@ -132,7 +132,7 @@
       // EarthBank's list adds a prefix to some names (LITH00728954-7222-133): show the plain name, search both
       d.samples.forEach(function (s) {
         var full = s[1] || '';
-        s[1] = full.split('//')[0].replace(/^LITH\d+-/, '').trim();
+        s[1] = full.split(/[\\/]{2}/)[0].replace(/^LITH\d+-/, '').trim();
         s._t = ((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
       });
       eb = d;

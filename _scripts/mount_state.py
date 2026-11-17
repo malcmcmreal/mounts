@@ -232,8 +232,9 @@ def link_samples(state):
         places = ebl.get("places") or []
         for row in ebl.get("samples") or []:
             name = text(row[1])
-            # LITH00728954-7959-122 is sample 7959-122; newer names carry a PID after "//" (8122-15//…)
-            short = name.split("//")[0].strip()
+            # LITH00728954-7959-122 is sample 7959-122; newer names carry a PID after a double
+            # backslash or slash (8122-15\\University of Melbourne …)
+            short = re.split(r"[\\/]{2}", name)[0].strip()
             base = re.sub(r"^LITH[^-]*-", "", short, flags=re.I).lower()
             slug = want.get(base) or want.get(short.lower())
             if not slug:
