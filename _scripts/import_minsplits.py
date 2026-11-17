@@ -9,7 +9,8 @@ purpose: it belongs to the mount or slide. EarthBank coordinates, when the sampl
 EarthBank, are matched at build time (_scripts/mount_state.py) and take precedence.
 Rows marked "No" in the Drawer? column are left out: that separate is no longer in the drawer
 (its vial position has usually been reused), and a sample with only such rows gets no page
-(an existing page for it is deleted). Existing sample pages are left alone unless --overwrite is given; after an --overwrite, run
+(an existing page for it is deleted). Vials listed in _scripts/missing_vials.csv (checked in the lab and not found) are left out too.
+Existing sample pages are left alone unless --overwrite is given; after an --overwrite, run
 import_apdbase.py again to put back rock type and stratigraphic age.
 """
 import json, os, re, sys
@@ -110,6 +111,12 @@ def main():
     rows = list(wb.worksheets[0].iter_rows(values_only=True))
     head = [text(h) for h in rows[0]]
     col = {h: i for i, h in enumerate(head)}
+    import csv
+    missing = set()
+    mpath = os.path.join(ROOT, "_scripts", "missing_vials.csv")
+    if os.path.exists(mpath):
+        with open(mpath, encoding="utf-8") as fh:
+            missing = {(r["Catalogue Number"].upper(), r["Sample Number"]) for r in csv.DictReader(fh)}
     samples, skipped, gone = {}, 0, set()
     for r in rows[1:]:
         sid = text(r[col["Sample Number"]])
@@ -132,6 +139,8 @@ def main():
             cat = text(r[col["Catalogue Number"]])
             label = text(r[col["Mineral Split"]])
             if not cat and not label:
+                continue
+            if (cat.upper(), sid) in missing:
                 continue
             mineral, prep = split_label(label)
             v = {"catalogue": cat, "mineral": mineral, "prep": prep}
