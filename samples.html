@@ -19,7 +19,10 @@ tab_title: Mineral Split Database
 {% include split-tools.html %}
 
 <section class="cabinet-wrap" aria-labelledby="cab-title">
-  <h2 id="cab-title" class="sub-head">Drawers <span class="muted small">— the first number of a catalogue number; open one to see what's in it</span></h2>
+  <div class="cab-head">
+    <h2 id="cab-title" class="sub-head">Drawers <span class="muted small">— the first number of a catalogue number; open one to see what's in it</span></h2>
+    <label class="check small"><input type="checkbox" id="cab-only"> Show only vials matching the filters</label>
+  </div>
   <div id="drawers" class="cabinet"><p class="muted small">Loading…</p></div>
 </section>
 

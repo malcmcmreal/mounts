@@ -48,17 +48,26 @@
     if (g === 'drawer') return 'Drawer ' + (s._v.length ? drawerOf(s._v[0][0]) : '?');
     return '';
   }
+  // Does a vial match the Mineral and Split filters? (also used by the drawer grid)
+  function vialOk(v) {
+    var m = selM.value, p = selP.value;
+    return (!m || v[1].split(' + ').indexOf(m) !== -1 || (m === 'Other' && !/^(Apatite|Zircon|Titanite)( \+ |$)/.test(v[1]))) && (!p || v[2] === p);
+  }
+  function filterQuery() {
+    var ps = [];
+    if (q.value) ps.push('q=' + encodeURIComponent(q.value));
+    if (selM.value) ps.push('mineral=' + encodeURIComponent(selM.value));
+    if (selP.value) ps.push('split=' + encodeURIComponent(selP.value));
+    if (selJ && selJ.value) ps.push('project=' + encodeURIComponent(selJ.value));
+    if (mounted && mounted.checked) ps.push('mounted=1');
+    return ps;
+  }
   function apply() {
     var words = norm(q.value).split(/\s+/).filter(Boolean), m = selM.value, p = selP.value, mo = mounted && mounted.checked, pj = selJ ? selJ.value : '';
     hits = all.filter(function (s) {
       if (mo && !s[5].length) return false;
       if (pj && (pj === '-' ? s[10] : s[10] !== pj)) return false;
-      if (m || p) {
-        var ok = s._v.some(function (v) {
-          return (!m || v[1].split(' + ').indexOf(m) !== -1 || (m === 'Other' && !/^(Apatite|Zircon|Titanite)( \+ |$)/.test(v[1]))) && (!p || v[2] === p);
-        });
-        if (!ok) return false;
-      }
+      if ((m || p) && !s._v.some(vialOk)) return false;
       return words.every(function (w) { return s._t.indexOf(w) !== -1; });
     });
     if (selG && selG.value) {
@@ -68,12 +77,13 @@
     } else hits.sort(function (a, b) { return a._o - b._o; });
     shown = 0; tbody.innerHTML = ''; page();
     if (!drawer) try {
-      var ps = [];
-      if (q.value) ps.push('q=' + encodeURIComponent(q.value));
+      var ps = filterQuery();
       if (selG && selG.value) ps.push('group=' + encodeURIComponent(selG.value));
-      if (selJ && selJ.value) ps.push('project=' + encodeURIComponent(selJ.value));
       history.replaceState(null, '', ps.length ? '?' + ps.join('&') : location.pathname);
     } catch (e) {}
+    hits.vialOk = vialOk;
+    hits.filtered = filterQuery().length > 0;
+    hits.query = filterQuery().join('&');
     document.dispatchEvent(new CustomEvent('splits-filtered', { detail: hits }));
   }
   function page() {
@@ -150,6 +160,9 @@
     function param(k) { var r = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search); return r ? decodeURIComponent(r[1].replace(/\+/g, ' ')) : ''; }
     if (param('q')) q.value = param('q');
     if (selG && param('group') && selG.querySelector('option[value="' + param('group') + '"]')) selG.value = param('group');
+    function pick(sel, v) { if (sel && v && sel.querySelector('option[value="' + v.replace(/"/g, '') + '"]')) sel.value = v; }
+    pick(selM, param('mineral')); pick(selP, param('split'));
+    if (mounted && param('mounted')) mounted.checked = true;
     if (selJ && param('project')) { if (!selJ.querySelector('option[value="' + param('project').replace(/"/g, '') + '"]')) selJ.add(new Option(param('project'), param('project'))); selJ.value = param('project'); }
     apply();
     document.dispatchEvent(new CustomEvent('splits-loaded', { detail: { all: d.samples, listed: all } }));
