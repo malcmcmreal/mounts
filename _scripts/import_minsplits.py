@@ -7,7 +7,9 @@ mineral, fraction/concentrate…), the spreadsheet's region (Location column) an
 sample notes give them, latitude and longitude. The irradiation number is left out on
 purpose: it belongs to the mount or slide. EarthBank coordinates, when the sample is in
 EarthBank, are matched at build time (_scripts/mount_state.py) and take precedence.
-Existing sample pages are left alone unless --overwrite is given.
+Rows marked "No" in the Drawer? column are left out: that separate is no longer in the drawer
+(its vial position has usually been reused), and a sample with only such rows gets no page
+(an existing page for it is deleted). Existing sample pages are left alone unless --overwrite is given.
 """
 import json, os, re, sys
 
@@ -107,11 +109,14 @@ def main():
     rows = list(wb.worksheets[0].iter_rows(values_only=True))
     head = [text(h) for h in rows[0]]
     col = {h: i for i, h in enumerate(head)}
-    samples, skipped = {}, 0
+    samples, skipped, gone = {}, 0, set()
     for r in rows[1:]:
         sid = text(r[col["Sample Number"]])
         if not sid:
             skipped += 1
+            continue
+        if text(r[col["Drawer?"]]).lower() == "no":
+            gone.add(sid)
             continue
         rec = samples.setdefault(sid, {"rows": []})
         rec["rows"].append(r)
@@ -141,7 +146,14 @@ def main():
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(page(sid, out))
         written += 1
-    print(f"{len(samples)} samples, {written} pages written, {skipped} rows without a sample number skipped")
+    removed = 0
+    for sid in gone - set(samples):
+        path = os.path.join(ROOT, "samples", slug(sid) + ".md")
+        if os.path.exists(path):
+            os.remove(path)
+            removed += 1
+    print(f"{len(samples)} samples, {written} pages written, {skipped} rows without a sample number skipped, "
+          f"{len(gone)} samples had vials no longer in the drawer, {removed} pages removed")
 
 
 if __name__ == "__main__":
