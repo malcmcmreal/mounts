@@ -197,6 +197,12 @@ def sample_slug(s):
     return re.sub(r"[^A-Za-z0-9.-]+", "_", s).strip("_")
 
 
+# EarthBank data packages checked (Nov 2026) to hold the same physical samples as the archive,
+# under the same names. Central Asia thermochronology compilation: same names, different samples.
+ALSO_IN = ("phanerozoic thermochronology record of afro-arabia", "hallberg yilgarn geochemistry",
+           "canadian thermochronology (catch) database")
+
+
 def link_samples(state):
     """Mineral split records (samples/<slug>.md, one per sample number with its vials) and mounts
     point at each other: a mount sample matches a record by its separates (vial catalogue number)
@@ -227,7 +233,9 @@ def link_samples(state):
     # (8122-15\\University of Melbourne …). Names are matched exactly, else by their letter and
     # number groups with leading zeros ignored (97POS-49 = 97POS49, 8863-24 = 8863-024,
     # GC1-10 = GC1/10, but S-16 ≠ S1-6). Only samples in the University of Melbourne mineral
-    # separate archive data package are used: other packages reuse short names (7, 89).
+    # separate archive data package, or in the packages checked to hold the same samples
+    # (ALSO_IN below), are used: other packages reuse short names for other samples.
+    # The archive package is preferred when a sample is in both.
     # Uses the weekly list of public samples.
     def tokens(n):
         return tuple((x.lstrip("0") or "0") if x.isdigit() else x for x in re.findall(r"[a-z]+|\d+", n.lower()))
@@ -241,12 +249,13 @@ def link_samples(state):
             by_tok.setdefault(tokens(r["id"]), []).append(slug)
         places, packages = ebl.get("places") or [], ebl.get("packages") or []
         archive = {i for i, p in enumerate(packages) if "university of melbourne mineral separate" in text(p[1]).lower()}
+        also = {i for i, p in enumerate(packages) if any(k in text(p[1]).lower() for k in ALSO_IN)}
         found = {}
         for row in ebl.get("samples") or []:
             name = text(row[1])
             short = re.split(r"[\\/]{2}", name)[0].strip()
             base = re.sub(r"^LITH[^-]*-", "", short, flags=re.I)
-            if row[2] not in archive:     # other packages reuse short names (7, 89) for other samples
+            if row[2] not in archive and row[2] not in also:
                 continue
             slug, how = want.get(base.lower()) or want.get(short.lower()), "exact"
             if not slug:
@@ -260,6 +269,8 @@ def link_samples(state):
             found.setdefault(slug, []).append((row[2] in archive, how == "exact", rec))
         for slug, cands in found.items():
             mine = [c for c in cands if c[0]] or [c for c in cands if c[1]] or cands
+            if not mine[0][0] and len(mine) > 1:
+                continue    # only in other packages, and in more than one: a shared short name (7), not linked
             eb[slug] = [c[2] for c in mine]
     except (OSError, ValueError) as err:
         print(f"no EarthBank list for samples: {err}")
