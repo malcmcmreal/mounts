@@ -26,7 +26,10 @@ layout: default
       <h1 class="mono">{{ page.sample_id }}</h1>
       <p class="lede">{% if page.vials.size > 0 %}{{ page.vials.size }} vial{% if page.vials.size != 1 %}s{% endif %} · {{ minerals }}{% else %}No vials recorded{% endif %}{% if links %} · in {{ links.size }} mount{% if links.size != 1 %}s{% endif %}{% endif %}</p>
     </div>
-    {% if repo != "" %}<button type="button" class="btn" id="sample-edit-btn">Edit</button>{% endif %}
+    <div class="head-btns">
+      {% if page.vials.size > 0 %}<button type="button" class="btn" id="sample-pull-btn" data-slug="{{ page.name | replace: '.md', '' }}">+ Pull list</button>{% endif %}
+      {% if repo != "" %}<button type="button" class="btn" id="sample-edit-btn">Edit</button>{% endif %}
+    </div>
   </div>
 
   <div class="grid-2">
@@ -124,6 +127,16 @@ layout: default
 
 <script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "unit": {{ page.unit | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
+<script>
+(function () {
+  var b = document.getElementById('sample-pull-btn');
+  if (!b || !window.PullList) return;
+  function show() { var on = PullList.has(b.dataset.slug); b.textContent = on ? 'On the pull list ✓' : '+ Pull list'; b.classList.toggle('on-pull', on);
+    b.title = on ? 'Click to take this sample off the pull list' : 'Add this sample\'s vials to the pull list'; }
+  b.addEventListener('click', function () { PullList.toggle(b.dataset.slug, !PullList.has(b.dataset.slug)); });
+  PullList.onChange(show); show();
+})();
+</script>
 <script src="{{ '/assets/tray-map.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

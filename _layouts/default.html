@@ -9,11 +9,12 @@
   <meta name="mounts-repo" content="{{ site.github.repository_nwo }}">
   <meta name="mounts-branch" content="{{ site.github.source.branch | default: 'main' }}">
   <script src="{{ '/assets/github.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+  <script src="{{ '/assets/pull.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-base="{{ '/' | relative_url }}"></script>
 </head>
-<body>
+<body{% if page.body_page %} data-page="{{ page.body_page }}"{% endif %}>
   <header class="site-header">
     <div class="wrap">
-      {% if page.layout == "sample" or page.tab == "splits" %}{% assign tab = "splits" %}{% else %}{% assign tab = "mounts" %}{% endif %}
+      {% if page.layout == "sample" or page.layout == "drawer" or page.tab == "splits" %}{% assign tab = "splits" %}{% else %}{% assign tab = "mounts" %}{% endif %}
       <div class="site-brand">
         <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
         <nav class="site-tabs" aria-label="Sections">

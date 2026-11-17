@@ -10,27 +10,21 @@ tab_title: Mineral Split Database
     <h1>Mineral Split Database</h1>
     <p class="lede">Mineral separates by sample: vials, catalogue numbers and the mounts made from them</p>
   </div>
-  {% if repo != "" %}<button type="button" id="sample-new-btn" class="btn primary">+ New sample</button>{% endif %}
+  <div class="head-btns">
+    <a class="btn" href="{{ '/samples/map/' | relative_url }}">Map</a>
+    {% if repo != "" %}<button type="button" id="sample-new-btn" class="btn primary">+ New sample</button>{% endif %}
+  </div>
 </div>
 
-<div class="list-tools">
-  <input id="split-q" class="filter" type="search" placeholder="Search sample, catalogue number, rock type, age, PID or collector" autocomplete="off">
-  <label class="group-by">Mineral
-    <select id="split-mineral"><option value="">Any</option></select>
-  </label>
-  <label class="group-by">Split
-    <select id="split-prep"><option value="">Any</option></select>
-  </label>
-  <label class="check small"><input type="checkbox" id="split-mounted"> In a mount</label>
-</div>
-<p class="small muted" id="split-count" role="status">Loading…</p>
-<div class="table-scroll">
-<table class="split-list">
-  <thead><tr><th>Sample</th><th>Vials</th><th>Collected by</th><th>Mounts</th></tr></thead>
-  <tbody id="split-rows"></tbody>
-</table>
-</div>
-<p class="list-more"><button type="button" class="btn small" id="split-more" hidden>Show more</button></p>
+{% include split-tools.html %}
+
+<section class="cabinet-wrap" aria-labelledby="cab-title">
+  <h2 id="cab-title" class="sub-head">Drawers <span class="muted small">— the first number of a catalogue number; open one to see what's in it</span></h2>
+  <div id="drawers" class="cabinet"><p class="muted small">Loading…</p></div>
+</section>
+
+{% include split-list.html %}
 
 <script src="{{ '/assets/samples.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
+<script src="{{ '/assets/drawers.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-base="{{ '/' | relative_url }}"></script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}"></script>{% endif %}

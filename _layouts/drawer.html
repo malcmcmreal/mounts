@@ -1,0 +1,44 @@
+---
+layout: default
+tab: splits
+---
+{% comment %} One drawer of the vial cabinet: what's in it, where, and where the samples come from. {% endcomment %}
+{% assign d = page.drawer %}
+{% assign prev = d | minus: 1 %}{% assign next = d | plus: 1 %}
+<p class="crumb"><a href="{{ '/samples/' | relative_url }}">&larr; Mineral Split Database</a></p>
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Vial cabinet</p>
+    <h1>Drawer {{ d }}</h1>
+    <p class="lede">Catalogue numbers {{ d }}A01 to {{ d }}N36</p>
+  </div>
+  <nav class="mount-nav" aria-label="Other drawers">
+    {% if prev >= 1 %}<a class="btn small" href="{{ '/drawer/' | append: prev | append: '/' | relative_url }}" title="Drawer {{ prev }}">&larr; {{ prev }}</a>{% endif %}
+    {% if next <= 40 %}<a class="btn small" href="{{ '/drawer/' | append: next | append: '/' | relative_url }}" title="Drawer {{ next }}">{{ next }} &rarr;</a>{% endif %}
+  </nav>
+</div>
+
+<div id="drawer-stats" class="stat-row"><p class="muted small">Loading…</p></div>
+
+<div class="grid-2 drawer-views">
+  <section class="card">
+    <h2>Layout</h2>
+    <div id="drawer-tray"><p class="muted small">Loading the drawer…</p></div>
+  </section>
+  <section class="card">
+    <h2>Where the samples come from</h2>
+    <div id="drawer-map" class="drawer-map" hidden></div>
+    <p id="drawer-map-note" class="muted small"></p>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Samples in this drawer</h2>
+  {% include split-tools.html drawer=true %}
+  {% include split-list.html %}
+</section>
+
+<link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">
+<script src="{{ '/assets/leaflet/leaflet.js' | relative_url }}"></script>
+<script src="{{ '/assets/samples.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}" data-drawer="{{ d }}"></script>
+<script src="{{ '/assets/drawer.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-base="{{ '/' | relative_url }}" data-drawer="{{ d }}"></script>

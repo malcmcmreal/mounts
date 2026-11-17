@@ -205,6 +205,45 @@ ALSO_IN = ("phanerozoic thermochronology record of afro-arabia", "hallberg yilga
 
 TRAY_ROWS = "ABCDEFGHIJKLMN"
 
+# Country from the mineral split sheet's region ("Australia-Vic", "Africa-Malawi", "USA-Alaska"),
+# else the last part of the EarthBank place name, else a rough box for Australia.
+COUNTRIES = {"australia", "usa", "canada", "greenland", "new zealand", "united kingdom", "india", "sri lanka",
+             "mexico", "korea", "ireland", "new caledonia", "russia", "morocco", "antarctica", "indonesia", "png",
+             "papua new guinea", "kenya", "malawi", "tanzania", "south africa", "ethiopia", "uganda", "zambia",
+             "mozambique", "zimbabwe", "botswana", "namibia", "madagascar", "egypt", "sudan", "yemen", "oman",
+             "saudi arabia", "jordan", "israel", "iran", "turkey", "china", "mongolia", "japan", "taiwan", "nepal",
+             "pakistan", "bhutan", "vietnam", "thailand", "malaysia", "philippines", "fiji", "vanuatu", "chile",
+             "argentina", "brazil", "peru", "bolivia", "colombia", "ecuador", "venezuela", "norway", "sweden",
+             "finland", "france", "germany", "italy", "spain", "portugal", "switzerland", "austria", "poland",
+             "czech republic", "greece", "scotland", "england", "wales", "iceland", "kazakhstan", "kyrgyzstan",
+             "tajikistan", "uzbekistan", "afghanistan", "eritrea", "djibouti", "somalia", "cameroon", "nigeria",
+             "ghana", "mali", "niger", "chad", "libya", "algeria", "tunisia", "senegal", "angola", "rwanda", "burundi"}
+FIX = {"png": "Papua New Guinea", "usa": "USA", "phillipines": "Philippines", "s.arabia": "Saudi Arabia",
+       "korea": "South Korea", "united kingdom": "United Kingdom"}
+
+
+def country(region, places, lat, lon):
+    out = []
+    for part in [p.strip() for p in (region or "").split(",") if p.strip()]:
+        head, _, tail = part.partition("-")
+        name = tail.strip() if head.strip().lower() == "africa" and tail.strip() else head.strip()
+        key = name.lower()
+        if key in COUNTRIES or key in FIX:
+            name = FIX.get(key, name if not name.islower() else name.title())
+            if name not in out:
+                out.append(name)
+    if not out:
+        for pl in places:
+            last = pl.split(",")[-1].strip()
+            if last.lower() in COUNTRIES or last.lower() in FIX:
+                out.append(FIX.get(last.lower(), last))
+                break
+    if not out and isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and -44 < lat < -9 and 112 < lon < 154:
+        out.append("Australia")
+    if not out and region and region.lower() not in ("unknown",):
+        out.append(region.split(",")[0].strip())       # a wider area: Europe, Himalayas, South America…
+    return ", ".join(out)
+
 
 def tray_positions(codes):
     """Where each vial sits in its tray. A catalogue number is tray, row letter, column (17B05).
@@ -262,7 +301,8 @@ def link_samples(state):
         vials = [v for v in (d.get("vials") or []) if isinstance(v, dict)]
         records[slug] = {"id": sid, "vials": vials, "by": text(d.get("collected_by")),
                          "pids": [text(p) for p in (d.get("associated_pids") or []) if text(p)], "igsn": text(d.get("igsn")),
-                         "geo": " · ".join(x for x in (text(d.get("rock_type")), text(d.get("strat_age"))) if x)}
+                         "geo": " · ".join(x for x in (text(d.get("rock_type")), text(d.get("strat_age"))) if x),
+                         "region": text(d.get("region")), "lat": d.get("lat"), "lon": d.get("lon")}
         by_id.setdefault(sid.lower(), slug)
         for v in vials:
             if text(v.get("catalogue")):
@@ -365,9 +405,26 @@ def link_samples(state):
                            "" if qty is None else qty])
     with open(os.path.join(ROOT, "assets", "trays.json"), "w", encoding="utf-8") as f:
         json.dump({"rows": TRAY_ROWS, "trays": trays}, f, ensure_ascii=False, separators=(",", ":"))
-    index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],
-              r["by"], " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])], r["geo"]]
-             for slug, r in records.items()]
+    # Search list for the Mineral Split Database, drawer pages, map and pull list. Each row:
+    # [page, sample ID, vials, collected by, PIDs, mounts, rock type · age, country, lat, lon]
+    # with vials as [catalogue, mineral, split, amount, position in the drawer (e.g. L14)].
+    def vrow(v):
+        c = cnorm(text(v.get("catalogue")))
+        p = pos.get(c) if c else None
+        q = v.get("qty")
+        return [text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep")), "" if q is None else q,
+                TRAY_ROWS[p[0]] + f"{p[1] + 1:02d}" if p else ""]
+    index = []
+    for slug, r in records.items():
+        lat, lon = r["lat"], r["lon"]
+        for e in eb.get(slug, []):          # EarthBank coordinates first, as on the sample pages
+            if e.get("lat") is not None:
+                lat, lon = e["lat"], e["lon"]
+                break
+        index.append([slug, r["id"], [vrow(v) for v in r["vials"]], r["by"],
+                      " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])],
+                      r["geo"], country(r["region"], [e.get("place", "") for e in eb.get(slug, [])], lat, lon),
+                      lat if isinstance(lat, (int, float)) else None, lon if isinstance(lon, (int, float)) else None])
     with open(os.path.join(ROOT, "assets", "samples-index.json"), "w", encoding="utf-8") as f:
         json.dump({"samples": index}, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(records)} sample records, {len(links)} linked to mounts, {len(eb)} found in EarthBank")

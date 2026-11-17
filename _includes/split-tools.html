@@ -1,0 +1,20 @@
+<div class="list-tools">
+  <input id="split-q" class="filter" type="search" placeholder="Search sample, catalogue number, country, rock type, age, PID or collector" autocomplete="off">
+  <label class="group-by">Mineral
+    <select id="split-mineral"><option value="">Any</option></select>
+  </label>
+  <label class="group-by">Split
+    <select id="split-prep"><option value="">Any</option></select>
+  </label>
+  <label class="group-by">Group by
+    <select id="split-group">
+      <option value="">None</option>
+      <option value="country">Country</option>
+      <option value="mineral">Minerals</option>
+      <option value="rock">Rock type</option>
+      <option value="collector">Collected by</option>
+      {% unless include.drawer %}<option value="drawer">Drawer</option>{% endunless %}
+    </select>
+  </label>
+  <label class="check small"><input type="checkbox" id="split-mounted"> In a mount</label>
+</div>

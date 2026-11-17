@@ -1,0 +1,40 @@
+---
+layout: default
+permalink: /samples/map/
+tab: splits
+tab_title: Sample map
+---
+<p class="crumb"><a href="{{ '/samples/' | relative_url }}">&larr; Mineral Split Database</a></p>
+<div class="page-head">
+  <div>
+    <h1>Sample map</h1>
+    <p class="lede">Samples with coordinates. Click samples, or draw a box round an area, then add them to the pull list.</p>
+  </div>
+</div>
+
+<div class="list-tools">
+  <input id="map-q" class="filter" type="search" placeholder="Filter: sample, country, rock type, collector" autocomplete="off">
+  <label class="group-by">Mineral
+    <select id="map-mineral"><option value="">Any</option><option>Apatite</option><option>Zircon</option><option>Titanite</option><option value="Other">Other</option></select>
+  </label>
+  <span class="spacer"></span>
+  <button type="button" class="btn small" id="map-box" aria-pressed="false" title="Then drag on the map to select every sample inside the box">▭ Select an area</button>
+</div>
+
+<div id="sample-map" class="sample-map"></div>
+<p class="small muted" id="map-count" role="status">Loading…</p>
+
+<section class="card map-pick" id="map-pick" hidden>
+  <div class="map-pick-head">
+    <h2><span id="pick-n">0</span> selected</h2>
+    <div class="head-btns">
+      <button type="button" class="btn small" id="pick-clear">Clear selection</button>
+      <button type="button" class="btn small primary" id="pick-add">Add to pull list</button>
+    </div>
+  </div>
+  <div class="table-scroll"><table class="split-list"><thead><tr><th>Sample</th><th>Vials</th><th>Country</th><th></th></tr></thead><tbody id="pick-rows"></tbody></table></div>
+</section>
+
+<link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">
+<script src="{{ '/assets/leaflet/leaflet.js' | relative_url }}"></script>
+<script src="{{ '/assets/samples-map.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>

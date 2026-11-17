@@ -1,73 +1,139 @@
-// Mineral Split Database page: searchable list of samples and their vials,
-// from assets/samples-index.json (written by _scripts/mount_state.py when the site is built).
-// Index rows: [slug, sample id, [[catalogue, mineral, split], …], collected by, PIDs, [mounts], rock type · age]
+// Mineral Split Database list (and the sample list on each drawer page): search, filter, group,
+// select samples for the pull list. Data: assets/samples-index.json (_scripts/mount_state.py).
+// Index rows: [slug, sample id, vials, collected by, PIDs, mounts, rock type · age, country, lat, lon]
+// with vials [catalogue, mineral, split, amount, position]. With data-drawer="17" on the script tag,
+// only samples with vials in drawer 17 are listed, with just those vials.
 (function () {
-  var me = document.currentScript, base = me.dataset.base || '/';
+  var me = document.currentScript, base = me.dataset.base || '/', drawer = me.dataset.drawer || '';
   var tbody = document.getElementById('split-rows'), count = document.getElementById('split-count');
   var q = document.getElementById('split-q'), selM = document.getElementById('split-mineral'),
-    selP = document.getElementById('split-prep'), mounted = document.getElementById('split-mounted');
-  var more = document.getElementById('split-more');
+    selP = document.getElementById('split-prep'), mounted = document.getElementById('split-mounted'),
+    selG = document.getElementById('split-group');
+  var more = document.getElementById('split-more'), allBox = document.getElementById('split-all');
+  var addBtn = document.getElementById('split-add');
   var all = [], hits = [], shown = 0, PAGE = 100;
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var SHORT = { Apatite: 'Ap', Zircon: 'Zr', Titanite: 'Ti' }, TONE = { Apatite: 'ap', Zircon: 'zr', Titanite: 'ti' };
+  function drawerOf(cat) { var m = /^(\d+)/.exec(cat || ''); return m ? String(+m[1]) : ''; }
   function chip(v) {
     var parts = v[1].split(' + '), m = parts.map(function (x) { return SHORT[x] || x; }).join('+');
     var tones = parts.map(function (x) { return TONE[x] || 'other'; });
-    return '<span class="vchip m-' + tones[0] + (tones[1] ? ' m2-' + tones[1] : '') + (v[2] === 'Concentrate' ? ' conc' : '') + '" title="' + esc(v[1] + (v[2] ? ' ' + v[2].toLowerCase() : '')) + '">' +
+    return '<span class="vchip m-' + tones[0] + (tones[1] ? ' m2-' + tones[1] : '') + (v[2] === 'Concentrate' ? ' conc' : '') + '" title="' +
+      esc(v[1] + (v[2] ? ' ' + v[2].toLowerCase() : '') + (v[3] !== '' && v[3] != null ? ' · amount ' + v[3] + (v[3] === 'missing' ? '' : '/5') : '')) + '">' +
       esc(m) + (v[2] ? ' ' + esc(v[2].replace('Concentrate', 'conc').replace('Fraction', 'frac').toLowerCase()) : '') +
       (v[0] ? '<span class="mono">' + esc(v[0]) + '</span>' : '') + '</span>';
   }
   function row(s) {
-    return '<tr><td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a>' + (s[6] ? '<div class="small muted">' + esc(s[6]) + '</div>' : '') + '</td>' +
-      '<td><div class="vial-chips">' + s[2].map(chip).join('') + '</div></td>' +
+    var on = window.PullList && PullList.has(s[0]);
+    return '<tr><td class="pick"><input type="checkbox" data-slug="' + esc(s[0]) + '"' + (on ? ' checked' : '') + ' aria-label="Add ' + esc(s[1]) + ' to the pull list"></td>' +
+      '<td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a>' + (s[6] ? '<div class="small muted">' + esc(s[6]) + '</div>' : '') + '</td>' +
+      '<td><div class="vial-chips">' + s._v.map(chip).join('') + '</div></td>' +
+      '<td class="small">' + esc(s[7]) + '</td>' +
       '<td class="small">' + esc(s[3]) + '</td>' +
       '<td>' + s[5].map(function (m) { return '<a class="mono small" href="' + base + encodeURIComponent(m) + '/">' + esc(m) + '</a>'; }).join(' ') + '</td></tr>';
   }
   function norm(s) { return String(s).toLowerCase(); }
+  function groupKey(s) {
+    var g = selG ? selG.value : '';
+    if (g === 'country') return s[7] || 'Country not known';
+    if (g === 'collector') return s[3] || 'Collector not known';
+    if (g === 'rock') return (s[6].split(' · ')[0]) || 'Rock type not known';
+    if (g === 'mineral') {
+      var ms = {};
+      s._v.forEach(function (v) { ms[v[1].split(' + ')[0] || 'Other'] = 1; });
+      return Object.keys(ms).sort().join(' + ') || 'No vials';
+    }
+    if (g === 'drawer') return 'Drawer ' + (s._v.length ? drawerOf(s._v[0][0]) : '?');
+    return '';
+  }
   function apply() {
-    var words = norm(q.value).split(/\s+/).filter(Boolean), m = selM.value, p = selP.value, mo = mounted.checked;
+    var words = norm(q.value).split(/\s+/).filter(Boolean), m = selM.value, p = selP.value, mo = mounted && mounted.checked;
     hits = all.filter(function (s) {
       if (mo && !s[5].length) return false;
       if (m || p) {
-        var ok = s[2].some(function (v) {
+        var ok = s._v.some(function (v) {
           return (!m || v[1].split(' + ').indexOf(m) !== -1 || (m === 'Other' && !/^(Apatite|Zircon|Titanite)( \+ |$)/.test(v[1]))) && (!p || v[2] === p);
         });
         if (!ok) return false;
       }
       return words.every(function (w) { return s._t.indexOf(w) !== -1; });
     });
+    if (selG && selG.value) {
+      hits.forEach(function (s) { s._g = groupKey(s); });
+      hits.sort(function (a, b) { return a._g.localeCompare(b._g, undefined, { numeric: true }) || a._o - b._o; });
+    } else hits.sort(function (a, b) { return a._o - b._o; });
     shown = 0; tbody.innerHTML = ''; page();
-    try { history.replaceState(null, '', q.value ? '?q=' + encodeURIComponent(q.value) : location.pathname); } catch (e) {}
+    if (!drawer) try { history.replaceState(null, '', q.value ? '?q=' + encodeURIComponent(q.value) : location.pathname); } catch (e) {}
+    document.dispatchEvent(new CustomEvent('splits-filtered', { detail: hits }));
   }
   function page() {
-    var next = hits.slice(shown, shown + PAGE);
-    tbody.insertAdjacentHTML('beforeend', next.map(row).join(''));
+    var next = hits.slice(shown, shown + PAGE), html = '', prev = shown ? hits[shown - 1]._g : null;
+    next.forEach(function (s) {
+      if (selG && selG.value && s._g !== prev) {
+        var n = hits.filter(function (x) { return x._g === s._g; }).length;
+        html += '<tr class="group-row"><th colspan="6">' + esc(s._g) + ' <span class="muted small">' + n + ' sample' + (n === 1 ? '' : 's') + '</span></th></tr>';
+        prev = s._g;
+      }
+      html += row(s);
+    });
+    tbody.insertAdjacentHTML('beforeend', html);
     shown += next.length;
-    var vials = 0; hits.forEach(function (s) { vials += s[2].length; });
-    count.textContent = hits.length.toLocaleString() + ' sample' + (hits.length === 1 ? '' : 's') + ', ' + vials.toLocaleString() + ' vials' +
+    var vials = 0; hits.forEach(function (s) { vials += s._v.length; });
+    count.textContent = hits.length.toLocaleString() + ' sample' + (hits.length === 1 ? '' : 's') + ', ' + vials.toLocaleString() + ' vial' + (vials === 1 ? '' : 's') +
       (hits.length > shown ? ' · showing ' + shown.toLocaleString() : '');
     more.hidden = shown >= hits.length;
+    syncPicks();
   }
+  function syncPicks() {
+    if (!window.PullList) return;
+    var boxes = tbody.querySelectorAll('input[data-slug]');
+    boxes.forEach(function (b) { b.checked = PullList.has(b.dataset.slug); });
+    if (allBox) {
+      var n = hits.filter(function (s) { return PullList.has(s[0]); }).length;
+      allBox.checked = hits.length > 0 && n === hits.length;
+      allBox.indeterminate = n > 0 && n < hits.length;
+      allBox.title = allBox.checked ? 'Take all ' + hits.length + ' listed samples off the pull list' : 'Add all ' + hits.length + ' listed samples to the pull list';
+    }
+  }
+  tbody.addEventListener('change', function (e) {
+    var b = e.target.closest('input[data-slug]');
+    if (b && window.PullList) PullList.toggle(b.dataset.slug, b.checked);
+  });
+  if (allBox) allBox.addEventListener('change', function () {
+    if (!window.PullList) return;
+    var slugs = hits.map(function (s) { return s[0]; });
+    if (allBox.checked) PullList.add(slugs); else PullList.remove(slugs);
+  });
+  if (window.PullList) PullList.onChange(syncPicks);
   more.addEventListener('click', page);
   var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(apply, 120); });
-  [selM, selP, mounted].forEach(function (el) { el.addEventListener('change', apply); });
+  [selM, selP, mounted, selG].forEach(function (el) { if (el) el.addEventListener('change', apply); });
 
   fetch(me.dataset.index, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     all = d.samples;
+    if (drawer) {
+      all = all.filter(function (s) { return s[2].some(function (v) { return drawerOf(v[0]) === drawer; }); });
+      all.forEach(function (s) { s._v = s[2].filter(function (v) { return drawerOf(v[0]) === drawer; }); });
+    } else all.forEach(function (s) { s._v = s[2]; });
     var minerals = {}, preps = {};
     all.forEach(function (s) {
-      s._t = norm([s[1], s[3], s[4], s[5].join(' '), s[6] || ''].concat(s[2].map(function (v) { return v.join(' '); })).join(' '));
-      s[2].forEach(function (v) {
+      s._t = norm([s[1], s[3], s[4], s[5].join(' '), s[6] || '', s[7] || ''].concat(s._v.map(function (v) { return v.slice(0, 3).join(' '); })).join(' '));
+      s._v.forEach(function (v) {
         v[1].split(' + ').forEach(function (x) { if (x) minerals[/^(Apatite|Zircon|Titanite)$/.test(x) ? x : 'Other'] = 1; });
         if (v[2]) preps[v[2]] = (preps[v[2]] || 0) + 1;
       });
     });
     ['Apatite', 'Zircon', 'Titanite', 'Other'].filter(function (x) { return minerals[x]; }).forEach(function (x) { selM.add(new Option(x, x)); });
     Object.keys(preps).sort(function (a, b) { return preps[b] - preps[a]; }).forEach(function (x) { selP.add(new Option(x, x)); });
-    all.sort(function (a, b) { return a[1].localeCompare(b[1], undefined, { numeric: true }); });
+    if (drawer) {   // walking order within the drawer: by position
+      var key = function (s) { var v = s._v[0] || ['']; var m = /^\d+([A-Z])(\d+)/.exec(v[0]); return m ? m[1] + ('0' + m[2]).slice(-2) : 'z'; };
+      all.sort(function (a, b) { return key(a).localeCompare(key(b)); });
+    } else all.sort(function (a, b) { return a[1].localeCompare(b[1], undefined, { numeric: true }); });
+    all.forEach(function (s, i) { s._o = i; });
     var m = /[?&]q=([^&]*)/.exec(location.search);
     if (m) q.value = decodeURIComponent(m[1].replace(/\+/g, ' '));
     apply();
+    document.dispatchEvent(new CustomEvent('splits-loaded', { detail: { all: d.samples, listed: all } }));
   }).catch(function () { count.textContent = 'The sample list isn\'t available yet. It is made when the site is built.'; });
 })();

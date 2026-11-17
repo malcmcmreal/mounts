@@ -1,0 +1,45 @@
+---
+layout: default
+permalink: /pull/
+tab: splits
+tab_title: Pull list
+body_page: pull
+---
+<p class="crumb"><a href="{{ '/samples/' | relative_url }}">&larr; Mineral Split Database</a></p>
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Vials to pull</p>
+    <h1>Pull list</h1>
+    <p class="lede">Vials for the samples you've picked, in walking order: drawer, then row, then position</p>
+  </div>
+  <div class="head-btns no-print">
+    <button type="button" class="btn" id="pull-print">Print</button>
+    <button type="button" class="btn primary" id="pull-xlsx">Download .xlsx</button>
+  </div>
+</div>
+
+<div class="list-tools no-print">
+  <label class="group-by">Mineral
+    <select id="pull-mineral"><option value="">All vials</option><option>Apatite</option><option>Zircon</option><option>Titanite</option><option value="Other">Other</option></select>
+  </label>
+  <label class="group-by">Split
+    <select id="pull-prep"><option value="">Any</option><option>Fraction</option><option>Concentrate</option></select>
+  </label>
+  <label class="check small"><input type="checkbox" id="pull-found" checked> Leave out vials not found</label>
+  <span class="spacer"></span>
+  <a class="btn small" href="{{ '/samples/map/' | relative_url }}">Pick on the map</a>
+  <button type="button" class="btn small danger" id="pull-clear">Clear the list</button>
+</div>
+
+<div id="pull-summary" class="stat-row"><p class="muted small">Loading…</p></div>
+<div class="table-scroll">
+<table class="split-list pull-table">
+  <thead><tr><th>Drawer</th><th>Position</th><th>Catalogue</th><th>Sample</th><th>Mineral</th><th>Split</th><th>Amount</th><th>Country</th><th>Collected by</th><th class="no-print"></th></tr></thead>
+  <tbody id="pull-rows"></tbody>
+</table>
+</div>
+<p class="small muted no-print">The list is kept in this browser. Add samples from the Mineral Split Database, a drawer page, a sample page or the map.</p>
+
+<script src="{{ '/assets/zip.js' | relative_url }}"></script>
+<script src="{{ '/assets/xlsx.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/pull-page.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
