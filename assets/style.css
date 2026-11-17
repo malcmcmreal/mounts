@@ -598,3 +598,26 @@ a.drawer:hover, a.drawer:focus-visible { background: var(--raised); border-color
 #pull-summary { margin-top: 1rem; }
 .tray-svg.dimmed circle { opacity: .3; transition: opacity .12s; }
 .tray-svg.dimmed circle.hot { opacity: 1; stroke: #ff9a3c; stroke-width: 3; }
+.tray-lab.col { font-size: 7px; letter-spacing: -.02em; }
+
+/* Pull list: cabinet at a glance, location buttons, drawer pop-up */
+.cabinet.compact .drawer { min-height: 1.45rem; padding: .12rem .55rem; font-size: .8rem; }
+.cabinet.compact .cab-col { gap: 3px; }
+.cabinet.compact .drawer.empty { opacity: .3; }
+button.drawer { font: inherit; text-align: left; cursor: pointer; width: 100%; }
+.drawer.has-pull { border-color: #ff9a3c; }
+.drawer.has-pull:hover { background: var(--raised); }
+.loc-btn { font: inherit; font-size: .9rem; background: var(--raised); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: .05rem .4rem; cursor: pointer; }
+.loc-btn:hover { border-color: #ff9a3c; color: #ffb877; }
+.group-row .link-btn { color: var(--ink); font-weight: 600; text-decoration: none; }
+.group-row .link-btn:hover { color: #ffb877; }
+.drawer-pop { width: min(860px, 96vw); }
+.drawer-pop .dialog-head h2 { margin: 0; font-size: 1.15rem; }
+.drawer-pop .dialog-head .spacer { flex: 1; }
+.drawer-pop .dialog-body { padding: 0 1.25rem 1.1rem; }
+.drawer-pop .tray-svg { max-width: none; }
+.tray-hit { fill: none; stroke: #ff9a3c; stroke-width: 2.5; animation: hitpulse 1.2s ease-in-out infinite; }
+.tray-hit-line { stroke: #ff9a3c; stroke-width: 1; stroke-dasharray: 2 2; opacity: .7; }
+@keyframes hitpulse { 50% { stroke-opacity: .35; } }
+.tray-key .dot.hit { background: transparent; box-shadow: 0 0 0 2px #ff9a3c; }
+.pull-table .vchip { font-size: .82rem; }

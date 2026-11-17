@@ -32,6 +32,10 @@ body_page: pull
 </div>
 
 <div id="pull-summary" class="stat-row"><p class="muted small">Loading…</p></div>
+<section class="cabinet-wrap" aria-labelledby="pcab-title">
+  <h2 id="pcab-title" class="sub-head">Where to find them <span class="muted small">— drawers holding vials on this list; click one to see where they sit</span></h2>
+  <div id="pull-cabinet" class="cabinet compact"></div>
+</section>
 <div class="table-scroll">
 <table class="split-list pull-table">
   <thead><tr><th>Drawer</th><th>Position</th><th>Catalogue</th><th>Sample</th><th>Mineral</th><th>Split</th><th>Amount</th><th>Country</th><th>Collected by</th><th class="no-print"></th></tr></thead>
@@ -42,4 +46,10 @@ body_page: pull
 
 <script src="{{ '/assets/zip.js' | relative_url }}"></script>
 <script src="{{ '/assets/xlsx.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
-<script src="{{ '/assets/pull-page.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
+<dialog id="pull-drawer" class="dialog drawer-pop">
+  <div class="dialog-head"><h2 id="pd-title">Drawer</h2><span class="spacer"></span><a id="pd-open" class="btn small" href="#">Open drawer page</a><button type="button" class="icon-btn" id="pd-close" aria-label="Close">&times;</button></div>
+  <div class="dialog-body"><p id="pd-sub" class="small muted"></p><div id="pd-tray" class="tray-scroll"></div>
+  <p class="tray-key small muted"><span class="dot m-ap"></span> Apatite <span class="dot m-zr"></span> Zircon <span class="dot m-ti"></span> Titanite <span class="dot m-o"></span> Other: vials on the pull list.
+  <span class="dot other"></span> Other vials. <span class="dot hit"></span> The one you clicked. Row A at the bottom, 01 on the left.</p></div>
+</dialog>
+<script src="{{ '/assets/pull-page.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>

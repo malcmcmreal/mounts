@@ -38,8 +38,8 @@
         }
       }
       for (var c2 = 0; c2 < cols; c2++) {
-        if (c2 === 0 || (c2 + 1) % 5 === 0 || c2 === cols - 1)
-          out.push('<text class="tray-lab" x="' + (L + c2 * S + S / 2) + '" y="' + (h - 5) + '" text-anchor="middle">' + ('0' + (c2 + 1)).slice(-2) + '</text>');
+        if (true)
+          out.push('<text class="tray-lab col" x="' + (L + c2 * S + S / 2) + '" y="' + (h - 5) + '" text-anchor="middle">' + ('0' + (c2 + 1)).slice(-2) + '</text>');
       }
       out.push('</svg>');
       var where = t.v.filter(function (v) { return v[3] === data.slug && mineN.indexOf(norm(v[2].toUpperCase().replace(/\s+/g, ''))) !== -1; })

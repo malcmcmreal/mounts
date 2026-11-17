@@ -60,8 +60,8 @@
         else out.push('<a href="' + base + 's/' + encodeURIComponent(v[3]) + '/"><circle class="tray-own m-' + v[4] + (v[5] ? ' conc' : '') + '" cx="' + x + '" cy="' + y + '" r="' + R + '" data-slug="' + esc(v[3]) + '"' + tip + '/></a>');
       }
     }
-    for (var c2 = 0; c2 < cols; c2++) if (c2 === 0 || (c2 + 1) % 5 === 0 || c2 === cols - 1)
-      out.push('<text class="tray-lab" x="' + (LM + c2 * S + S / 2) + '" y="' + (h - 5) + '" text-anchor="middle">' + ('0' + (c2 + 1)).slice(-2) + '</text>');
+    for (var c2 = 0; c2 < cols; c2++)
+      out.push('<text class="tray-lab col" x="' + (LM + c2 * S + S / 2) + '" y="' + (h - 5) + '" text-anchor="middle">' + ('0' + (c2 + 1)).slice(-2) + '</text>');
     out.push('</svg>');
     trayBox.innerHTML = '<div class="tray-scroll">' + out.join('') + '</div>' +
       '<p class="tray-key small muted"><span class="dot m-ap"></span> Apatite <span class="dot m-zr"></span> Zircon <span class="dot m-ti"></span> Titanite ' +
