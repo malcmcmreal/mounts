@@ -14,6 +14,7 @@ strat_age: "Neocomian"
 sample_type: "Subsurface"
 cuttings_core: "Core"
 depth_m: 850
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7F32", "mineral": "Apatite", "prep": "Fraction"}

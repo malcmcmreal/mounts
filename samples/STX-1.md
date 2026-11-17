@@ -14,6 +14,7 @@ strat_age: "Precambrian"
 sample_type: "Subsurface"
 cuttings_core: ""
 depth_m: 2027
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "29K34", "mineral": "Zircon", "prep": "Fraction"}

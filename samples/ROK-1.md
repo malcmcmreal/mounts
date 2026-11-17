@@ -14,6 +14,7 @@ strat_age: "Early Jurassic"
 sample_type: "Subsurface"
 cuttings_core: "Core"
 depth_m: 1155
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7E32", "mineral": "Apatite", "prep": "Fraction"}

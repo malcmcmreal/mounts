@@ -117,12 +117,18 @@ def main():
     if os.path.exists(mpath):
         with open(mpath, encoding="utf-8") as fh:
             missing = {(r["Catalogue Number"].upper(), r["Sample Number"]) for r in csv.DictReader(fh)}
+    merged = {}
+    gpath = os.path.join(ROOT, "_scripts", "merged_samples.csv")
+    if os.path.exists(gpath):      # one sample entered under two names: use the second
+        with open(gpath, encoding="utf-8") as fh:
+            merged = {r["Sample Number"]: r["Same sample as"] for r in csv.DictReader(fh)}
     samples, skipped, gone = {}, 0, set()
     for r in rows[1:]:
         sid = text(r[col["Sample Number"]])
         if not sid:
             skipped += 1
             continue
+        sid = merged.get(sid, sid)
         if text(r[col["Drawer?"]]).lower() == "no":
             gone.add(sid)
             continue

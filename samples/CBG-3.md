@@ -13,7 +13,8 @@ rock_type: "Granite"
 strat_age: "Devonian"
 sample_type: "Subsurface"
 cuttings_core: ""
-depth_m: 407408
+depth_m: 407
+depth_max_m: 408
 elevation_m: null
 vials:
   - {"catalogue": "29I26", "mineral": "Apatite", "prep": "Fraction"}

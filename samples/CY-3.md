@@ -13,7 +13,8 @@ rock_type: "Tillite"
 strat_age: "Early Permian"
 sample_type: "Subsurface"
 cuttings_core: ""
-depth_m: 178185
+depth_m: 178
+depth_max_m: 185
 elevation_m: null
 vials:
   - {"catalogue": "29K31", "mineral": "Apatite", "prep": "Fraction"}

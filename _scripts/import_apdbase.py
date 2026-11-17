@@ -180,6 +180,27 @@ def num(v):
         return None
 
 
+def depth_range(v):
+    """The database writes depth ranges run together: 238241 is 238–241 m, 10671219 is 1067–1219 m,
+    200200.5 is 200–200.5 m. Values over 9,000 m are split where the two halves make a range."""
+    if v is None or v <= 9000:
+        return v, None
+    s = ("%f" % v).rstrip("0").rstrip(".")
+    best = None
+    for k in range(1, len(s)):
+        a, b = s[:k], s[k:]
+        if b.startswith("0") and not b.startswith("0."):
+            continue
+        try:
+            x, y = float(a), float(b)
+        except ValueError:
+            continue
+        if x <= y and len(b.split(".")[0]) in (len(a), len(a) + 1):
+            best = (x, y)
+            break
+    return best if best else (v, None)
+
+
 def write_geo(path, src, recs):
     """Rock type, stratigraphic age and the sampling details (sample type, cuttings/core, depth,
     surface elevation). Latitude and longitude are filled in only where the page has none."""
@@ -188,8 +209,10 @@ def write_geo(path, src, recs):
             "strat_age": join(text(r.get("Stratigraphic/Crystalline Age")) for r in recs),
             "sample_type": first("Sample Type"), "cuttings_core": first("Cuttings/Core"),
             "depth_m": next((num(r.get("Sample Depth(m)")) for r in recs if num(r.get("Sample Depth(m)")) is not None), None),
+            "depth_max_m": None,
             "elevation_m": next((num(r.get("Surface Elev. (m)")) for r in recs if num(r.get("Surface Elev. (m)")) is not None), None)}
-    for k in ("depth_m", "elevation_m"):
+    vals["depth_m"], vals["depth_max_m"] = depth_range(vals["depth_m"])
+    for k in ("depth_m", "depth_max_m", "elevation_m"):
         if vals[k] is not None and vals[k].is_integer():
             vals[k] = int(vals[k])
     if not any(v not in ("", None) for v in vals.values()):

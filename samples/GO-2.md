@@ -13,7 +13,8 @@ rock_type: "Dolerite"
 strat_age: "Jurassic"
 sample_type: "Subsurface"
 cuttings_core: ""
-depth_m: 405409
+depth_m: 405
+depth_max_m: 409
 elevation_m: null
 vials:
   - {"catalogue": "29J26", "mineral": "Apatite", "prep": "Fraction"}

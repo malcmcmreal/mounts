@@ -13,7 +13,8 @@ rock_type: "Sandstone"
 strat_age: "Early -Late Permian"
 sample_type: "Subsurface"
 cuttings_core: "Cuttings"
-depth_m: 24662536
+depth_m: 2466
+depth_max_m: 2536
 elevation_m: null
 vials:
   - {"catalogue": "7C30", "mineral": "Apatite", "prep": "Fraction"}

@@ -14,6 +14,7 @@ strat_age: "Permian"
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: null
+depth_max_m: null
 elevation_m: 160
 vials:
   - {"catalogue": "13K32", "mineral": "Zircon", "prep": "Fraction"}

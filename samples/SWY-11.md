@@ -14,6 +14,7 @@ strat_age: ""
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: null
+depth_max_m: null
 elevation_m: 320
 vials:
   - {"catalogue": "13L06", "mineral": "Zircon", "prep": "Fraction"}

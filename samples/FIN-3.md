@@ -13,7 +13,8 @@ rock_type: "Sandstone"
 strat_age: "Mid-Late Jurassic"
 sample_type: "Subsurface"
 cuttings_core: "Cuttings"
-depth_m: 17221798
+depth_m: 1722
+depth_max_m: 1798
 elevation_m: null
 vials:
   - {"catalogue": "7C36", "mineral": "Apatite", "prep": "Fraction"}

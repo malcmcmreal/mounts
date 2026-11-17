@@ -14,6 +14,7 @@ strat_age: "Mid-Jurassic"
 sample_type: "Outcrop"
 cuttings_core: "Core"
 depth_m: 195
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7K35", "mineral": "Apatite", "prep": "Fraction"}

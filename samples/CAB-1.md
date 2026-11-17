@@ -14,6 +14,7 @@ strat_age: "Albian"
 sample_type: "Outcrop"
 cuttings_core: "Core"
 depth_m: 178
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7F30", "mineral": "Apatite", "prep": "Fraction"}

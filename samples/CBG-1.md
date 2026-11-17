@@ -14,6 +14,7 @@ strat_age: "Devonian"
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: 9.01
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "29I20", "mineral": "Apatite", "prep": "Fraction"}

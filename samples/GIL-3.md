@@ -14,6 +14,7 @@ strat_age: "Mid Triassic"
 sample_type: "Subsurface"
 cuttings_core: "Core"
 depth_m: 1310
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7A34", "mineral": "Apatite", "prep": "Fraction"}

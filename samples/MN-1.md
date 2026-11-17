@@ -14,6 +14,7 @@ strat_age: "Ordovician"
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: null
+depth_max_m: null
 elevation_m: 35
 vials:
   - {"catalogue": "27D05", "mineral": "Apatite", "prep": "Fraction"}

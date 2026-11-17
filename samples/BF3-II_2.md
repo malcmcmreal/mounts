@@ -13,7 +13,8 @@ rock_type: "Sandstone"
 strat_age: "Ordovician"
 sample_type: "Subsurface"
 cuttings_core: ""
-depth_m: 417421
+depth_m: 417
+depth_max_m: 421
 elevation_m: null
 vials:
   - {"catalogue": "29K06", "mineral": "Apatite", "prep": "Fraction"}

@@ -14,6 +14,7 @@ strat_age: "Early Triassic"
 sample_type: "Outcrop"
 cuttings_core: "Core"
 depth_m: 286
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "7H36", "mineral": "Apatite", "prep": "Fraction"}

@@ -14,6 +14,7 @@ strat_age: "Lower Proterozoic?"
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: null
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "26K30", "mineral": "Apatite", "prep": "Fraction"}

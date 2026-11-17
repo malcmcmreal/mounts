@@ -13,7 +13,8 @@ rock_type: "Sandstone"
 strat_age: "Aptian-Albian"
 sample_type: "Subsurface"
 cuttings_core: "Cuttings"
-depth_m: 427579
+depth_m: 427
+depth_max_m: 579
 elevation_m: null
 vials:
   - {"catalogue": "7C32", "mineral": "Apatite", "prep": "Fraction"}

@@ -13,7 +13,8 @@ rock_type: "Sandstone"
 strat_age: "Neocomian"
 sample_type: "Subsurface"
 cuttings_core: "Cuttings"
-depth_m: 9751128
+depth_m: 975
+depth_max_m: 1128
 elevation_m: null
 vials:
   - {"catalogue": "7B32", "mineral": "Apatite", "prep": "Fraction"}

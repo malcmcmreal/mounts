@@ -14,6 +14,7 @@ strat_age: "Upper Carboniferous- Permian"
 sample_type: "Outcrop"
 cuttings_core: ""
 depth_m: null
+depth_max_m: null
 elevation_m: 0
 vials:
   - {"catalogue": "29F20", "mineral": "Apatite", "prep": "Fraction"}

@@ -13,7 +13,8 @@ rock_type: "Quartzite"
 strat_age: "Cambrian?"
 sample_type: "Subsurface"
 cuttings_core: ""
-depth_m: 297301
+depth_m: 297
+depth_max_m: 301
 elevation_m: null
 vials:
   - {"catalogue": "29J20", "mineral": "Apatite", "prep": "Fraction"}

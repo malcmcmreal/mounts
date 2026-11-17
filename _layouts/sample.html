@@ -41,7 +41,7 @@ layout: default
         {% if page.rock_type and page.rock_type != "" %}<dt>Rock type</dt><dd>{{ page.rock_type }}</dd>{% endif %}
         {% if page.strat_age and page.strat_age != "" %}<dt>Stratigraphic / crystalline age</dt><dd>{{ page.strat_age }}</dd>{% endif %}
         {% if page.sample_type and page.sample_type != "" %}<dt>Sample type</dt><dd>{{ page.sample_type }}{% if page.cuttings_core and page.cuttings_core != "" %} · {{ page.cuttings_core }}{% endif %}</dd>{% elsif page.cuttings_core and page.cuttings_core != "" %}<dt>Sample type</dt><dd>{{ page.cuttings_core }}</dd>{% endif %}
-        {% if page.depth_m %}<dt>Sample depth</dt><dd>{{ page.depth_m }} m</dd>{% endif %}
+        {% if page.depth_m %}<dt>Sample depth</dt><dd>{{ page.depth_m }}{% if page.depth_max_m %}–{{ page.depth_max_m }}{% endif %} m</dd>{% endif %}
         {% if page.elevation_m %}<dt>Surface elevation</dt><dd>{{ page.elevation_m }} m</dd>{% endif %}
         {% assign ebs = "" | split: "" %}{% for e in ebrecs %}{% assign x = e.id | append: "" %}{% assign ebs = ebs | push: x %}{% endfor %}
         {% for l in links %}{% if l.earthbank %}{% assign x = l.earthbank | append: "" %}{% assign ebs = ebs | push: x %}{% endif %}{% endfor %}{% assign ebs = ebs | uniq %}
@@ -112,7 +112,7 @@ layout: default
   </details>
 </article>
 
-<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

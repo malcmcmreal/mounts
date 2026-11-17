@@ -14,6 +14,7 @@ strat_age: "Cambrian?"
 sample_type: "Subsurface"
 cuttings_core: ""
 depth_m: 1015
+depth_max_m: null
 elevation_m: null
 vials:
   - {"catalogue": "29L06", "mineral": "Zircon", "prep": "Fraction"}
