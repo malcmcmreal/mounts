@@ -5,7 +5,7 @@
   var dataEl = document.getElementById('sample-data');
   var editBtn = document.getElementById('sample-edit-btn'), newBtn = document.getElementById('sample-new-btn');
   if (!editBtn && !newBtn) return;
-  var PREPS = ['Concentrate', 'Fraction', 'Magnetic', 'Non-magnetic', 'Fraction + concentrate', ''];
+  var PREPS = ['Concentrate', 'Fraction', 'Magnetic', 'Non-magnetic', ''];
 
   var dlg = document.createElement('dialog');
   dlg.className = 'dialog';

@@ -30,7 +30,7 @@ def split_label(label):
     if not label:
         return "", ""
     if label == "Ap Frac+Ap Conc":
-        return "Apatite", "Fraction + concentrate"
+        return "Apatite", "Fraction"   # 'fraction + concentrate' vials are listed as fractions
     prep = ""
     for k in sorted(PREP, key=len, reverse=True):
         if label.endswith(" " + k):

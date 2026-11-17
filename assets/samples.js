@@ -89,6 +89,8 @@
       if (selG && selG.value) ps.push('group=' + encodeURIComponent(selG.value));
       history.replaceState(null, '', ps.length ? '?' + ps.join('&') : location.pathname);
     } catch (e) {}
+    var reset = document.getElementById('split-reset');
+    if (reset) reset.hidden = !(filterQuery().length || (selG && selG.value));
     hits.vialOk = vialOk;
     hits.filtered = filterQuery().length > 0;
     hits.query = filterQuery().join('&');
@@ -134,6 +136,13 @@
   });
   if (window.PullList) PullList.onChange(syncPicks);
   more.addEventListener('click', page);
+  var resetBtn = document.getElementById('split-reset');
+  if (resetBtn) resetBtn.addEventListener('click', function () {
+    q.value = ''; selM.value = ''; selP.value = '';
+    if (selJ) selJ.value = ''; if (selG) selG.value = ''; if (mounted) mounted.checked = false;
+    if (qLo) { qLo.value = 0; qHi.value = 5; qUn.checked = true; qty(); }
+    apply(); q.focus();
+  });
   function qty(e) {
     if (+qLo.value > +qHi.value) { if (e && e.target === qLo) qHi.value = qLo.value; else qLo.value = qHi.value; }
     qOut.textContent = qLo.value === qHi.value ? qLo.value : qLo.value + '–' + qHi.value;

@@ -57,6 +57,7 @@
       })) return false;
       return words.every(function (w) { return s._t.indexOf(w) !== -1; });
     });
+    document.getElementById('map-reset').hidden = !(words.length || m || pj || amt);
     layer.clearLayers(); marks = {};
     shown.forEach(function (s) {
       var mk = L.circleMarker([s[8], s[9]], style(s)).bindTooltip(esc(s[1]) + (s[7] ? ' · ' + esc(s[7]) : ''), { direction: 'top', offset: [0, -4] });
@@ -116,6 +117,9 @@
   var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(draw, 150); });
   selM.addEventListener('change', draw);
   selJ.addEventListener('change', draw);
+  document.getElementById('map-reset').addEventListener('click', function () {
+    q.value = ''; selM.value = ''; selJ.value = ''; qLo.value = 0; qHi.value = 5; qUn.checked = true; qty();
+  });
   function qty(e) {
     if (+qLo.value > +qHi.value) { if (e && e.target === qLo) qHi.value = qLo.value; else qLo.value = qHi.value; }
     qOut.textContent = qLo.value === qHi.value ? qLo.value : qLo.value + '–' + qHi.value;
