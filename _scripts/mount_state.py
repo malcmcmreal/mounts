@@ -223,26 +223,44 @@ def link_samples(state):
             if text(v.get("catalogue")):
                 by_vial.setdefault(text(v.get("catalogue")).upper(), []).append(slug)
     # The same samples in EarthBank: names there often carry a prefix up to the first dash
-    # (LITH00728954-7959-122 is sample 7959-122). Uses the weekly list of public samples.
+    # (LITH00728954-7959-122 is sample 7959-122) and newer ones a PID after a double backslash
+    # (8122-15\\University of Melbourne …). Names are matched exactly, else by their letter and
+    # number groups with leading zeros ignored (97POS-49 = 97POS49, 8863-24 = 8863-024,
+    # GC1-10 = GC1/10, but S-16 ≠ S1-6). Only samples in the University of Melbourne mineral
+    # separate archive data package are used: other packages reuse short names (7, 89).
+    # Uses the weekly list of public samples.
+    def tokens(n):
+        return tuple((x.lstrip("0") or "0") if x.isdigit() else x for x in re.findall(r"[a-z]+|\d+", n.lower()))
     eb = {}
     try:
         with open(os.path.join(ROOT, "assets", "earthbank", "samples.json"), encoding="utf-8") as f:
             ebl = json.load(f)
         want = {r["id"].lower(): slug for slug, r in records.items()}
-        places = ebl.get("places") or []
+        by_tok = {}
+        for slug, r in records.items():
+            by_tok.setdefault(tokens(r["id"]), []).append(slug)
+        places, packages = ebl.get("places") or [], ebl.get("packages") or []
+        archive = {i for i, p in enumerate(packages) if "university of melbourne mineral separate" in text(p[1]).lower()}
+        found = {}
         for row in ebl.get("samples") or []:
             name = text(row[1])
-            # LITH00728954-7959-122 is sample 7959-122; newer names carry a PID after a double
-            # backslash or slash (8122-15\\University of Melbourne …)
             short = re.split(r"[\\/]{2}", name)[0].strip()
-            base = re.sub(r"^LITH[^-]*-", "", short, flags=re.I).lower()
-            slug = want.get(base) or want.get(short.lower())
+            base = re.sub(r"^LITH[^-]*-", "", short, flags=re.I)
+            if row[2] not in archive:     # other packages reuse short names (7, 89) for other samples
+                continue
+            slug, how = want.get(base.lower()) or want.get(short.lower()), "exact"
+            if not slug:
+                hits = by_tok.get(tokens(base), [])
+                slug, how = (hits[0], "loose") if len(hits) == 1 else (None, "")
             if not slug:
                 continue
             place = places[row[3]] if len(row) > 3 and isinstance(row[3], int) and 0 <= row[3] < len(places) else ""
             lat, lon = (row[4], row[5]) if len(row) > 5 else (None, None)
-            eb.setdefault(slug, []).append({k: v for k, v in {"id": row[0], "name": short, "place": place,
-                                                              "lat": lat, "lon": lon}.items() if v not in (None, "")})
+            rec = {k: v for k, v in {"id": row[0], "name": short, "place": place, "lat": lat, "lon": lon}.items() if v not in (None, "")}
+            found.setdefault(slug, []).append((row[2] in archive, how == "exact", rec))
+        for slug, cands in found.items():
+            mine = [c for c in cands if c[0]] or [c for c in cands if c[1]] or cands
+            eb[slug] = [c[2] for c in mine]
     except (OSError, ValueError) as err:
         print(f"no EarthBank list for samples: {err}")
     with open(os.path.join(ROOT, "_data", "sampleeb.json"), "w", encoding="utf-8") as f:
