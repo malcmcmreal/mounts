@@ -9,6 +9,8 @@ notes: "-Sample collected by Alfredo Camacho"
 region: "Australia"
 lat: null
 lon: null
+rock_type: "Granite"
+strat_age: "Lower Proterozoic?"
 vials:
   - {"catalogue": "26K30", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "26K31", "mineral": "Zircon", "prep": "Fraction"}
