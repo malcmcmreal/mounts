@@ -7,7 +7,7 @@ layout: default
 
 <div class="page-head">
   <div>
-    <h1>Sample Mount Catalogue</h1>
+    <h1>Mount Database</h1>
     <p class="lede">{{ site.description }}</p>
   </div>
   <button type="button" id="new-mount-btn" class="btn primary">+ New mount</button>
@@ -31,7 +31,7 @@ layout: default
     <button type="button" class="link-btn small" id="select-all">Select all</button>
   </span>
 </div>
-{% if site.github.repository_nwo %}<p class="muted small drop-hint">Tip: drop files onto a mount to upload them. Coordinate files (.dcd, .csv) and images go to their sections; spreadsheets ask where they belong.</p>{% endif %}
+{% if site.github.repository_nwo %}<p class="muted small drop-hint">Tip: drop files onto a mount to attach them. Coordinate files (.dcd, .csv) and images go to their sections; spreadsheets ask where they belong.</p>{% endif %}
 <div class="pick-bar" id="pick-bar" hidden>
   <span id="pick-count"></span>
   <button type="button" class="btn small primary" id="pick-dl">Download QR codes</button>
@@ -85,9 +85,9 @@ layout: default
       <p class="mr-files small">{% for n in fnames %}<span class="mr-file mono{% if forloop.index > 5 %} more{% endif %}">{{ n }}</span>{% endfor %}{% if fnames.size > 5 %}<button type="button" class="link-btn small mr-more" data-more="… {{ fnames.size | minus: 5 }} more">… {{ fnames.size | minus: 5 }} more</button>{% endif %}</p>
       {% endif %}
     </div>
-    {% if site.github.repository_nwo %}<span class="mr-drop" title="Drop files on this mount to upload them" aria-hidden="true">
+    {% if site.github.repository_nwo %}<span class="mr-drop" title="Drop files on this mount to attach them" aria-hidden="true">
       <span class="mr-drop-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 15v4h14v-4"/></svg>
-      <span class="mr-drop-label">Upload</span></span></span>{% endif %}
+      <span class="mr-drop-label">Attach files</span></span></span>{% endif %}
     <a class="mr-qr" href="{{ m.url | relative_url }}" title="{{ qr }}" data-qr="{{ qr }}" aria-label="QR code for {{ m.mount_id }}"></a>
   </li>
   {% endfor %}

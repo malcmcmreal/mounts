@@ -1,4 +1,4 @@
-# Sample Mount Catalogue
+# Sample Archive: Mount Database and Mineral Split Database
 
 A catalogue of epoxy grain mounts used for geological sample analysis.
 
