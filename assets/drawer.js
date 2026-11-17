@@ -8,7 +8,15 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function tone(m) { m = (m || '').split(' + ')[0]; return m === 'Apatite' ? 'ap' : m === 'Zircon' ? 'zr' : m === 'Titanite' ? 'ti' : 'o'; }
   var MIN = { ap: 'Apatite', zr: 'Zircon', ti: 'Titanite', o: 'Other' };
-  var trayInfo = null, listed = null;
+  var trayInfo = null, listed = null, showTip = function () {}, hideTip = function () {};
+  // Map → drawer: hovering a sample on the map rings its vials in the layout and shows the vial info.
+  function hot(slug, on) {
+    var els = trayBox.querySelectorAll('circle[data-slug]'), first = null;
+    var n = 0, svg = trayBox.querySelector('svg');
+    els.forEach(function (c) { var m = c.dataset.slug === slug; c.classList.toggle('hot', on && m); if (on && m) { n++; if (!first) first = c; } });
+    if (svg) svg.classList.toggle('dimmed', on && n > 0);
+    if (on && first) showTip(first, n > 1 ? '+ ' + (n - 1) + ' more vial' + (n > 2 ? 's' : '') + ' of this sample, ringed' : ''); else hideTip();
+  }
 
   function stat(n, label, cls) { return '<div class="stat' + (cls ? ' ' + cls : '') + '"><strong>' + n + '</strong><span>' + label + '</span></div>'; }
   function stats() {
@@ -60,20 +68,24 @@
       '<span class="dot m-o"></span> Other <span class="dot conc"></span> Concentrate <span class="dot empty"></span> Empty. Row A at the bottom, 01 on the left. Click a vial to open its sample.</p>';
     var tipBox = document.createElement('div');
     tipBox.className = 'tray-tip'; tipBox.hidden = true; document.body.appendChild(tipBox);
-    trayBox.addEventListener('mouseover', function (e) {
-      var el = e.target.closest('[data-tip]');
-      if (!el) { tipBox.hidden = true; return; }
+    showTip = function (el, extra) {
       var p = el.dataset.tip.split(':'), v = at[p[0] + ',' + p[1]], pos = d.rows[+p[0]] + ('0' + (+p[1] + 1)).slice(-2);
       tipBox.innerHTML = v ? '<strong class="mono">' + esc(v[8] || v[3]) + '</strong><br>' + esc(v[7] || MIN[v[4]] || '') + (v[6] ? ' ' + esc(v[6].toLowerCase()) : '') +
         (v[9] === 'missing' ? '<br><span class="muted">Vial not found when checked</span>' : v[9] !== '' && v[9] != null ? '<br><span class="muted">Amount</span> ' + v[9] + '/5' : '') +
         '<br><span class="muted">Vial</span> <span class="mono">' + esc(v[2]) + '</span> <span class="muted">· position</span> <span class="mono">' + pos + '</span>'
         : '<span class="muted">Empty · position</span> <span class="mono">' + pos + '</span>';
+      if (extra) tipBox.innerHTML += '<br><span class="muted">' + extra + '</span>';
       tipBox.hidden = false;
       var b = el.getBoundingClientRect();
       tipBox.style.left = (window.scrollX + b.left + b.width / 2) + 'px';
       tipBox.style.top = (window.scrollY + b.top - 8) + 'px';
+    };
+    hideTip = function () { tipBox.hidden = true; };
+    trayBox.addEventListener('mouseover', function (e) {
+      var el = e.target.closest('[data-tip]');
+      if (el) showTip(el); else hideTip();
     });
-    trayBox.addEventListener('mouseleave', function () { tipBox.hidden = true; });
+    trayBox.addEventListener('mouseleave', hideTip);
   }).catch(function () { trayBox.innerHTML = '<p class="muted small">The drawer layout isn\'t available yet. It is made when the site is built.</p>'; });
 
   // ---- map ----
@@ -99,6 +111,8 @@
       L.circleMarker([s[8], s[9]], { radius: 6, color: '#111', weight: 1, fillOpacity: .95, fillColor: colour[tone((s._v[0] || [])[1])] })
         .bindPopup('<a href="' + base + 's/' + encodeURIComponent(s[0]) + '/"><strong>' + esc(s[1]) + '</strong></a>' + (s[7] ? '<br>' + esc(s[7]) : '') +
           '<br>' + s._v.map(function (v) { return esc(v[0]) + ' ' + esc(v[1]) + (v[2] ? ' ' + esc(v[2].toLowerCase()) : ''); }).join('<br>'))
+        .on('mouseover', function () { hot(s[0], true); })
+        .on('mouseout', function () { hot(s[0], false); })
         .addTo(layer);
     });
     if (bounds.length === 1) map.setView(bounds[0], 8); else map.fitBounds(bounds, { padding: [20, 20], maxZoom: 9 });

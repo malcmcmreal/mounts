@@ -1,7 +1,7 @@
-// Mineral Split Database: the vial cabinet. Three columns of thirteen drawers (1–13, 14–26, 27–39,
+// Mineral Split Database: the vial cabinet. Three columns of fifteen drawers (1–15, 16–30, 31–45,
 // top to bottom); a drawer is the first number of a catalogue number (17B05 is in drawer 17).
 // Each drawer shows how many samples and vials it holds and its mix of minerals; any drawers past
-// 39 are listed underneath.
+// 45 are listed underneath.
 (function () {
   var me = document.currentScript, base = me.dataset.base || '/', box = document.getElementById('drawers');
   if (!box) return;
@@ -27,7 +27,7 @@
         '<span class="dnum">' + d + '</span><span class="dbar">' + bar + '</span>' +
         '<span class="dstat">' + x.samples + ' <small>samples</small> · ' + x.vials + ' <small>vials</small></span></a>';
     }
-    var ROWS = 13, html = '';
+    var ROWS = 15, html = '';
     for (var c = 0; c < 3; c++) {
       html += '<div class="cab-col">';
       for (var r = 1; r <= ROWS; r++) html += cell(c * ROWS + r);

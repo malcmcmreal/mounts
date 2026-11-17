@@ -596,3 +596,5 @@ a.drawer:hover, a.drawer:focus-visible { background: var(--raised); border-color
 .map-pick .table-scroll { max-height: 320px; overflow: auto; margin-top: .6rem; }
 .leaflet-popup-content .link-btn { margin-top: .35rem; padding: 0; }
 #pull-summary { margin-top: 1rem; }
+.tray-svg.dimmed circle { opacity: .3; transition: opacity .12s; }
+.tray-svg.dimmed circle.hot { opacity: 1; stroke: #ff9a3c; stroke-width: 3; }
