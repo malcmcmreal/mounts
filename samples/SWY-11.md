@@ -9,6 +9,8 @@ notes: "- Biotite granite\n- elevation 320m\n- 116°55.83’E, 33°05.90’S"
 region: "Australia-WA"
 lat: -33.09833
 lon: 116.9305
+rock_type: "Granite"
+strat_age: ""
 vials:
   - {"catalogue": "13L06", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13L07", "mineral": "Apatite", "prep": "Fraction"}

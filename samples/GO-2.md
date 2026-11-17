@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Dolerite"
+strat_age: "Jurassic"
 vials:
   - {"catalogue": "29J26", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J27", "mineral": "Apatite", "prep": "Concentrate"}

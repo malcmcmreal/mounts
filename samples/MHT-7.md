@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Tillite"
+strat_age: "Upper Carboniferous- Permian"
 vials:
   - {"catalogue": "29F20", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29F21", "mineral": "Zircon", "prep": "Fraction"}

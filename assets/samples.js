@@ -1,6 +1,6 @@
 // Mineral Split Database page: searchable list of samples and their vials,
 // from assets/samples-index.json (written by _scripts/mount_state.py when the site is built).
-// Index rows: [slug, sample id, [[catalogue, mineral, split], …], collected by, PIDs, [mounts]]
+// Index rows: [slug, sample id, [[catalogue, mineral, split], …], collected by, PIDs, [mounts], rock type · age]
 (function () {
   var me = document.currentScript, base = me.dataset.base || '/';
   var tbody = document.getElementById('split-rows'), count = document.getElementById('split-count');
@@ -19,7 +19,7 @@
       (v[0] ? '<span class="mono">' + esc(v[0]) + '</span>' : '') + '</span>';
   }
   function row(s) {
-    return '<tr><td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a></td>' +
+    return '<tr><td><a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/">' + esc(s[1]) + '</a>' + (s[6] ? '<div class="small muted">' + esc(s[6]) + '</div>' : '') + '</td>' +
       '<td><div class="vial-chips">' + s[2].map(chip).join('') + '</div></td>' +
       '<td class="small">' + esc(s[3]) + '</td>' +
       '<td>' + s[5].map(function (m) { return '<a class="mono small" href="' + base + encodeURIComponent(m) + '/">' + esc(m) + '</a>'; }).join(' ') + '</td></tr>';
@@ -57,7 +57,7 @@
     all = d.samples;
     var minerals = {}, preps = {};
     all.forEach(function (s) {
-      s._t = norm([s[1], s[3], s[4], s[5].join(' ')].concat(s[2].map(function (v) { return v.join(' '); })).join(' '));
+      s._t = norm([s[1], s[3], s[4], s[5].join(' '), s[6] || ''].concat(s[2].map(function (v) { return v.join(' '); })).join(' '));
       s[2].forEach(function (v) {
         v[1].split(' + ').forEach(function (x) { if (x) minerals[/^(Apatite|Zircon|Titanite)$/.test(x) ? x : 'Other'] = 1; });
         if (v[2]) preps[v[2]] = (preps[v[2]] || 0) + 1;

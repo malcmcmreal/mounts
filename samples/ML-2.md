@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Triassic"
 vials:
   - {"catalogue": "29L02", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29L03", "mineral": "Zircon", "prep": "Fraction"}

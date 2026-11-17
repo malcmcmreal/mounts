@@ -9,6 +9,8 @@ notes: "- Gneissic granodiorite\n- elevation 205m\n- 116°24.04’E, 33°50.56�
 region: "Australia-WA"
 lat: -33.84267
 lon: 116.40067
+rock_type: "Granodiorite"
+strat_age: ""
 vials:
   - {"catalogue": "13K34", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13K35", "mineral": "Apatite", "prep": "Fraction"}

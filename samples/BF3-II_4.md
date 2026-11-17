@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Ordovician"
 vials:
   - {"catalogue": "29K10", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29K11", "mineral": "Apatite", "prep": "Concentrate"}

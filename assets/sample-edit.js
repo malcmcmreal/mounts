@@ -19,6 +19,8 @@
     '<label>Associated PIDs <small class="muted">(registered numbers etc., separated by commas)</small> <input name="pids" class="mono"></label>' +
     '<label>Collected by <input name="collected_by"></label>' +
     '<label>Region <input name="region" placeholder="e.g. Australia-Tas"></label>' +
+    '<div class="row"><label class="grow">Rock type <input name="rock_type"></label>' +
+    '<label class="grow">Stratigraphic / crystalline age <input name="strat_age"></label></div>' +
     '<div class="row"><label class="grow">Latitude <input name="lat" class="mono" inputmode="decimal" placeholder="-41.8"></label>' +
     '<label class="grow">Longitude <input name="lon" class="mono" inputmode="decimal" placeholder="145.4"></label></div>' +
     '<p class="hint">Decimal degrees, south and west negative. Used for the map when EarthBank has no location.</p>' +
@@ -86,6 +88,8 @@
       f.collected_by.value = rec.collected_by || '';
       f.notes.value = rec.notes || '';
       f.region.value = rec.region || '';
+      f.rock_type.value = rec.rock_type || '';
+      f.strat_age.value = rec.strat_age || '';
       f.lat.value = rec.lat == null ? '' : rec.lat;
       f.lon.value = rec.lon == null ? '' : rec.lon;
       (rec.vials || []).forEach(addVial);
@@ -114,7 +118,8 @@
     var q = function (v) { return JSON.stringify(v); };
     var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/s/' + slug(rec.sample_id) + '/'),
       'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes),
-      'region: ' + q(rec.region), 'lat: ' + q(rec.lat), 'lon: ' + q(rec.lon)];
+      'region: ' + q(rec.region), 'lat: ' + q(rec.lat), 'lon: ' + q(rec.lon),
+      'rock_type: ' + q(rec.rock_type), 'strat_age: ' + q(rec.strat_age)];
     if (rec.vials.length) { lines.push('vials:'); rec.vials.forEach(function (v) {
       lines.push('  - {' + Object.keys(v).map(function (k) { return q(k) + ': ' + q(v[k]); }).join(', ') + '}');
     }); }
@@ -136,7 +141,7 @@
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),
       associated_pids: f.pids.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
       collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials,
-      region: f.region.value.trim(), lat: num(f.lat.value, 90), lon: num(f.lon.value, 180) };
+      region: f.region.value.trim(), rock_type: f.rock_type.value.trim(), strat_age: f.strat_age.value.trim(), lat: num(f.lat.value, 90), lon: num(f.lon.value, 180) };
     if (rec.lat === undefined || rec.lon === undefined) { err.textContent = 'Latitude and longitude must be numbers in decimal degrees.'; return; }
     if ((rec.lat === null) !== (rec.lon === null)) { err.textContent = 'Enter both latitude and longitude, or neither.'; return; }
     var path = current ? current.path : 'samples/' + s + '.md';

@@ -9,7 +9,8 @@ purpose: it belongs to the mount or slide. EarthBank coordinates, when the sampl
 EarthBank, are matched at build time (_scripts/mount_state.py) and take precedence.
 Rows marked "No" in the Drawer? column are left out: that separate is no longer in the drawer
 (its vial position has usually been reused), and a sample with only such rows gets no page
-(an existing page for it is deleted). Existing sample pages are left alone unless --overwrite is given.
+(an existing page for it is deleted). Existing sample pages are left alone unless --overwrite is given; after an --overwrite, run
+import_apdbase.py again to put back rock type and stratigraphic age.
 """
 import json, os, re, sys
 

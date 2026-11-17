@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Granite"
+strat_age: "Devonian"
 vials:
   - {"catalogue": "29I32", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29I33", "mineral": "Apatite", "prep": "Concentrate"}

@@ -9,6 +9,8 @@ notes: "- Permian arkosic grit\n- elevation 170m\n- 116°18.37’E, 33°25.79’
 region: "Australia-WA"
 lat: -33.42983
 lon: 116.30617
+rock_type: "Arkose"
+strat_age: "Permian"
 vials:
   - {"catalogue": "13K31", "mineral": "Zircon", "prep": "Fraction"}
 ---

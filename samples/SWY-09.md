@@ -9,6 +9,8 @@ notes: "- Microgranodiorite\n- elevation 335m\n- 117°25.28’E, 33°38.53’S\n
 region: "Australia-WA"
 lat: -33.64217
 lon: 117.42133
+rock_type: "Microgranodiorite"
+strat_age: ""
 vials:
   - {"catalogue": "13L02", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13L03", "mineral": "Apatite", "prep": "Fraction"}

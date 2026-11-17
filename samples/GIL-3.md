@@ -9,6 +9,8 @@ notes: "- core\n- Gil Gil-1 well, 1310 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Mid Triassic"
 vials:
   - {"catalogue": "7A34", "mineral": "Apatite", "prep": "Fraction"}
 ---

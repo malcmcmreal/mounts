@@ -216,7 +216,8 @@ def link_samples(state):
         sid = text(d.get("sample_id")) or slug
         vials = [v for v in (d.get("vials") or []) if isinstance(v, dict)]
         records[slug] = {"id": sid, "vials": vials, "by": text(d.get("collected_by")),
-                         "pids": [text(p) for p in (d.get("associated_pids") or []) if text(p)], "igsn": text(d.get("igsn"))}
+                         "pids": [text(p) for p in (d.get("associated_pids") or []) if text(p)], "igsn": text(d.get("igsn")),
+                         "geo": " · ".join(x for x in (text(d.get("rock_type")), text(d.get("strat_age"))) if x)}
         by_id.setdefault(sid.lower(), slug)
         for v in vials:
             if text(v.get("catalogue")):
@@ -262,7 +263,7 @@ def link_samples(state):
     with open(os.path.join(ROOT, "_data", "samplelinks.json"), "w", encoding="utf-8") as f:
         json.dump(links, f, ensure_ascii=False)
     index = [[slug, r["id"], [[text(v.get("catalogue")), text(v.get("mineral")), text(v.get("prep"))] for v in r["vials"]],
-              r["by"], " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])]]
+              r["by"], " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])], r["geo"]]
              for slug, r in records.items()]
     with open(os.path.join(ROOT, "assets", "samples-index.json"), "w", encoding="utf-8") as f:
         json.dump({"samples": index}, f, ensure_ascii=False, separators=(",", ":"))

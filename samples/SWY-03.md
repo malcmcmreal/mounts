@@ -9,6 +9,8 @@ notes: "- Microdiorite interbed in ‘migmatite’\n- elevation 170m\n- 116°00.
 region: "Australia-WA"
 lat: -33.53217
 lon: 116.0065
+rock_type: "Microdiorite"
+strat_age: ""
 vials:
   - {"catalogue": "13K28", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13K29", "mineral": "Apatite", "prep": "Fraction"}

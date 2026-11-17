@@ -9,6 +9,8 @@ notes: "- core\n- Rockwood-1 well, 1155 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Early Jurassic"
 vials:
   - {"catalogue": "7E32", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "7E33", "mineral": "Zircon", "prep": "Fraction"}

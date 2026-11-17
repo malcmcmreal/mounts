@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Precambrian"
 vials:
   - {"catalogue": "29K34", "mineral": "Zircon", "prep": "Fraction"}
 ---

@@ -9,6 +9,8 @@ notes: "- Lineated amphibolite\n- elevation 140m\n- 116°18.52’E, 33°26.15’
 region: "Australia-WA"
 lat: -33.43583
 lon: 116.30867
+rock_type: "Amphibolite"
+strat_age: ""
 vials:
   - {"catalogue": "13K30", "mineral": "Zircon", "prep": "Fraction"}
 ---

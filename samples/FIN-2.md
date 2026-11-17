@@ -9,6 +9,8 @@ notes: "- cuttings\n- Flinton-1 well, 1067-1219 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Late Jurassic"
 vials:
   - {"catalogue": "7C34", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "7C35", "mineral": "Zircon", "prep": "Fraction"}

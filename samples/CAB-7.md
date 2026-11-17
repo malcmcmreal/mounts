@@ -9,6 +9,8 @@ notes: "- core\n- Cabawin-1 well, 2625 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Early Triassic"
 vials:
   - {"catalogue": "7G35", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "7G36", "mineral": "Zircon", "prep": "Fraction"}

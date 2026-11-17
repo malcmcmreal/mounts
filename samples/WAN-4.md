@@ -9,6 +9,8 @@ notes: "- core\n- Wandoan-1 well, 1716 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Early Triassic"
 vials:
   - {"catalogue": "7K31", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "7K32", "mineral": "Zircon", "prep": "Fraction"}

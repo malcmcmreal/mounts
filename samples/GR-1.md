@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Permian"
 vials:
   - {"catalogue": "29J32", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J33", "mineral": "Apatite", "prep": "Concentrate"}

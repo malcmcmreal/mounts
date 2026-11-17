@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Quartzite"
+strat_age: "Cambrian?"
 vials:
   - {"catalogue": "29J20", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J21", "mineral": "Apatite", "prep": "Concentrate"}

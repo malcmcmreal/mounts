@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Tas"
 lat: null
 lon: null
+rock_type: "Adamellite"
+strat_age: "Upper Devonian-Lower Carboniferous"
 vials:
   - {"catalogue": "29J07", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J08", "mineral": "Apatite", "prep": "Concentrate"}

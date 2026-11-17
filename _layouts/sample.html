@@ -38,6 +38,8 @@ layout: default
         <dt>Associated PIDs</dt><dd>{% if page.associated_pids.size > 0 %}<span class="mono">{{ page.associated_pids | join: ", " }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
         <dt>Collected by</dt><dd>{% if page.collected_by and page.collected_by != "" %}{{ page.collected_by }}{% else %}<span class="muted">—</span>{% endif %}</dd>
         {% if page.region and page.region != "" %}<dt>Region</dt><dd>{{ page.region }}</dd>{% endif %}
+        {% if page.rock_type and page.rock_type != "" %}<dt>Rock type</dt><dd>{{ page.rock_type }}</dd>{% endif %}
+        {% if page.strat_age and page.strat_age != "" %}<dt>Stratigraphic / crystalline age</dt><dd>{{ page.strat_age }}</dd>{% endif %}
         {% assign ebs = "" | split: "" %}{% for e in ebrecs %}{% assign x = e.id | append: "" %}{% assign ebs = ebs | push: x %}{% endfor %}
         {% for l in links %}{% if l.earthbank %}{% assign x = l.earthbank | append: "" %}{% assign ebs = ebs | push: x %}{% endif %}{% endfor %}{% assign ebs = ebs | uniq %}
         {% if ebs.size > 0 %}<dt>EarthBank</dt><dd>{% for x in ebs %}{% assign nm = x %}{% for e in ebrecs %}{% assign ex = e.id | append: "" %}{% if ex == x %}{% assign nm = e.name %}{% endif %}{% endfor %}<a class="mono" href="{{ site.earthbank_web }}/show/sample/{{ x }}" target="_blank" rel="noopener">{{ nm }}</a>{% unless forloop.last %}<br>{% endunless %}{% endfor %}</dd>{% endif %}
@@ -107,7 +109,7 @@ layout: default
   </details>
 </article>
 
-<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

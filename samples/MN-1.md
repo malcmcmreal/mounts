@@ -9,6 +9,8 @@ notes: ""
 region: "Australia-Vic"
 lat: null
 lon: null
+rock_type: "Granite"
+strat_age: "Ordovician"
 vials:
   - {"catalogue": "27D05", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "27D06", "mineral": "Apatite", "prep": "Concentrate"}

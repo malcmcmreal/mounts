@@ -9,6 +9,8 @@ notes: "- core\n- Macintyre-1 well, 1663 m\n- Bowen/Surat Basins"
 region: "Australia-Qld"
 lat: null
 lon: null
+rock_type: "Sandstone"
+strat_age: "Mid Jurassic"
 vials:
   - {"catalogue": "7B34", "mineral": "Apatite", "prep": "Fraction"}
 ---
