@@ -5,6 +5,7 @@ permalink: "/s/SWY-14/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- K-feldspar porphyritic granite\n- elevation 290m\n- 118°53.77’E, 32°26.33’S"
 region: "Australia-WA"
 lat: -32.43883

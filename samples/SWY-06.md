@@ -5,6 +5,7 @@ permalink: "/s/SWY-06/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Permian arkosic grit\n- elevation 160m\n- 116°15.04’E, 33°22.29’S"
 region: "Australia-WA"
 lat: -33.3715

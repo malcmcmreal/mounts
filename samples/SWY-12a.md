@@ -5,6 +5,7 @@ permalink: "/s/SWY-12a/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Epidotised porphyritic granite\n- elevation 395m\n- 117°23.25’E, 32°49.66’S\n- 24 km NE of Narrogin"
 region: "Australia-WA"
 lat: -32.82767

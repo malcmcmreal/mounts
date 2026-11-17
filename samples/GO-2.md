@@ -5,6 +5,7 @@ permalink: "/s/GO-2/"
 igsn: ""
 associated_pids: ["GS45-16"]
 collected_by: "PB O'Sullivan"
+project: "GRACE"
 notes: ""
 region: "Australia-Tas"
 lat: -42.846

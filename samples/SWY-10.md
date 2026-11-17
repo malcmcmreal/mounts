@@ -5,6 +5,7 @@ permalink: "/s/SWY-10/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Microgranodiorite\n- elevation 340m\n- 117°16.43’E, 33°19.21’S"
 region: "Australia-WA"
 lat: -33.32017

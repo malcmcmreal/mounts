@@ -5,6 +5,7 @@ permalink: "/s/SWY-11/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Biotite granite\n- elevation 320m\n- 116°55.83’E, 33°05.90’S"
 region: "Australia-WA"
 lat: -33.09833

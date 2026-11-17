@@ -5,6 +5,7 @@ permalink: "/s/SWY-09/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Microgranodiorite\n- elevation 335m\n- 117°25.28’E, 33°38.53’S\n- 16km N of Kattaning"
 region: "Australia-WA"
 lat: -33.64217

@@ -5,6 +5,7 @@ permalink: "/s/SWY-03/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Microdiorite interbed in ‘migmatite’\n- elevation 170m\n- 116°00.39’E, 33°31.93’S"
 region: "Australia-WA"
 lat: -33.53217

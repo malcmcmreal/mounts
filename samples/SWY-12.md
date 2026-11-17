@@ -5,6 +5,7 @@ permalink: "/s/SWY-12/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Microgranodiorite\n- elevation 370m\n- 117°12.71’E, 33°55.27’S\n- 3km NE of Narrogin"
 region: "Australia-WA"
 lat: -33.92117

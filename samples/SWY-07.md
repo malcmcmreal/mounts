@@ -5,6 +5,7 @@ permalink: "/s/SWY-07/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Gneissic granodiorite\n- elevation 205m\n- 116°24.04’E, 33°50.56’S"
 region: "Australia-WA"
 lat: -33.84267

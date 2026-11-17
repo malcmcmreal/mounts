@@ -5,6 +5,7 @@ permalink: "/s/SWY-08/"
 igsn: ""
 associated_pids: []
 collected_by: "B Kohn"
+project: "GRACE"
 notes: "- Gabbro\n- elevation 285m\n- 117°00.71’E, 33°50.43’S\n- 14km W of Kojonup"
 region: "Australia-WA"
 lat: -33.8405

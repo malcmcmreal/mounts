@@ -5,6 +5,7 @@ permalink: "/s/TH-5/"
 igsn: ""
 associated_pids: ["GS45-8"]
 collected_by: "PB O'Sullivan"
+project: "GRACE"
 notes: ""
 region: "Australia-Tas"
 lat: -40.449

@@ -5,6 +5,7 @@ permalink: "/s/CBG-3/"
 igsn: ""
 associated_pids: ["GS45-3"]
 collected_by: "PB O'Sullivan"
+project: "GRACE"
 notes: ""
 region: "Australia-Tas"
 lat: -42.113
