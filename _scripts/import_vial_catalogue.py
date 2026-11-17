@@ -66,6 +66,8 @@ def main():
         if not c or not sid:
             continue
         q = a.get("Quality (0-5)")
+        if isinstance(q, str) and q.strip().isdigit():
+            q = int(q.strip())
         q = int(q) if isinstance(q, (int, float)) and 0 <= q <= 5 else None
         note = text(a.get("Andy's Notes"))
         if c in held:
