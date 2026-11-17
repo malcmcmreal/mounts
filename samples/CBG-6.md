@@ -7,10 +7,14 @@ associated_pids: ["GS45-6"]
 collected_by: "PB O'Sullivan"
 notes: ""
 region: "Australia-Tas"
-lat: null
-lon: null
+lat: -42.113
+lon: 148.288
 rock_type: "Granite"
 strat_age: "Devonian"
+sample_type: "Subsurface"
+cuttings_core: ""
+depth_m: 10061007
+elevation_m: null
 vials:
   - {"catalogue": "29I35", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29I36", "mineral": "Apatite", "prep": "Concentrate"}

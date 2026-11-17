@@ -7,10 +7,14 @@ associated_pids: []
 collected_by: "B Kohn"
 notes: ""
 region: "Australia-Vic"
-lat: null
-lon: null
+lat: -34.883
+lon: 139.368
 rock_type: "Granite"
 strat_age: "Ordovician"
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 35
 vials:
   - {"catalogue": "27D05", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "27D06", "mineral": "Apatite", "prep": "Concentrate"}

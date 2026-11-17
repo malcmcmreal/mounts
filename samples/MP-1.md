@@ -7,10 +7,14 @@ associated_pids: []
 collected_by: "Visitor to lab"
 notes: "-Sample collected by Alfredo Camacho"
 region: "Australia"
-lat: null
-lon: null
+lat: -26.005
+lon: 131.746
 rock_type: "Granite"
 strat_age: "Lower Proterozoic?"
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: null
 vials:
   - {"catalogue": "26K30", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "26K31", "mineral": "Zircon", "prep": "Fraction"}

@@ -11,6 +11,10 @@ lat: -33.09833
 lon: 116.9305
 rock_type: "Granite"
 strat_age: ""
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 320
 vials:
   - {"catalogue": "13L06", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13L07", "mineral": "Apatite", "prep": "Fraction"}

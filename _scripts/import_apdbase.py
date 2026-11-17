@@ -1,5 +1,6 @@
-"""Add rock type and stratigraphic/crystalline age from the apatite database (AP_DBASE.xlsx)
-to the sample pages made by import_minsplits.py.
+"""Add rock type, stratigraphic/crystalline age, sample type, cuttings/core, depth, surface
+elevation and (where missing) latitude/longitude from the fission track database
+(AP_DBASE.xlsx or ALL_DBASE.xlsx, same columns) to the sample pages made by import_minsplits.py.
 
     python3 _scripts/import_apdbase.py AP_DBASE.xlsx [--new MU_Minsplit_DB.xlsx]
 
@@ -172,20 +173,44 @@ def main():
     print(f"{len(ap)} samples in the database, {updated} sample pages given rock type / age")
 
 
+def num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
 def write_geo(path, src, recs):
-        rock = join(text(r.get("Rock Type")) for r in recs)
-        age = join(text(r.get("Stratigraphic/Crystalline Age")) for r in recs)
-        if not rock and not age:
-            return 0
-        lines = [l for l in src.split("\n") if not l.startswith(("rock_type:", "strat_age:"))]
-        at = next(i for i, l in enumerate(lines) if l.startswith("lon:")) + 1
-        lines[at:at] = ["rock_type: " + json.dumps(rock, ensure_ascii=False), "strat_age: " + json.dumps(age, ensure_ascii=False)]
-        new = "\n".join(lines)
-        if new == src:
-            return 0
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(new)
-        return 1
+    """Rock type, stratigraphic age and the sampling details (sample type, cuttings/core, depth,
+    surface elevation). Latitude and longitude are filled in only where the page has none."""
+    first = lambda col: next((text(r.get(col)) for r in recs if text(r.get(col))), "")
+    vals = {"rock_type": join(text(r.get("Rock Type")) for r in recs),
+            "strat_age": join(text(r.get("Stratigraphic/Crystalline Age")) for r in recs),
+            "sample_type": first("Sample Type"), "cuttings_core": first("Cuttings/Core"),
+            "depth_m": next((num(r.get("Sample Depth(m)")) for r in recs if num(r.get("Sample Depth(m)")) is not None), None),
+            "elevation_m": next((num(r.get("Surface Elev. (m)")) for r in recs if num(r.get("Surface Elev. (m)")) is not None), None)}
+    for k in ("depth_m", "elevation_m"):
+        if vals[k] is not None and vals[k].is_integer():
+            vals[k] = int(vals[k])
+    if not any(v not in ("", None) for v in vals.values()):
+        return 0
+    lines = [l for l in src.split("\n") if not l.startswith(tuple(k + ":" for k in vals))]
+    lat_i = next(i for i, l in enumerate(lines) if l.startswith("lat:"))
+    lon_i = next(i for i, l in enumerate(lines) if l.startswith("lon:"))
+    if lines[lat_i].strip() == "lat: null" or lines[lon_i].strip() == "lon: null":
+        r = next((r for r in recs if num(r.get("Lat °")) is not None and num(r.get("Long °")) is not None), None)
+        if r:
+            la, lo = num(r["Lat °"]), num(r["Long °"])
+            la = -la if text(r.get("Lat (S)")).upper() == "S" else la
+            lo = -lo if text(r.get("Long (E)")).upper() == "W" else lo
+            lines[lat_i], lines[lon_i] = "lat: " + json.dumps(round(la, 5)), "lon: " + json.dumps(round(lo, 5))
+    lines[lon_i + 1:lon_i + 1] = [k + ": " + json.dumps(v, ensure_ascii=False) for k, v in vals.items()]
+    new = "\n".join(lines)
+    if new == src:
+        return 0
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(new)
+    return 1
 
 
 if __name__ == "__main__":

@@ -11,6 +11,10 @@ lat: -32.29517
 lon: 116.59867
 rock_type: "Granodiorite"
 strat_age: ""
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 335
 vials:
   - {"catalogue": "13L14", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13L15", "mineral": "Apatite", "prep": "Fraction"}

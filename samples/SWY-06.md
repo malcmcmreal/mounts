@@ -11,6 +11,10 @@ lat: -33.3715
 lon: 116.25067
 rock_type: "Arkose"
 strat_age: "Permian"
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 160
 vials:
   - {"catalogue": "13K32", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13K33", "mineral": "Apatite", "prep": "Fraction"}

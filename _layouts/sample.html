@@ -40,6 +40,9 @@ layout: default
         {% if page.region and page.region != "" %}<dt>Region</dt><dd>{{ page.region }}</dd>{% endif %}
         {% if page.rock_type and page.rock_type != "" %}<dt>Rock type</dt><dd>{{ page.rock_type }}</dd>{% endif %}
         {% if page.strat_age and page.strat_age != "" %}<dt>Stratigraphic / crystalline age</dt><dd>{{ page.strat_age }}</dd>{% endif %}
+        {% if page.sample_type and page.sample_type != "" %}<dt>Sample type</dt><dd>{{ page.sample_type }}{% if page.cuttings_core and page.cuttings_core != "" %} · {{ page.cuttings_core }}{% endif %}</dd>{% elsif page.cuttings_core and page.cuttings_core != "" %}<dt>Sample type</dt><dd>{{ page.cuttings_core }}</dd>{% endif %}
+        {% if page.depth_m %}<dt>Sample depth</dt><dd>{{ page.depth_m }} m</dd>{% endif %}
+        {% if page.elevation_m %}<dt>Surface elevation</dt><dd>{{ page.elevation_m }} m</dd>{% endif %}
         {% assign ebs = "" | split: "" %}{% for e in ebrecs %}{% assign x = e.id | append: "" %}{% assign ebs = ebs | push: x %}{% endfor %}
         {% for l in links %}{% if l.earthbank %}{% assign x = l.earthbank | append: "" %}{% assign ebs = ebs | push: x %}{% endif %}{% endfor %}{% assign ebs = ebs | uniq %}
         {% if ebs.size > 0 %}<dt>EarthBank</dt><dd>{% for x in ebs %}{% assign nm = x %}{% for e in ebrecs %}{% assign ex = e.id | append: "" %}{% if ex == x %}{% assign nm = e.name %}{% endif %}{% endfor %}<a class="mono" href="{{ site.earthbank_web }}/show/sample/{{ x }}" target="_blank" rel="noopener">{{ nm }}</a>{% unless forloop.last %}<br>{% endunless %}{% endfor %}</dd>{% endif %}
@@ -75,7 +78,7 @@ layout: default
   {% assign w = map_lon | minus: 1.5 %}{% assign e2 = map_lon | plus: 1.5 %}{% assign so = map_lat | minus: 1 %}{% assign no = map_lat | plus: 1 %}
   <section class="card">
     <h2>Location</h2>
-    <p class="muted small">{% if map_src == "earthbank" %}From EarthBank{% else %}Approximate, read from the sample notes{% endif %}: <span class="mono">{{ map_lat | round: 4 }}, {{ map_lon | round: 4 }}</span>
+    <p class="muted small">{% if map_src == "earthbank" %}From EarthBank{% else %}From the sample record{% endif %}: <span class="mono">{{ map_lat | round: 4 }}, {{ map_lon | round: 4 }}</span>
       · <a href="https://www.openstreetmap.org/?mlat={{ map_lat }}&amp;mlon={{ map_lon }}#map=9/{{ map_lat }}/{{ map_lon }}" target="_blank" rel="noopener">Open larger map</a></p>
     <iframe class="sample-map" title="Map of the sample location" loading="lazy"
       src="https://www.openstreetmap.org/export/embed.html?bbox={{ w }}%2C{{ so }}%2C{{ e2 }}%2C{{ no }}&amp;layer=mapnik&amp;marker={{ map_lat }}%2C{{ map_lon }}"></iframe>
@@ -109,7 +112,7 @@ layout: default
   </details>
 </article>
 
-<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/barcodes.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

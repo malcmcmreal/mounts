@@ -7,10 +7,14 @@ associated_pids: ["GS45-18"]
 collected_by: "PB O'Sullivan"
 notes: ""
 region: "Australia-Tas"
-lat: null
-lon: null
+lat: -42.754
+lon: 147.191
 rock_type: "Sandstone"
 strat_age: "Permian"
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: 2.04
+elevation_m: null
 vials:
   - {"catalogue": "29J32", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J33", "mineral": "Apatite", "prep": "Concentrate"}

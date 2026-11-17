@@ -7,10 +7,14 @@ associated_pids: ["GS45-16"]
 collected_by: "PB O'Sullivan"
 notes: ""
 region: "Australia-Tas"
-lat: null
-lon: null
+lat: -42.846
+lon: 147.256
 rock_type: "Dolerite"
 strat_age: "Jurassic"
+sample_type: "Subsurface"
+cuttings_core: ""
+depth_m: 405409
+elevation_m: null
 vials:
   - {"catalogue": "29J26", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29J27", "mineral": "Apatite", "prep": "Concentrate"}

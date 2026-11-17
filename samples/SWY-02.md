@@ -11,6 +11,10 @@ lat: -33.58533
 lon: 116.16983
 rock_type: "Gabbro"
 strat_age: ""
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 195
 vials:
   - {"catalogue": "13K26", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13K27", "mineral": "Apatite", "prep": "Fraction"}

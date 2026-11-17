@@ -7,10 +7,14 @@ associated_pids: ["GS45-25"]
 collected_by: "PB O'Sullivan"
 notes: ""
 region: "Australia-Tas"
-lat: null
-lon: null
+lat: -41.201
+lon: 146.822
 rock_type: "Sandstone"
 strat_age: "Ordovician"
+sample_type: "Subsurface"
+cuttings_core: ""
+depth_m: 10691074
+elevation_m: null
 vials:
   - {"catalogue": "29K13", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29K14", "mineral": "Apatite", "prep": "Concentrate"}

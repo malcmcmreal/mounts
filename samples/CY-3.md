@@ -7,10 +7,14 @@ associated_pids: ["GS45-33"]
 collected_by: "PB O'Sullivan"
 notes: ""
 region: "Australia-Tas"
-lat: null
-lon: null
+lat: -43.157
+lon: 147.062
 rock_type: "Tillite"
 strat_age: "Early Permian"
+sample_type: "Subsurface"
+cuttings_core: ""
+depth_m: 178185
+elevation_m: null
 vials:
   - {"catalogue": "29K31", "mineral": "Apatite", "prep": "Fraction"}
   - {"catalogue": "29K32", "mineral": "Apatite", "prep": "Concentrate"}

@@ -11,6 +11,10 @@ lat: -33.64217
 lon: 117.42133
 rock_type: "Microgranodiorite"
 strat_age: ""
+sample_type: "Outcrop"
+cuttings_core: ""
+depth_m: null
+elevation_m: 335
 vials:
   - {"catalogue": "13L02", "mineral": "Zircon", "prep": "Fraction"}
   - {"catalogue": "13L03", "mineral": "Apatite", "prep": "Fraction"}
