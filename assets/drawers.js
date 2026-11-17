@@ -1,7 +1,7 @@
-// Mineral Split Database: the vial cabinet. Three columns of twelve drawers (1–12, 13–24, 25–36,
+// Mineral Split Database: the vial cabinet. Three columns of thirteen drawers (1–13, 14–26, 27–39,
 // top to bottom); a drawer is the first number of a catalogue number (17B05 is in drawer 17).
 // Each drawer shows how many samples and vials it holds and its mix of minerals; any drawers past
-// 36 are listed underneath.
+// 39 are listed underneath.
 (function () {
   var me = document.currentScript, base = me.dataset.base || '/', box = document.getElementById('drawers');
   if (!box) return;
@@ -27,13 +27,13 @@
         '<span class="dnum">' + d + '</span><span class="dbar">' + bar + '</span>' +
         '<span class="dstat">' + x.samples + ' <small>samples</small> · ' + x.vials + ' <small>vials</small></span></a>';
     }
-    var html = '';
+    var ROWS = 13, html = '';
     for (var c = 0; c < 3; c++) {
       html += '<div class="cab-col">';
-      for (var r = 1; r <= 12; r++) html += cell(c * 12 + r);
+      for (var r = 1; r <= ROWS; r++) html += cell(c * ROWS + r);
       html += '</div>';
     }
-    var extra = Object.keys(st).map(Number).filter(function (d) { return d > 36; }).sort(function (a, b) { return a - b; });
+    var extra = Object.keys(st).map(Number).filter(function (d) { return d > 3 * ROWS; }).sort(function (a, b) { return a - b; });
     if (extra.length) html += '<div class="cab-extra"><span class="muted small">Also:</span>' + extra.map(cell).join('') + '</div>';
     html += '<p class="cab-key small muted"><i class="m-ap"></i> Apatite <i class="m-zr"></i> Zircon <i class="m-ti"></i> Titanite <i class="m-o"></i> Other</p>';
     box.innerHTML = html;

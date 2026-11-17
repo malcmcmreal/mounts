@@ -14,7 +14,7 @@ tab: splits
   </div>
   <nav class="mount-nav" aria-label="Other drawers">
     {% if prev >= 1 %}<a class="btn small" href="{{ '/drawer/' | append: prev | append: '/' | relative_url }}" title="Drawer {{ prev }}">&larr; {{ prev }}</a>{% endif %}
-    {% if next <= 40 %}<a class="btn small" href="{{ '/drawer/' | append: next | append: '/' | relative_url }}" title="Drawer {{ next }}">{{ next }} &rarr;</a>{% endif %}
+    {% if next <= 39 %}<a class="btn small" href="{{ '/drawer/' | append: next | append: '/' | relative_url }}" title="Drawer {{ next }}">{{ next }} &rarr;</a>{% endif %}
   </nav>
 </div>
 
