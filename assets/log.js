@@ -45,6 +45,7 @@
     for (var i = 0; i < samples.length; i++) if (!samples[i].earthbank) { pick = i; break; }
     if (sampleId) samples.forEach(function (s, k) { if (String(s.id) === sampleId) pick = k; });
     f.sample_pick.value = samples.length ? String(pick) : NEW;
+    drafts = {}; cur = null;
     f.hires_file.innerHTML = '<option value="">None (a link on its own)</option>' + images.map(function (n) {
       return '<option value="' + esc(n) + '">' + esc(n) + (hires[n] ? ' · has a link' : '') + '</option>';
     }).join('');
@@ -76,22 +77,39 @@
   }
 
   // ---------- Edit / link sample ----------
-  var chosen = null;
+  // Edits are kept per sample while switching between them in the Sample dropdown, and Save
+  // writes one history entry for every sample that changed.
+  var chosen = null, drafts = {}, cur = null;
   function picked() { return f.sample_pick.value === NEW ? null : samples[+f.sample_pick.value]; }
+  function pickedAt(key) { return key === NEW ? null : samples[+key]; }
   f.sample_pick.addEventListener('change', sampleChanged);
+  function saveDraft() {
+    if (cur === null) return;
+    drafts[cur] = { sample_id: val('sample_id'), position: val('position'), separates: val('separates'),
+      earthbank: val('earthbank'), unlink: f.unlink.checked, q: qBox.value };
+    var s = pickedAt(cur), d = drafts[cur];
+    var opt = f.sample_pick.querySelector('option[value="' + cur + '"]');
+    if (opt && s) {
+      var edited = d.sample_id !== String(s.id) || d.position !== (s.position || '') || d.separates !== (s.separates || '') ||
+        d.unlink || (d.earthbank && +d.earthbank !== s.earthbank);
+      opt.textContent = opt.textContent.replace(/ ✎ edited$/, '') + (edited ? ' ✎ edited' : '');
+    }
+  }
   function sampleChanged() {
-    var s = picked();
-    f.sample_id.value = s ? s.id : '';
-    f.position.value = s ? (s.position || '') : '';
-    f.separates.value = s ? (s.separates || '') : '';
+    saveDraft();
+    cur = f.sample_pick.value;
+    var s = picked(), d = drafts[cur];
+    f.sample_id.value = d ? d.sample_id : s ? s.id : '';
+    f.position.value = d ? d.position : s ? (s.position || '') : '';
+    f.separates.value = d ? d.separates : s ? (s.separates || '') : '';
     document.getElementById('log-current-link').textContent = s && s.earthbank
       ? '· currently linked to sample ' + s.earthbank + '. Pick another to re-link.'
       : '· not linked yet';
     document.getElementById('log-unlink-row').hidden = !(s && s.earthbank);
-    f.unlink.checked = false; document.getElementById('log-eb').hidden = false;
-    document.getElementById('log-rename-hint').hidden = true;
-    qBox.value = s ? s.id : '';
-    chosen = null; f.earthbank.value = '';
+    f.unlink.checked = !!(d && d.unlink); document.getElementById('log-eb').hidden = f.unlink.checked;
+    document.getElementById('log-rename-hint').hidden = !(s && f.sample_id.value && f.sample_id.value !== String(s.id));
+    qBox.value = d ? d.q : s ? s.id : '';
+    chosen = d && d.earthbank ? +d.earthbank : null; f.earthbank.value = d ? d.earthbank : '';
     if (eb) search();
   }
   f.sample_id.addEventListener('input', function () {
@@ -115,7 +133,7 @@
       d.samples.forEach(function (s) {
         var full = s[1] || '';
         s[1] = full.replace(/^LITH\d+-/, '');
-        s.push((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
+        s._t = ((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
       });
       eb = d;
     }).catch(function () {
@@ -131,7 +149,7 @@
     var hits = [], total = 0;
     for (var i = 0; i < eb.samples.length; i++) {
       var s = eb.samples[i], ok = true;
-      for (var w = 0; w < words.length; w++) if (s[4].indexOf(words[w]) === -1) { ok = false; break; }
+      for (var w = 0; w < words.length; w++) if (s._t.indexOf(words[w]) === -1) { ok = false; break; }
       if (!ok) continue;
       total++;
       if (hits.length < 100) hits.push(s);
@@ -197,30 +215,43 @@
     if (val('by')) lines.push('by: ' + q(val('by')));
     var problem = '', kind = t;
     if (t === 'sample') {
-      var s = picked(), id = val('sample_id'), ebId = val('earthbank');
-      if (ebId && !/^\d+$/.test(ebId)) problem = 'An EarthBank sample ID is a number.';
-      lines.push('type: sample');
-      if (!s) {
-        if (!id) problem = 'Enter the new sample\'s ID.';
-        else if (samples.some(function (x) { return String(x.id) === id; })) problem = 'A sample with that ID is already in the mount.';
-        lines.push('sample: ' + q(id), 'new: true');
-        if (val('position')) lines.push('position: ' + q(val('position')));
-        if (val('separates')) lines.push('separates: ' + q(val('separates')));
-      } else {
-        var changed = false;
-        lines.push('sample: ' + q(s.id));
-        if (!id) problem = 'The sample ID can\'t be empty.';
-        if (id && id !== String(s.id)) {
-          if (samples.some(function (x) { return String(x.id) === id; })) problem = 'Another sample already has that ID.';
-          lines.push('id: ' + q(id)); changed = true;
+      saveDraft();
+      var head = lines.slice(), entries = [], keys = Object.keys(drafts);
+      // IDs after these edits, to catch two samples ending up with the same ID
+      var finalIds = samples.map(function (x, i) { var d = drafts[String(i)]; return d ? d.sample_id : String(x.id); });
+      keys.sort(function (a, b) { return (a === NEW) - (b === NEW) || a - b; });
+      keys.forEach(function (key) {
+        var d = drafts[key], s = pickedAt(key), id = d.sample_id, ebId = d.earthbank, ls = head.concat(['type: sample']);
+        var name = s ? String(s.id) : 'the new sample', bad = '';
+        if (ebId && !/^\d+$/.test(ebId)) bad = 'An EarthBank sample ID is a number.';
+        if (!s) {
+          if (!id && !d.position && !d.separates && !ebId) return;      // "+ New sample" opened but left empty
+          if (!id) bad = 'Enter the new sample\'s ID.';
+          else if (finalIds.indexOf(id) !== -1) bad = 'A sample with that ID is already in the mount.';
+          ls.push('sample: ' + q(id), 'new: true');
+          if (d.position) ls.push('position: ' + q(d.position));
+          if (d.separates) ls.push('separates: ' + q(d.separates));
+        } else {
+          var changed = false;
+          ls.push('sample: ' + q(s.id));
+          if (!id) bad = 'The sample ID can\'t be empty.';
+          if (id && id !== String(s.id)) {
+            if (finalIds.filter(function (x) { return x === id; }).length > 1) bad = 'Another sample already has the ID ' + id + '.';
+            ls.push('id: ' + q(id)); changed = true;
+          }
+          if (d.position !== (s.position || '')) { ls.push('position: ' + q(d.position)); changed = true; }
+          if (d.separates !== (s.separates || '')) { ls.push('separates: ' + q(d.separates)); changed = true; }
+          if (d.unlink) { ls.push('unlink: true'); changed = true; }
+          if (ebId && !d.unlink && +ebId !== s.earthbank) changed = true;
+          if (!changed && !(ebId && !d.unlink)) return;
         }
-        if (val('position') !== (s.position || '')) { lines.push('position: ' + q(val('position'))); changed = true; }
-        if (val('separates') !== (s.separates || '')) { lines.push('separates: ' + q(val('separates'))); changed = true; }
-        if (f.unlink.checked) { lines.push('unlink: true'); changed = true; }
-        if (ebId && !f.unlink.checked && +ebId !== s.earthbank) changed = true;
-        if (!changed && !(ebId && !f.unlink.checked) && !problem) problem = 'Nothing has changed for this sample.';
-      }
-      if (ebId && !f.unlink.checked) lines.push('earthbank: ' + ebId);
+        if (ebId && !d.unlink) ls.push('earthbank: ' + ebId);
+        if (bad && !problem) problem = (keys.length > 1 ? name + ': ' : '') + bad;
+        entries.push(ls);
+      });
+      if (!entries.length && !problem) problem = 'Nothing has changed for this sample.';
+      lines = entries.length ? entries[0] : lines;
+      var more = entries.slice(1);
     } else if (t === 'details') {
       var w = f.what.value;
       if (['polish', 'etch', 'coat', 'other'].indexOf(w) !== -1) {
@@ -266,8 +297,10 @@
     }
     if (val('note')) lines.push('note: ' + q(val('note')));
     var stamp = val('date').replace(/-/g, '') + '-' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
-    return { problem: problem, kind: kind, text: lines.join('\n') + '\n',
-             path: '_data/log/' + mountId + '/' + stamp + '-' + kind + '.yml' };
+    var files = [lines].concat(t === 'sample' ? more || [] : []).map(function (ls, i) {
+      return { text: ls.join('\n') + '\n', path: '_data/log/' + mountId + '/' + stamp + '-' + kind + (i ? '-' + (i + 1) : '') + '.yml' };
+    });
+    return { problem: problem, kind: kind, text: files[0].text, path: files[0].path, files: files };
   }
 
   // ---------- steps ----------
@@ -286,11 +319,16 @@
     if (entry.problem) { errBox.textContent = entry.problem; return; }
     errBox.textContent = '';
     try { if (val('by')) localStorage.setItem('mounts.by', val('by')); } catch (err) {}
-    document.getElementById('log-out').value = entry.text;
+    document.getElementById('log-out').value = entry.files.map(function (x) { return x.text; }).join('\n');
+    if (!direct() && entry.files.length > 1) {
+      errBox.textContent = 'Sign in with GitHub (top right) to save changes to ' + entry.files.length + ' samples at once.';
+      return;
+    }
     if (direct()) {
       nextBtn.disabled = true;
       nextBtn.innerHTML = '<span class="spinner"></span> Saving…';
-      GH.commit([{ path: entry.path, text: entry.text }], 'History: ' + mountId + ' (' + entry.kind + ')')
+      GH.commit(entry.files.map(function (x) { return { path: x.path, text: x.text }; }),
+        'History: ' + mountId + ' (' + entry.kind + (entry.files.length > 1 ? ', ' + entry.files.length + ' samples' : '') + ')')
         .then(function () {
           document.getElementById('log-saved').hidden = false;
           document.getElementById('log-gh').hidden = true;

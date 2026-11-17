@@ -268,7 +268,7 @@
       d.samples.forEach(function (s) {
         var full = s[1] || '';
         s[1] = full.replace(/^LITH\d+-/, '');
-        s.push((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
+        s._t = ((full + ' ' + (s[3] >= 0 ? d.places[s[3]] : '')).toLowerCase());
       });
       var opts = d.packages.map(function (p, i) { return [p[1], i]; })
         .sort(function (a, b) { return a[0].localeCompare(b[0]); });
@@ -302,7 +302,7 @@
       var s = eb.samples[i];
       if (pkg !== null && s[2] !== pkg) continue;
       var ok = true;
-      for (var w = 0; w < words.length; w++) if (s[4].indexOf(words[w]) === -1) { ok = false; break; }
+      for (var w = 0; w < words.length; w++) if (s._t.indexOf(words[w]) === -1) { ok = false; break; }
       if (!ok) continue;
       total++;
       if (hits.length < LIMIT) hits.push(s);
