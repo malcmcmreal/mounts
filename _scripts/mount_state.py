@@ -302,7 +302,8 @@ def link_samples(state):
         records[slug] = {"id": sid, "vials": vials, "by": text(d.get("collected_by")),
                          "pids": [text(p) for p in (d.get("associated_pids") or []) if text(p)], "igsn": text(d.get("igsn")),
                          "geo": " · ".join(x for x in (text(d.get("rock_type")), text(d.get("strat_age"))) if x),
-                         "region": text(d.get("region")), "lat": d.get("lat"), "lon": d.get("lon")}
+                         "region": text(d.get("region")), "lat": d.get("lat"), "lon": d.get("lon"),
+                         "project": text(d.get("project"))}
         by_id.setdefault(sid.lower(), slug)
         for v in vials:
             if text(v.get("catalogue")):
@@ -406,7 +407,7 @@ def link_samples(state):
     with open(os.path.join(ROOT, "assets", "trays.json"), "w", encoding="utf-8") as f:
         json.dump({"rows": TRAY_ROWS, "trays": trays}, f, ensure_ascii=False, separators=(",", ":"))
     # Search list for the Mineral Split Database, drawer pages, map and pull list. Each row:
-    # [page, sample ID, vials, collected by, PIDs, mounts, rock type · age, country, lat, lon]
+    # [page, sample ID, vials, collected by, PIDs, mounts, rock type · age, country, lat, lon, project]
     # with vials as [catalogue, mineral, split, amount, position in the drawer (e.g. L14)].
     def vrow(v):
         c = cnorm(text(v.get("catalogue")))
@@ -424,9 +425,21 @@ def link_samples(state):
         index.append([slug, r["id"], [vrow(v) for v in r["vials"]], r["by"],
                       " ".join(r["pids"] + ([r["igsn"]] if r["igsn"] else [])), [l["mount"] for l in links.get(slug, [])],
                       r["geo"], country(r["region"], [e.get("place", "") for e in eb.get(slug, [])], lat, lon),
-                      lat if isinstance(lat, (int, float)) else None, lon if isinstance(lon, (int, float)) else None])
+                      lat if isinstance(lat, (int, float)) else None, lon if isinstance(lon, (int, float)) else None,
+                      r["project"]])
+    # Project names already in use (samples and mounts), offered when tagging samples
+    projects = {r["project"] for r in records.values() if r["project"]}
+    for path in glob.glob(os.path.join(ROOT, "mounts", "*", "index.md")):
+        try:
+            with open(path, encoding="utf-8") as f:
+                m = re.match(r"^---\s*\n(.*?)\n---", f.read(), re.S)
+            p = text((yaml.load(m.group(1), Loader=loader) or {}).get("project")) if m else ""
+            if p:
+                projects.add(p)
+        except Exception:
+            pass
     with open(os.path.join(ROOT, "assets", "samples-index.json"), "w", encoding="utf-8") as f:
-        json.dump({"samples": index}, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"samples": index, "projects": sorted(projects, key=str.lower)}, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(records)} sample records, {len(links)} linked to mounts, {len(eb)} found in EarthBank")
 
 

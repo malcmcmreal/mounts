@@ -17,7 +17,9 @@
     '<label>Sample number * <input name="sample_id" class="mono" autocomplete="off"><small class="hint" id="se-id-msg"></small></label>' +
     '<div class="row"><label class="grow">IGSN of the parent rock sample <input name="igsn" class="mono"></label></div>' +
     '<label>Associated PIDs <small class="muted">(registered numbers etc., separated by commas)</small> <input name="pids" class="mono"></label>' +
-    '<label>Collected by <input name="collected_by"></label>' +
+    '<div class="row"><label class="grow">Collected by <input name="collected_by"></label>' +
+    '<label class="grow">Project <input name="project" list="se-projects" placeholder="e.g. GRACE"></label></div>' +
+    '<datalist id="se-projects"></datalist>' +
     '<label>Region <input name="region" placeholder="e.g. Australia-Tas"></label>' +
     '<div class="row"><label class="grow">Rock type <input name="rock_type"></label>' +
     '<label class="grow">Stratigraphic / crystalline age <input name="strat_age"></label></div>' +
@@ -99,6 +101,7 @@
       f.igsn.value = rec.igsn || '';
       f.pids.value = (rec.associated_pids || []).join(', ');
       f.collected_by.value = rec.collected_by || '';
+      f.project.value = rec.project || '';
       f.notes.value = rec.notes || '';
       f.region.value = rec.region || '';
       f.rock_type.value = rec.rock_type || '';
@@ -116,12 +119,11 @@
     if (!box.children.length) addVial();
     updateSignin();
     dlg.showModal();
-    if (!rec) {
-      f.sample_id.focus();
-      if (!index && me.dataset.index) fetch(me.dataset.index).then(function (r) { return r.json(); }).then(function (d) {
-        index = {}; d.samples.forEach(function (s) { index[s[0].toLowerCase()] = s[1]; });
-      }).catch(function () {});
-    }
+    if (!rec) f.sample_id.focus();
+    if (!index && me.dataset.index) fetch(me.dataset.index).then(function (r) { return r.json(); }).then(function (d) {
+      index = {}; d.samples.forEach(function (s) { index[s[0].toLowerCase()] = s[1]; });
+      dlg.querySelector('#se-projects').innerHTML = (d.projects || []).map(function (p) { return '<option value="' + esc(p) + '">'; }).join('');
+    }).catch(function () {});
   }
   if (editBtn) editBtn.addEventListener('click', function () { open(JSON.parse(dataEl.textContent)); });
   if (newBtn) newBtn.addEventListener('click', function () { open(null); });
@@ -136,7 +138,7 @@
   function build(rec) {
     var q = function (v) { return JSON.stringify(v); };
     var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/s/' + slug(rec.sample_id) + '/'),
-      'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes),
+      'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'project: ' + q(rec.project), 'notes: ' + q(rec.notes),
       'region: ' + q(rec.region), 'lat: ' + q(rec.lat), 'lon: ' + q(rec.lon),
       'rock_type: ' + q(rec.rock_type), 'strat_age: ' + q(rec.strat_age), 'unit: ' + q(rec.unit), 'sample_type: ' + q(rec.sample_type),
       'cuttings_core: ' + q(rec.cuttings_core), 'depth_m: ' + q(rec.depth_m), 'depth_max_m: ' + q(rec.depth_max_m), 'elevation_m: ' + q(rec.elevation_m)];
@@ -164,7 +166,7 @@
     }).filter(function (v) { return v.catalogue || v.mineral; });
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),
       associated_pids: f.pids.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
-      collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials,
+      collected_by: f.collected_by.value.trim(), project: f.project.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials,
       region: f.region.value.trim(), rock_type: f.rock_type.value.trim(), strat_age: f.strat_age.value.trim(), unit: f.unit.value.trim(),
       sample_type: f.sample_type.value.trim(), cuttings_core: f.cuttings_core.value.trim(),
       depth_m: num(f.depth_m.value, 20000), depth_max_m: num(f.depth_max_m.value, 20000), elevation_m: num(f.elevation_m.value, 9000), lat: num(f.lat.value, 90), lon: num(f.lon.value, 180) };

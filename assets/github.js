@@ -9,7 +9,7 @@
 //   GH.canWrite()          signed in with write access
 //   GH.user                { login, name, avatar_url } or null
 //   GH.signIn(), GH.signOut()
-//   GH.commit(files, message)   files: [{ path, text } or { path, base64 } or { path, remove: true }] → one commit
+//   GH.commit(files, message)   files: [{ path, text } or { path, base64 } or { path, remove: true } or { path, text, inline: true }] → one commit
 //   GH.getFile(path)       → { text, sha } (or null if it doesn't exist)
 //   document event "gh-auth" fires when the sign-in state changes
 (function () {
@@ -112,6 +112,7 @@
     }).then(function (c) {
       return Promise.all(files.map(function (f) {
         if (f.remove) return Promise.resolve({ path: f.path, mode: '100644', type: 'blob', sha: null });   // delete
+        if (f.inline) return Promise.resolve({ path: f.path, mode: '100644', type: 'blob', content: f.text });   // small text file, no separate upload
         return api('/repos/' + REPO + '/git/blobs', { method: 'POST',
           body: { content: f.base64 != null ? f.base64 : utf8ToBase64(f.text), encoding: 'base64' } })
           .then(function (b) { return { path: f.path, mode: '100644', type: 'blob', sha: b.sha }; });

@@ -28,6 +28,7 @@ body_page: pull
   <label class="check small"><input type="checkbox" id="pull-found" checked> Leave out vials not found</label>
   <span class="spacer"></span>
   <a class="btn small" href="{{ '/samples/map/' | relative_url }}">Pick on the map</a>
+  <button type="button" class="btn small" id="pull-project" title="Tag every sample on this list with a project">Set project…</button>
   <button type="button" class="btn small danger" id="pull-clear">Clear the list</button>
 </div>
 
@@ -38,7 +39,7 @@ body_page: pull
 </section>
 <div class="table-scroll">
 <table class="split-list pull-table">
-  <thead><tr><th>Drawer</th><th>Position</th><th>Catalogue</th><th>Sample</th><th>Mineral</th><th>Split</th><th>Amount</th><th>Country</th><th>Collected by</th><th class="no-print"></th></tr></thead>
+  <thead><tr><th>Drawer</th><th>Position</th><th>Catalogue</th><th>Sample</th><th>Mineral</th><th>Split</th><th>Amount</th><th>Country</th><th>Project</th><th class="no-print"></th></tr></thead>
   <tbody id="pull-rows"></tbody>
 </table>
 </div>
@@ -52,4 +53,5 @@ body_page: pull
   <p class="tray-key small muted"><span class="dot m-ap"></span> Apatite <span class="dot m-zr"></span> Zircon <span class="dot m-ti"></span> Titanite <span class="dot m-o"></span> Other: vials on the pull list.
   <span class="dot other"></span> Other vials. <span class="dot hit"></span> The one you clicked. Row A at the bottom, 01 on the left.</p></div>
 </dialog>
+<script src="{{ '/assets/project-tag.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/pull-page.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>

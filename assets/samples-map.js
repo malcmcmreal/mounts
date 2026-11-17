@@ -6,6 +6,8 @@
   var box = document.getElementById('sample-map'), count = document.getElementById('map-count');
   var q = document.getElementById('map-q'), selM = document.getElementById('map-mineral'), boxBtn = document.getElementById('map-box');
   var pick = document.getElementById('map-pick'), pickRows = document.getElementById('pick-rows'), pickN = document.getElementById('pick-n');
+  var selJ = document.getElementById('map-project'), qLo = document.getElementById('qty-lo'), qHi = document.getElementById('qty-hi'),
+    qUn = document.getElementById('qty-unrated'), qOut = document.getElementById('qty-out'), qFill = document.getElementById('qty-fill'), projects = [];
   var COLOUR = { ap: '#7fcf7f', zr: '#74b0ec', ti: '#e6cf5c', o: '#b9b9c0' };
   var all = [], shown = [], chosen = {}, marks = {};
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -29,8 +31,9 @@
   function popup(s) {
     var on = window.PullList && PullList.has(s[0]);
     return '<a class="mono" href="' + base + 's/' + encodeURIComponent(s[0]) + '/"><strong>' + esc(s[1]) + '</strong></a>' + (s[7] ? ' · ' + esc(s[7]) : '') +
-      (s[6] ? '<br><span class="small">' + esc(s[6]) + '</span>' : '') +
-      '<br>' + s[2].map(function (v) { return '<span class="mono small">' + esc(v[0]) + '</span> ' + esc(v[1]) + (v[2] ? ' ' + esc(v[2].toLowerCase()) : ''); }).join('<br>') +
+      (s[6] ? '<br><span class="small">' + esc(s[6]) + '</span>' : '') + (s[10] ? '<br><span class="small">Project: ' + esc(s[10]) + '</span>' : '') +
+      '<br>' + s[2].map(function (v) { return '<span class="mono small">' + esc(v[0]) + '</span> ' + esc(v[1]) + (v[2] ? ' ' + esc(v[2].toLowerCase()) : '') +
+        (typeof v[3] === 'number' ? ' <span class="muted small">· ' + v[3] + '/5</span>' : v[3] === 'missing' ? ' <span class="muted small">· not found</span>' : ''); }).join('<br>') +
       '<br><button type="button" class="link-btn small" data-pull="' + esc(s[0]) + '">' + (on ? 'On the pull list ✓ (remove)' : '+ Add to pull list') + '</button>';
   }
   box.addEventListener('click', function (e) {
@@ -42,9 +45,16 @@
   });
 
   function draw() {
-    var words = q.value.toLowerCase().split(/\s+/).filter(Boolean), m = selM.value;
+    var words = q.value.toLowerCase().split(/\s+/).filter(Boolean), m = selM.value, pj = selJ.value;
+    var lo = +qLo.value, hi = +qHi.value, un = qUn.checked, amt = lo > 0 || hi < 5 || !un;
     shown = all.filter(function (s) {
-      if (m && !s[2].some(function (v) { var ms = v[1].split(' + '); return m === 'Other' ? !/^(Apatite|Zircon|Titanite)$/.test(ms[0]) : ms.indexOf(m) !== -1; })) return false;
+      if (pj && (pj === '-' ? s[10] : s[10] !== pj)) return false;
+      if ((m || amt) && !s[2].some(function (v) {
+        var ms = v[1].split(' + ');
+        if (m && !(m === 'Other' ? !/^(Apatite|Zircon|Titanite)$/.test(ms[0]) : ms.indexOf(m) !== -1)) return false;
+        if (!amt) return true;
+        return typeof v[3] === 'number' ? v[3] >= lo && v[3] <= hi : un && v[3] !== 'missing';
+      })) return false;
       return words.every(function (w) { return s._t.indexOf(w) !== -1; });
     });
     layer.clearLayers(); marks = {};
@@ -105,9 +115,26 @@
 
   var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(draw, 150); });
   selM.addEventListener('change', draw);
+  selJ.addEventListener('change', draw);
+  function qty(e) {
+    if (+qLo.value > +qHi.value) { if (e && e.target === qLo) qHi.value = qLo.value; else qLo.value = qHi.value; }
+    qOut.textContent = qLo.value === qHi.value ? qLo.value : qLo.value + '–' + qHi.value;
+    qFill.style.left = (qLo.value * 20) + '%'; qFill.style.right = ((5 - qHi.value) * 20) + '%';
+    clearTimeout(t); t = setTimeout(draw, 80);
+  }
+  [qLo, qHi].forEach(function (el) { el.addEventListener('input', qty); });
+  qUn.addEventListener('change', draw);
+  qty();
+  document.getElementById('pick-project').addEventListener('click', function () { var l = Object.keys(chosen); if (l.length && window.ProjectTag) ProjectTag.open(l, projects); });
   fetch(me.dataset.index, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     all = d.samples.filter(function (s) { return s[8] != null && s[9] != null; });
-    all.forEach(function (s) { s._t = [s[1], s[3], s[6], s[7], vtxt(s)].join(' ').toLowerCase(); });
+    all.forEach(function (s) { s._t = [s[1], s[3], s[6], s[7], s[10] || '', vtxt(s)].join(' ').toLowerCase(); });
+    projects = d.projects || [];
+    var pjs = {}, none = 0;
+    all.forEach(function (s) { if (s[10]) pjs[s[10]] = (pjs[s[10]] || 0) + 1; else none++; });
+    Object.keys(pjs).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (x) { selJ.add(new Option(x + ' (' + pjs[x] + ')', x)); });
+    if (Object.keys(pjs).length) selJ.add(new Option('No project (' + none + ')', '-'));
+    else selJ.add(new Option('No samples tagged yet', '', false, false)), selJ.disabled = true;
     draw();
     if (all.length) {
       var aus = all.filter(function (s) { return s[7] === 'Australia'; });

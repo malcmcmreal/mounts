@@ -17,6 +17,17 @@ tab_title: Sample map
   <label class="group-by">Mineral
     <select id="map-mineral"><option value="">Any</option><option>Apatite</option><option>Zircon</option><option>Titanite</option><option value="Other">Other</option></select>
   </label>
+  <label class="group-by">Project
+    <select id="map-project"><option value="">Any</option></select>
+  </label>
+  <div class="qty-filter" title="Vial amount, 0 (empty) to 5 (full)">
+    <span class="small muted">Amount</span>
+    <div class="dual-range"><div class="dr-track"><i id="qty-fill"></i></div>
+      <input type="range" id="qty-lo" min="0" max="5" step="1" value="0" aria-label="Lowest vial amount">
+      <input type="range" id="qty-hi" min="0" max="5" step="1" value="5" aria-label="Highest vial amount"></div>
+    <span class="mono small" id="qty-out">0–5</span>
+    <label class="check small" title="Vials whose amount hasn't been checked"><input type="checkbox" id="qty-unrated" checked> unrated</label>
+  </div>
   <span class="spacer"></span>
   <button type="button" class="btn small" id="map-box" aria-pressed="false" title="Then drag on the map to select every sample inside the box">▭ Select an area</button>
 </div>
@@ -29,6 +40,7 @@ tab_title: Sample map
     <h2><span id="pick-n">0</span> selected</h2>
     <div class="head-btns">
       <button type="button" class="btn small" id="pick-clear">Clear selection</button>
+      <button type="button" class="btn small" id="pick-project">Set project…</button>
       <button type="button" class="btn small primary" id="pick-add">Add to pull list</button>
     </div>
   </div>
@@ -37,4 +49,5 @@ tab_title: Sample map
 
 <link rel="stylesheet" href="{{ '/assets/leaflet/leaflet.css' | relative_url }}">
 <script src="{{ '/assets/leaflet/leaflet.js' | relative_url }}"></script>
+<script src="{{ '/assets/project-tag.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 <script src="{{ '/assets/samples-map.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>

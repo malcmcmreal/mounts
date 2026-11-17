@@ -39,6 +39,7 @@ layout: default
         <dt>Sample number</dt><dd class="mono">{{ page.sample_id }}</dd>
         <dt>IGSN</dt><dd>{% if page.igsn and page.igsn != "" %}<a class="mono" href="https://hdl.handle.net/10273/{{ page.igsn }}" target="_blank" rel="noopener">{{ page.igsn }}</a>{% else %}<span class="muted">—</span>{% endif %}</dd>
         <dt>Associated PIDs</dt><dd>{% if page.associated_pids.size > 0 %}<span class="mono">{{ page.associated_pids | join: ", " }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
+        {% if page.project and page.project != "" %}<dt>Project</dt><dd><a href="{{ '/samples/' | relative_url }}?group=project&amp;project={{ page.project | uri_escape }}">{{ page.project }}</a></dd>{% endif %}
         <dt>Collected by</dt><dd>{% if page.collected_by and page.collected_by != "" %}{{ page.collected_by }}{% else %}<span class="muted">—</span>{% endif %}</dd>
         {% if page.region and page.region != "" %}<dt>Region</dt><dd>{{ page.region }}</dd>{% endif %}
         {% if page.rock_type and page.rock_type != "" %}<dt>Rock type</dt><dd>{{ page.rock_type }}</dd>{% endif %}
@@ -125,8 +126,8 @@ layout: default
   </details>
 </article>
 
-<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "unit": {{ page.unit | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
-{% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "project": {{ page.project | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "unit": {{ page.unit | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+{% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-index="{{ '/assets/samples-index.json' | relative_url }}"></script>{% endif %}
 <script>
 (function () {
   var b = document.getElementById('sample-pull-btn');

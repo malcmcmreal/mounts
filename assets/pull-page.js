@@ -4,7 +4,7 @@
   var me = document.currentScript, base = me.dataset.base || '/';
   var tbody = document.getElementById('pull-rows'), sum = document.getElementById('pull-summary');
   var selM = document.getElementById('pull-mineral'), selP = document.getElementById('pull-prep'), found = document.getElementById('pull-found');
-  var index = {}, rows = [], trays = null;
+  var index = {}, rows = [], trays = null, projects = [];
   var cab = document.getElementById('pull-cabinet'), dlg = document.getElementById('pull-drawer');
   var SHORT = { Apatite: 'Ap', Zircon: 'Zr', Titanite: 'Ti' };
   function tone(m) { m = (m || '').split(' + ')[0]; return m === 'Apatite' ? 'ap' : m === 'Zircon' ? 'zr' : m === 'Titanite' ? 'ti' : 'o'; }
@@ -143,15 +143,19 @@
   document.getElementById('pull-clear').addEventListener('click', function () {
     if (PullList.get().length && confirm('Take all ' + PullList.get().length + ' samples off the pull list?')) PullList.clear();
   });
+  document.getElementById('pull-project').addEventListener('click', function () {
+    var l = PullList.get(); if (!l.length) return;
+    if (window.ProjectTag) ProjectTag.open(l, projects);
+  });
   document.getElementById('pull-print').addEventListener('click', function () { window.print(); });
   document.getElementById('pull-xlsx').addEventListener('click', function () {
-    var data = [['Drawer', 'Position', 'Catalogue number', 'Sample', 'Mineral', 'Split', 'Amount (0-5)', 'Country', 'Latitude', 'Longitude', 'Rock type · age', 'Collected by', 'Mounts', 'Pulled']];
+    var data = [['Drawer', 'Position', 'Catalogue number', 'Sample', 'Mineral', 'Split', 'Amount (0-5)', 'Country', 'Latitude', 'Longitude', 'Rock type · age', 'Collected by', 'Project', 'Mounts', 'Pulled']];
     rows.forEach(function (o) {
       var s = o.s, v = o.v || [];
       data.push([o.at ? o.at.d : '', o.pos, v[0] || '', s[1], v[1] || '', v[2] || '', v[3] === 'missing' ? 'Not found' : v[3] == null ? '' : v[3], s[7] || '',
-        s[8] == null ? '' : s[8], s[9] == null ? '' : s[9], s[6] || '', s[3] || '', s[5].join(', '), '']);
+        s[8] == null ? '' : s[8], s[9] == null ? '' : s[9], s[6] || '', s[3] || '', s[10] || '', s[5].join(', '), '']);
     });
-    var blob = makeXlsx([{ name: 'Pull list', rows: data, widths: [8, 9, 16, 18, 12, 12, 12, 14, 10, 10, 30, 22, 18, 8] }]);
+    var blob = makeXlsx([{ name: 'Pull list', rows: data, widths: [8, 9, 16, 18, 12, 12, 12, 14, 10, 10, 30, 22, 16, 18, 8] }]);
     var a = document.createElement('a'), d = new Date();
     a.href = URL.createObjectURL(blob);
     a.download = 'pull-list-' + d.toISOString().slice(0, 10) + '.xlsx';
@@ -161,6 +165,7 @@
   PullList.onChange(build);
   fetch(me.dataset.index, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     d.samples.forEach(function (s) { index[s[0]] = s; });
+    projects = d.projects || [];
     build();
   }).catch(function () { sum.innerHTML = '<p class="muted small">The sample list isn\'t available yet. It is made when the site is built.</p>'; });
 })();

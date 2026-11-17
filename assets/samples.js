@@ -8,7 +8,7 @@
   var tbody = document.getElementById('split-rows'), count = document.getElementById('split-count');
   var q = document.getElementById('split-q'), selM = document.getElementById('split-mineral'),
     selP = document.getElementById('split-prep'), mounted = document.getElementById('split-mounted'),
-    selG = document.getElementById('split-group');
+    selG = document.getElementById('split-group'), selJ = document.getElementById('split-project');
   var more = document.getElementById('split-more'), allBox = document.getElementById('split-all');
   var addBtn = document.getElementById('split-add');
   var all = [], hits = [], shown = 0, PAGE = 100;
@@ -36,6 +36,7 @@
   function norm(s) { return String(s).toLowerCase(); }
   function groupKey(s) {
     var g = selG ? selG.value : '';
+    if (g === 'project') return s[10] || 'No project';
     if (g === 'country') return s[7] || 'Country not known';
     if (g === 'collector') return s[3] || 'Collector not known';
     if (g === 'rock') return (s[6].split(' · ')[0]) || 'Rock type not known';
@@ -48,9 +49,10 @@
     return '';
   }
   function apply() {
-    var words = norm(q.value).split(/\s+/).filter(Boolean), m = selM.value, p = selP.value, mo = mounted && mounted.checked;
+    var words = norm(q.value).split(/\s+/).filter(Boolean), m = selM.value, p = selP.value, mo = mounted && mounted.checked, pj = selJ ? selJ.value : '';
     hits = all.filter(function (s) {
       if (mo && !s[5].length) return false;
+      if (pj && (pj === '-' ? s[10] : s[10] !== pj)) return false;
       if (m || p) {
         var ok = s._v.some(function (v) {
           return (!m || v[1].split(' + ').indexOf(m) !== -1 || (m === 'Other' && !/^(Apatite|Zircon|Titanite)( \+ |$)/.test(v[1]))) && (!p || v[2] === p);
@@ -61,10 +63,17 @@
     });
     if (selG && selG.value) {
       hits.forEach(function (s) { s._g = groupKey(s); });
-      hits.sort(function (a, b) { return a._g.localeCompare(b._g, undefined, { numeric: true }) || a._o - b._o; });
+      var last = function (g) { return /^No |not known$|\?$/.test(g) ? 1 : 0; };
+      hits.sort(function (a, b) { return last(a._g) - last(b._g) || a._g.localeCompare(b._g, undefined, { numeric: true }) || a._o - b._o; });
     } else hits.sort(function (a, b) { return a._o - b._o; });
     shown = 0; tbody.innerHTML = ''; page();
-    if (!drawer) try { history.replaceState(null, '', q.value ? '?q=' + encodeURIComponent(q.value) : location.pathname); } catch (e) {}
+    if (!drawer) try {
+      var ps = [];
+      if (q.value) ps.push('q=' + encodeURIComponent(q.value));
+      if (selG && selG.value) ps.push('group=' + encodeURIComponent(selG.value));
+      if (selJ && selJ.value) ps.push('project=' + encodeURIComponent(selJ.value));
+      history.replaceState(null, '', ps.length ? '?' + ps.join('&') : location.pathname);
+    } catch (e) {}
     document.dispatchEvent(new CustomEvent('splits-filtered', { detail: hits }));
   }
   function page() {
@@ -108,7 +117,7 @@
   if (window.PullList) PullList.onChange(syncPicks);
   more.addEventListener('click', page);
   var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(apply, 120); });
-  [selM, selP, mounted, selG].forEach(function (el) { if (el) el.addEventListener('change', apply); });
+  [selM, selP, mounted, selG, selJ].forEach(function (el) { if (el) el.addEventListener('change', apply); });
 
   fetch(me.dataset.index, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     all = d.samples;
@@ -118,7 +127,7 @@
     } else all.forEach(function (s) { s._v = s[2]; });
     var minerals = {}, preps = {};
     all.forEach(function (s) {
-      s._t = norm([s[1], s[3], s[4], s[5].join(' '), s[6] || '', s[7] || ''].concat(s._v.map(function (v) { return v.slice(0, 3).join(' '); })).join(' '));
+      s._t = norm([s[1], s[3], s[4], s[5].join(' '), s[6] || '', s[7] || '', s[10] || ''].concat(s._v.map(function (v) { return v.slice(0, 3).join(' '); })).join(' '));
       s._v.forEach(function (v) {
         v[1].split(' + ').forEach(function (x) { if (x) minerals[/^(Apatite|Zircon|Titanite)$/.test(x) ? x : 'Other'] = 1; });
         if (v[2]) preps[v[2]] = (preps[v[2]] || 0) + 1;
@@ -131,8 +140,17 @@
       all.sort(function (a, b) { return key(a).localeCompare(key(b)); });
     } else all.sort(function (a, b) { return a[1].localeCompare(b[1], undefined, { numeric: true }); });
     all.forEach(function (s, i) { s._o = i; });
-    var m = /[?&]q=([^&]*)/.exec(location.search);
-    if (m) q.value = decodeURIComponent(m[1].replace(/\+/g, ' '));
+    if (selJ) {
+      var pjs = {}, none = 0;
+      all.forEach(function (s) { if (s[10]) pjs[s[10]] = (pjs[s[10]] || 0) + 1; else none++; });
+      Object.keys(pjs).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (x) { selJ.add(new Option(x + ' (' + pjs[x] + ')', x)); });
+      if (Object.keys(pjs).length) selJ.add(new Option('No project (' + none + ')', '-'));
+      selJ.closest('label').hidden = !Object.keys(pjs).length;
+    }
+    function param(k) { var r = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search); return r ? decodeURIComponent(r[1].replace(/\+/g, ' ')) : ''; }
+    if (param('q')) q.value = param('q');
+    if (selG && param('group') && selG.querySelector('option[value="' + param('group') + '"]')) selG.value = param('group');
+    if (selJ && param('project')) { if (!selJ.querySelector('option[value="' + param('project').replace(/"/g, '') + '"]')) selJ.add(new Option(param('project'), param('project'))); selJ.value = param('project'); }
     apply();
     document.dispatchEvent(new CustomEvent('splits-loaded', { detail: { all: d.samples, listed: all } }));
   }).catch(function () { count.textContent = 'The sample list isn\'t available yet. It is made when the site is built.'; });
