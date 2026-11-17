@@ -21,6 +21,7 @@
     '<label>Region <input name="region" placeholder="e.g. Australia-Tas"></label>' +
     '<div class="row"><label class="grow">Rock type <input name="rock_type"></label>' +
     '<label class="grow">Stratigraphic / crystalline age <input name="strat_age"></label></div>' +
+    '<label>Stratigraphic unit <input name="unit"></label>' +
     '<div class="row"><label class="grow">Sample type <input name="sample_type" list="se-stypes" placeholder="Outcrop, Subsurface…"></label>' +
     '<label class="grow">Cuttings / core <input name="cuttings_core" list="se-cc"></label></div>' +
     '<div class="row"><label class="grow">Sample depth from (m) <input name="depth_m" class="mono" inputmode="decimal"></label>' +
@@ -101,6 +102,7 @@
       f.region.value = rec.region || '';
       f.rock_type.value = rec.rock_type || '';
       f.strat_age.value = rec.strat_age || '';
+      f.unit.value = rec.unit || '';
       f.sample_type.value = rec.sample_type || '';
       f.cuttings_core.value = rec.cuttings_core || '';
       f.depth_m.value = rec.depth_m == null ? '' : rec.depth_m;
@@ -135,7 +137,7 @@
     var lines = ['---', 'layout: sample', 'sample_id: ' + q(rec.sample_id), 'permalink: ' + q('/s/' + slug(rec.sample_id) + '/'),
       'igsn: ' + q(rec.igsn), 'associated_pids: ' + q(rec.associated_pids), 'collected_by: ' + q(rec.collected_by), 'notes: ' + q(rec.notes),
       'region: ' + q(rec.region), 'lat: ' + q(rec.lat), 'lon: ' + q(rec.lon),
-      'rock_type: ' + q(rec.rock_type), 'strat_age: ' + q(rec.strat_age), 'sample_type: ' + q(rec.sample_type),
+      'rock_type: ' + q(rec.rock_type), 'strat_age: ' + q(rec.strat_age), 'unit: ' + q(rec.unit), 'sample_type: ' + q(rec.sample_type),
       'cuttings_core: ' + q(rec.cuttings_core), 'depth_m: ' + q(rec.depth_m), 'depth_max_m: ' + q(rec.depth_max_m), 'elevation_m: ' + q(rec.elevation_m)];
     if (rec.vials.length) { lines.push('vials:'); rec.vials.forEach(function (v) {
       lines.push('  - {' + Object.keys(v).map(function (k) { return q(k) + ': ' + q(v[k]); }).join(', ') + '}');
@@ -160,7 +162,7 @@
     var rec = { sample_id: sid, igsn: f.igsn.value.trim(),
       associated_pids: f.pids.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
       collected_by: f.collected_by.value.trim(), notes: f.notes.value.replace(/\r\n/g, '\n').trim(), vials: vials,
-      region: f.region.value.trim(), rock_type: f.rock_type.value.trim(), strat_age: f.strat_age.value.trim(),
+      region: f.region.value.trim(), rock_type: f.rock_type.value.trim(), strat_age: f.strat_age.value.trim(), unit: f.unit.value.trim(),
       sample_type: f.sample_type.value.trim(), cuttings_core: f.cuttings_core.value.trim(),
       depth_m: num(f.depth_m.value, 20000), depth_max_m: num(f.depth_max_m.value, 20000), elevation_m: num(f.elevation_m.value, 9000), lat: num(f.lat.value, 90), lon: num(f.lon.value, 180) };
     if (rec.lat === undefined || rec.lon === undefined) { err.textContent = 'Latitude and longitude must be numbers in decimal degrees.'; return; }

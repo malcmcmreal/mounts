@@ -34,11 +34,12 @@ layout: default
       <h2>Details</h2>
       <dl class="facts">
         <dt>Sample number</dt><dd class="mono">{{ page.sample_id }}</dd>
-        <dt>IGSN</dt><dd>{% if page.igsn and page.igsn != "" %}<a class="mono" href="https://igsn.org/{{ page.igsn }}" target="_blank" rel="noopener">{{ page.igsn }}</a>{% else %}<span class="muted">—</span>{% endif %}</dd>
+        <dt>IGSN</dt><dd>{% if page.igsn and page.igsn != "" %}<a class="mono" href="https://hdl.handle.net/10273/{{ page.igsn }}" target="_blank" rel="noopener">{{ page.igsn }}</a>{% else %}<span class="muted">—</span>{% endif %}</dd>
         <dt>Associated PIDs</dt><dd>{% if page.associated_pids.size > 0 %}<span class="mono">{{ page.associated_pids | join: ", " }}</span>{% else %}<span class="muted">—</span>{% endif %}</dd>
         <dt>Collected by</dt><dd>{% if page.collected_by and page.collected_by != "" %}{{ page.collected_by }}{% else %}<span class="muted">—</span>{% endif %}</dd>
         {% if page.region and page.region != "" %}<dt>Region</dt><dd>{{ page.region }}</dd>{% endif %}
         {% if page.rock_type and page.rock_type != "" %}<dt>Rock type</dt><dd>{{ page.rock_type }}</dd>{% endif %}
+        {% if page.unit and page.unit != "" %}<dt>Stratigraphic unit</dt><dd>{{ page.unit }}</dd>{% endif %}
         {% if page.strat_age and page.strat_age != "" %}<dt>Stratigraphic / crystalline age</dt><dd>{{ page.strat_age }}</dd>{% endif %}
         {% if page.sample_type and page.sample_type != "" %}<dt>Sample type</dt><dd>{{ page.sample_type }}{% if page.cuttings_core and page.cuttings_core != "" %} · {{ page.cuttings_core }}{% endif %}</dd>{% elsif page.cuttings_core and page.cuttings_core != "" %}<dt>Sample type</dt><dd>{{ page.cuttings_core }}</dd>{% endif %}
         {% if page.depth_m %}<dt>Sample depth</dt><dd>{{ page.depth_m }}{% if page.depth_max_m %}–{{ page.depth_max_m }}{% endif %} m</dd>{% endif %}
@@ -120,7 +121,7 @@ layout: default
   </details>
 </article>
 
-<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
+<script type="application/json" id="sample-data">{"path": {{ page.path | jsonify }}, "slug": {{ slug | jsonify }}, "sample_id": {{ page.sample_id | jsonify }}, "igsn": {{ page.igsn | jsonify }}, "associated_pids": {{ page.associated_pids | jsonify }}, "collected_by": {{ page.collected_by | jsonify }}, "notes": {{ page.notes | jsonify }}, "region": {{ page.region | jsonify }}, "rock_type": {{ page.rock_type | jsonify }}, "unit": {{ page.unit | jsonify }}, "strat_age": {{ page.strat_age | jsonify }}, "sample_type": {{ page.sample_type | jsonify }}, "cuttings_core": {{ page.cuttings_core | jsonify }}, "depth_m": {{ page.depth_m | jsonify }}, "depth_max_m": {{ page.depth_max_m | jsonify }}, "elevation_m": {{ page.elevation_m | jsonify }}, "lat": {{ page.lat | jsonify }}, "lon": {{ page.lon | jsonify }}, "vials": {{ page.vials | jsonify }}}</script>
 {% if repo != "" %}<script src="{{ '/assets/sample-edit.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>{% endif %}
 <script src="{{ '/assets/tray-map.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-trays="{{ '/assets/trays.json' | relative_url }}" data-base="{{ '/' | relative_url }}"></script>
 <script src="{{ '/assets/qrcode.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
