@@ -10,7 +10,7 @@ body_page: pull
   <div>
     <p class="eyebrow">Vials to pull</p>
     <h1>Pull list</h1>
-    <p class="lede">Vials for the samples you've picked, in walking order: drawer, then row, then position</p>
+    <p class="lede">Vials for the samples you've picked, in walking order (drawer, row, position). Click a column heading to sort by it.</p>
   </div>
   <div class="head-btns no-print">
     <button type="button" class="btn" id="pull-print">Print</button>
@@ -19,13 +19,33 @@ body_page: pull
 </div>
 
 <div class="list-tools no-print">
+  <input id="pull-q" class="filter" type="search" placeholder="Search sample, catalogue number, country, project" autocomplete="off">
   <label class="group-by">Mineral
     <select id="pull-mineral"><option value="">All vials</option><option>Apatite</option><option>Zircon</option><option>Titanite</option><option value="Other">Other</option></select>
   </label>
   <label class="group-by">Split
-    <select id="pull-prep"><option value="">Any</option><option>Fraction</option><option>Concentrate</option></select>
+    <select id="pull-prep"><option value="">Any</option></select>
+  </label>
+  <div class="qty-filter" title="Vial amount, 0 (empty) to 5 (full)">
+    <span class="small muted">Amount</span>
+    <div class="dual-range"><div class="dr-track"><i id="qty-fill"></i></div>
+      <input type="range" id="qty-lo" min="0" max="5" step="1" value="0" aria-label="Lowest vial amount">
+      <input type="range" id="qty-hi" min="0" max="5" step="1" value="5" aria-label="Highest vial amount"></div>
+    <span class="mono small" id="qty-out">0–5</span>
+    <label class="check small" title="Vials whose amount hasn't been checked"><input type="checkbox" id="qty-unrated" checked> unrated</label>
+  </div>
+  <label class="group-by">Country
+    <select id="pull-country"><option value="">Any</option></select>
+  </label>
+  <label class="group-by">Project
+    <select id="pull-projsel"><option value="">Any</option></select>
   </label>
   <label class="check small"><input type="checkbox" id="pull-found" checked> Leave out vials not found</label>
+  <button type="button" class="btn small" id="pull-reset" hidden title="Clear the search and every filter">↺ Reset filters</button>
+</div>
+<div class="list-tools no-print pull-actions">
+  <span id="pull-trim-wrap" hidden><button type="button" class="btn small" id="pull-trim">Keep only these on the list</button>
+    <span class="small muted" id="pull-trim-note"></span></span>
   <span class="spacer"></span>
   <a class="btn small" href="{{ '/samples/map/' | relative_url }}">Pick on the map</a>
   <button type="button" class="btn small" id="pull-project" title="Tag every sample on this list with a project">Set project…</button>
@@ -39,7 +59,12 @@ body_page: pull
 </section>
 <div class="table-scroll">
 <table class="split-list pull-table">
-  <thead><tr><th>Drawer</th><th>Position</th><th>Catalogue</th><th>Sample</th><th>Mineral</th><th>Split</th><th>Amount</th><th>Country</th><th>Project</th><th class="no-print"></th></tr></thead>
+  <thead><tr>
+    <th><button type="button" class="sort" data-sort="drawer">Drawer</button></th><th><button type="button" class="sort" data-sort="pos">Position</button></th>
+    <th><button type="button" class="sort" data-sort="cat">Catalogue</button></th><th><button type="button" class="sort" data-sort="sample">Sample</button></th>
+    <th><button type="button" class="sort" data-sort="mineral">Mineral</button></th><th><button type="button" class="sort" data-sort="split">Split</button></th>
+    <th><button type="button" class="sort" data-sort="amount">Amount</button></th><th><button type="button" class="sort" data-sort="country">Country</button></th>
+    <th><button type="button" class="sort" data-sort="project">Project</button></th><th class="no-print"></th></tr></thead>
   <tbody id="pull-rows"></tbody>
 </table>
 </div>

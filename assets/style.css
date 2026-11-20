@@ -638,3 +638,11 @@ button.drawer { font: inherit; text-align: left; cursor: pointer; width: 100%; }
 .cabinet.filtered a.drawer { border-color: #7a5a3a; }
 .cab-note { grid-column: 1 / -1; margin: .3rem 0 0; color: #ffb877; }
 .drawer.none { visibility: hidden; }
+
+/* Sortable column headers (pull list) */
+th .sort { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; }
+th .sort:hover { color: var(--ink); }
+th .sort.on { color: #ffb877; }
+th .sort.on::after { content: attr(data-dir); font-size: .7em; margin-left: .3em; }
+.pull-actions { margin-top: .2rem; }
+@media print { th .sort.on::after { content: none; } th .sort.on { color: #000 !important; } }

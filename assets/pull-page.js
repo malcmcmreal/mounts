@@ -4,6 +4,13 @@
   var me = document.currentScript, base = me.dataset.base || '/';
   var tbody = document.getElementById('pull-rows'), sum = document.getElementById('pull-summary');
   var selM = document.getElementById('pull-mineral'), selP = document.getElementById('pull-prep'), found = document.getElementById('pull-found');
+  var q = document.getElementById('pull-q'), selC = document.getElementById('pull-country'), selJ = document.getElementById('pull-projsel');
+  var qLo = document.getElementById('qty-lo'), qHi = document.getElementById('qty-hi'), qUn = document.getElementById('qty-unrated'),
+    qOut = document.getElementById('qty-out'), qFill = document.getElementById('qty-fill');
+  var resetBtn = document.getElementById('pull-reset'), trimWrap = document.getElementById('pull-trim-wrap'), trimNote = document.getElementById('pull-trim-note');
+  var sortKey = 'drawer', sortDir = 1, shownSlugs = [];
+  try { var ss = JSON.parse(localStorage.getItem('mnts-pull-sort') || 'null'); if (ss) { sortKey = ss[0]; sortDir = ss[1]; } } catch (e) {}
+  function amtOn() { return +qLo.value > 0 || +qHi.value < 5 || !qUn.checked; }
   var index = {}, rows = [], trays = null, projects = [];
   var cab = document.getElementById('pull-cabinet'), dlg = document.getElementById('pull-drawer');
   var SHORT = { Apatite: 'Ap', Zircon: 'Zr', Titanite: 'Ti' };
@@ -17,10 +24,13 @@
   function parse(cat) { var m = /^(\d+)([A-Z])(\d+)/.exec(cat || ''); return m ? { d: +m[1], r: m[2], c: +m[3] } : null; }
   function amount(q) { return q === 'missing' ? 'Not found' : q === '' || q == null ? '' : q + '/5'; }
   function build() {
-    var m = selM.value, p = selP.value, slugs = PullList.get(), out = [], missingSamples = [];
+    var m = selM.value, p = selP.value, slugs = PullList.get(), out = [], missingSamples = [], dropped = 0;
+    var words = q.value.toLowerCase().split(/\s+/).filter(Boolean), c = selC.value, pj = selJ.value, amt = amtOn(), lo = +qLo.value, hi = +qHi.value;
+    var filtering = !!(m || p || words.length || c || pj || amt);
     slugs.forEach(function (slug) {
       var s = index[slug];
       if (!s) { missingSamples.push(slug); return; }
+      if ((c && (s[7] || '-') !== c) || (pj && (s[10] || '-') !== pj)) { dropped++; return; }
       var any = false, merged = [], byCat = {};
       s[2].forEach(function (v) {   // a mixed vial is listed once per mineral: show it once
         var k = v[0] && byCat[v[0]];
@@ -32,25 +42,58 @@
         if (m && !(m === 'Other' ? !/^(Apatite|Zircon|Titanite)$/.test(ms[0]) : ms.indexOf(m) !== -1)) return;
         if (p && v[2] !== p) return;
         if (found.checked && v[3] === 'missing') return;
+        if (amt && (typeof v[3] === 'number' ? v[3] < lo || v[3] > hi : !qUn.checked || v[3] === 'missing')) return;
+        if (words.length) {
+          var t = [s[1], v[0], v[1], v[2], s[7] || '', s[10] || '', s[3] || '', v[4] || ''].join(' ').toLowerCase();
+          if (!words.every(function (w) { return t.indexOf(w) !== -1; })) return;
+        }
         var at = parse(v[0]);
         out.push({ s: s, v: v, at: at, pos: v[4] || (at ? at.r + ('0' + at.c).slice(-2) : '') });
         any = true;
       });
-      if (!any) out.push({ s: s, v: null, at: null, pos: '' });
+      if (!any) { if (filtering) dropped++; else out.push({ s: s, v: null, at: null, pos: '' }); }
     });
-    out.sort(function (a, b) {
+    var walk = function (a, b) {
       if (!a.at || !b.at) return (a.at ? 0 : 1) - (b.at ? 0 : 1) || a.s[1].localeCompare(b.s[1], undefined, { numeric: true });
       return a.at.d - b.at.d || a.at.r.localeCompare(b.at.r) || a.at.c - b.at.c;
+    };
+    var txt = function (x, y) { return String(x || '').localeCompare(String(y || ''), undefined, { numeric: true, sensitivity: 'base' }); };
+    var empty = function (x) { return x === '' || x == null; };
+    var by = {
+      drawer: walk, cat: walk,
+      pos: function (a, b) { return (a.at ? 0 : 1) - (b.at ? 0 : 1) || (a.at && b.at ? a.at.r.localeCompare(b.at.r) || a.at.c - b.at.c || a.at.d - b.at.d : 0); },
+      sample: function (a, b) { return txt(a.s[1], b.s[1]); },
+      mineral: function (a, b) { return txt(a.v && a.v[1], b.v && b.v[1]); },
+      split: function (a, b) { return txt(a.v && a.v[2], b.v && b.v[2]); },
+      amount: function (a, b) { var x = a.v && typeof a.v[3] === 'number' ? a.v[3] : -1, y = b.v && typeof b.v[3] === 'number' ? b.v[3] : -1; return x - y; },
+      country: function (a, b) { return txt(a.s[7], b.s[7]); },
+      project: function (a, b) { return txt(a.s[10], b.s[10]); }
+    }[sortKey] || walk;
+    var blankLast = { country: function (o) { return empty(o.s[7]); }, project: function (o) { return empty(o.s[10]); }, amount: function (o) { return !o.v || typeof o.v[3] !== 'number'; } }[sortKey];
+    out.sort(function (a, b) {
+      if (blankLast) { var ea = blankLast(a) ? 1 : 0, eb = blankLast(b) ? 1 : 0; if (ea !== eb) return ea - eb; }
+      return sortDir * by(a, b) || walk(a, b);
     });
     rows = out;
+    var grouped = (sortKey === 'drawer' || sortKey === 'cat') && sortDir === 1;
+    document.querySelectorAll('.pull-table .sort').forEach(function (b) {
+      var on = b.dataset.sort === sortKey;
+      b.classList.toggle('on', on); b.setAttribute('aria-sort', on ? (sortDir === 1 ? 'ascending' : 'descending') : 'none');
+      b.dataset.dir = on ? (sortDir === 1 ? '▲' : '▼') : '';
+    });
+    resetBtn.hidden = !(filtering || !found.checked);
+    shownSlugs = []; var seenS = {};
+    out.forEach(function (o) { if (!seenS[o.s[0]]) { seenS[o.s[0]] = 1; shownSlugs.push(o.s[0]); } });
+    trimWrap.hidden = !(filtering && dropped);
+    trimNote.textContent = dropped ? dropped + ' sample' + (dropped === 1 ? ' has' : 's have') + ' no vials matching the filters' : '';
     var html = '', prevD = null, drawers = {};
     out.forEach(function (o) {
       var d = o.at ? o.at.d : null;
-      if (d !== prevD) {
+      if (grouped && d !== prevD) {
         html += '<tr class="group-row"><th colspan="10">' + (d != null ? '<button type="button" class="link-btn" data-drawer="' + d + '">Drawer ' + d + '</button>' : 'No vial position') + '</th></tr>';
         prevD = d;
       }
-      if (d != null) drawers[d] = (drawers[d] || 0) + 1;
+      if (d != null && o.v) drawers[d] = (drawers[d] || 0) + 1;
       var s = o.s, v = o.v;
       var go = v && d != null ? ' data-show="' + esc(v[0]) + '"' : '';
       html += '<tr><td class="mono">' + (d != null ? d : '') + '</td>' +
@@ -61,11 +104,12 @@
         '<td class="small">' + (v ? esc(amount(v[3])) : '') + '</td><td class="small">' + esc(s[7]) + '</td><td class="small">' + esc(s[10] || '') + '</td>' +
         '<td class="no-print"><button type="button" class="link-btn small" data-remove="' + esc(s[0]) + '" title="Take ' + esc(s[1]) + ' off the pull list">Remove</button></td></tr>';
     });
+    if (slugs.length && !out.length) html = '<tr><td colspan="10" class="muted">No vials on the list match these filters.</td></tr>';
     if (!slugs.length) html = '<tr><td colspan="10" class="muted">The pull list is empty. Tick samples in the <a href="' + base + 'samples/">Mineral Split Database</a> or pick them on the <a href="' + base + 'samples/map/">map</a>.</td></tr>';
     tbody.innerHTML = html;
     cabinet(out);
     var vials = out.filter(function (o) { return o.v; }).length, ds = Object.keys(drawers);
-    sum.innerHTML = '<div class="stat"><strong>' + slugs.length + '</strong><span>samples</span></div><div class="stat"><strong>' + vials + '</strong><span>vials</span></div>' +
+    sum.innerHTML = '<div class="stat"><strong>' + (filtering ? shownSlugs.length + '<small class="muted"> / ' + slugs.length + '</small>' : slugs.length) + '</strong><span>samples' + (filtering ? ' shown' : '') + '</span></div><div class="stat"><strong>' + vials + '</strong><span>vials</span></div>' +
       '<div class="stat"><strong>' + ds.length + '</strong><span>drawer' + (ds.length === 1 ? '' : 's') + '</span></div>' +
       (ds.length ? '<div class="stat wide"><strong class="small">' + ds.map(function (d) { return 'Drawer ' + d + ' <span class="muted">' + drawers[d] + '</span>'; }).join(' · ') + '</strong><span>vials per drawer</span></div>' : '') +
       (missingSamples.length ? '<div class="stat wide"><strong class="small">' + missingSamples.map(esc).join(', ') + '</strong><span>no longer in the database</span></div>' : '');
@@ -145,7 +189,30 @@
   document.getElementById('pd-close').addEventListener('click', function () { dlg.close(); });
   dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
   fetch(me.dataset.trays).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { trays = d; }).catch(function () {});
-  [selM, selP, found].forEach(function (el) { el.addEventListener('change', build); });
+  [selM, selP, found, selC, selJ, qUn].forEach(function (el) { el.addEventListener('change', build); });
+  var t; q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(build, 120); });
+  function qty(e) {
+    if (+qLo.value > +qHi.value) { if (e && e.target === qLo) qHi.value = qLo.value; else qLo.value = qHi.value; }
+    qOut.textContent = qLo.value === qHi.value ? qLo.value : qLo.value + '–' + qHi.value;
+    qFill.style.left = (qLo.value * 20) + '%'; qFill.style.right = ((5 - qHi.value) * 20) + '%';
+  }
+  [qLo, qHi].forEach(function (el) { el.addEventListener('input', function (e) { qty(e); clearTimeout(t); t = setTimeout(build, 80); }); });
+  qty();
+  resetBtn.addEventListener('click', function () {
+    q.value = ''; selM.value = ''; selP.value = ''; selC.value = ''; selJ.value = ''; found.checked = true;
+    qLo.value = 0; qHi.value = 5; qUn.checked = true; qty(); build();
+  });
+  document.getElementById('pull-trim').addEventListener('click', function () {
+    var keep = {}; shownSlugs.forEach(function (x) { keep[x] = 1; });
+    var drop = PullList.get().filter(function (x) { return !keep[x] && index[x]; });
+    if (drop.length && confirm('Take the ' + drop.length + ' sample' + (drop.length === 1 ? '' : 's') + ' with no matching vials off the pull list?')) PullList.remove(drop);
+  });
+  document.querySelector('.pull-table thead').addEventListener('click', function (e) {
+    var b = e.target.closest('.sort'); if (!b) return;
+    if (sortKey === b.dataset.sort) sortDir = -sortDir; else { sortKey = b.dataset.sort; sortDir = 1; }
+    try { localStorage.setItem('mnts-pull-sort', JSON.stringify([sortKey, sortDir])); } catch (e) {}
+    build();
+  });
   document.getElementById('pull-clear').addEventListener('click', function () {
     if (PullList.get().length && confirm('Take all ' + PullList.get().length + ' samples off the pull list?')) PullList.clear();
   });
@@ -172,6 +239,17 @@
   fetch(me.dataset.index, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     d.samples.forEach(function (s) { index[s[0]] = s; });
     projects = d.projects || [];
+    function fill() {   // options from the samples on the list
+      var cs = {}, ps = {}, sp = {};
+      PullList.get().forEach(function (x) { var r = index[x]; if (!r) return; cs[r[7] || '-'] = 1; ps[r[10] || '-'] = 1; r[2].forEach(function (v) { if (v[2]) sp[v[2]] = 1; }); });
+      [[selC, cs, 'Country not known'], [selJ, ps, 'No project'], [selP, sp, null]].forEach(function (a) {
+        var sel = a[0], cur = sel.value;
+        while (sel.options.length > 1) sel.remove(1);
+        Object.keys(a[1]).sort(function (x, y) { return x === '-' ? 1 : y === '-' ? -1 : x.localeCompare(y); }).forEach(function (k) { if (k !== '-' || a[2]) sel.add(new Option(k === '-' ? a[2] : k, k)); });
+        sel.value = cur; if (sel.value !== cur) sel.value = '';
+      });
+    }
+    fill(); PullList.onChange(fill);
     build();
   }).catch(function () { sum.innerHTML = '<p class="muted small">The sample list isn\'t available yet. It is made when the site is built.</p>'; });
 })();
