@@ -710,3 +710,4 @@ th .sort.on::after { content: attr(data-dir); font-size: .7em; margin-left: .3em
 .tern-modal-bar strong { font-size: .9rem; margin-right: auto; }
 .tern-modal iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
 body.modal-open { overflow: hidden; }
+.tern-zoom input[type=number] { width: 4.6rem; }

@@ -109,13 +109,17 @@
       .concat(groups.filter(function (g) { return /\(standard\)$/.test(g); })).concat(stds);
   }
   function setupControls() {
+    ['tern-amin', 'tern-bmin', 'tern-cmin'].forEach(function (id) { $(id).addEventListener('change', readZoom); });
+    $('tern-fit').addEventListener('click', fitZoom);
+    $('tern-full').addEventListener('click', function () { zoom = { a: 0, b: 0, c: 0 }; showZoom(); $('tern-zoom-msg').textContent = ''; draw(); });
     ['tern-a', 'tern-b', 'tern-c'].forEach(function (id) { $(id).addEventListener('change', draw); });
     if (head.indexOf('Sample ID') < 0) $('tern-colour').value = files.length > 1 ? 'Mount' : '';
     ['tern-colour', 'tern-std', 'tern-low', 'tern-fcl'].forEach(function (id) { $(id).addEventListener('change', function () { hidden = {}; draw(); }); });
     $('tern-reset').addEventListener('click', function () {
       ['tern-a', 'tern-b', 'tern-c'].forEach(function (id, k) { if (cand.indexOf(DEF[k]) >= 0) $(id).value = DEF[k]; });
       $('tern-colour').value = head.indexOf('Sample ID') >= 0 ? 'Sample ID' : '';
-      $('tern-std').checked = true; $('tern-low').checked = true; $('tern-fcl').checked = false; hidden = {}; draw();
+      $('tern-std').checked = true; $('tern-low').checked = true; $('tern-fcl').checked = false; hidden = {};
+      zoom = { a: 0, b: 0, c: 0 }; showZoom(); $('tern-zoom-msg').textContent = ''; draw();
     });
   }
 
@@ -135,12 +139,43 @@
       var key = by === 'Sample ID' ? g || '(no sample ID)' : by === 'Mount' ? r.Mount : 'All spots';
       out.push({ a: a / s, b: b / s, c: c / s, ra: va, rb: vb, rc: vc, spot: r['Spot ID'] || '', sample: g, mount: r.Mount, comment: cm, key: key });
     });
-    return { pts: out, A: A, B: B, C: C, skipped: skipped, filtered: filtered, by: by };
+    var Z = { a: zoom.a, b: zoom.b, c: zoom.c, span: 1 - zoom.a - zoom.b - zoom.c }, outside = 0;
+    out.forEach(function (d) { d.out = d.a < Z.a - 1e-9 || d.b < Z.b - 1e-9 || d.c < Z.c - 1e-9; });
+    return { pts: out, A: A, B: B, C: C, skipped: skipped, filtered: filtered, by: by, zoom: Z };
   }
   function colourOf(key, theme, by) {
     if (!by) return PAL[theme][0];
     var i = by === 'Mount' ? mIndex(key) : groups.indexOf(key);
     return i >= 0 && i < 8 ? PAL[theme][i] : OTHER[theme];
+  }
+
+  // ---- zoom: a minimum for each corner (like plotly's ternary axis min); the plot becomes the smaller triangle
+  // a >= aMin, b >= bMin, c >= cMin, of side 1 - (aMin + bMin + cMin)
+  var zoom = { a: 0, b: 0, c: 0 };
+  function niceStep(span) {
+    var st = [0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2];
+    for (var i = 0; i < st.length; i++) if (span / st[i] <= 6) return st[i];
+    return 0.2;
+  }
+  function readZoom() {
+    var z = { a: +$('tern-amin').value || 0, b: +$('tern-bmin').value || 0, c: +$('tern-cmin').value || 0 };
+    ['a', 'b', 'c'].forEach(function (k) { z[k] = Math.min(Math.max(z[k], 0), 0.99); });
+    if (z.a + z.b + z.c > 0.99) { $('tern-zoom-msg').textContent = 'The three minimums must add up to less than 1.'; return; }
+    $('tern-zoom-msg').textContent = '';
+    zoom = z; draw();
+  }
+  function showZoom() {
+    $('tern-amin').value = +zoom.a.toFixed(3); $('tern-bmin').value = +zoom.b.toFixed(3); $('tern-cmin').value = +zoom.c.toFixed(3);
+  }
+  function fitZoom() {   // tightest corner triangle that holds every shown spot, with a little margin, on round numbers
+    var shown = (cur ? cur.pts : []).filter(function (d) { return !hidden[d.key]; });
+    if (!shown.length) return;
+    var m = { a: 1, b: 1, c: 1 };
+    shown.forEach(function (d) { m.a = Math.min(m.a, d.a); m.b = Math.min(m.b, d.b); m.c = Math.min(m.c, d.c); });
+    var span = 1 - m.a - m.b - m.c, pad = Math.max(span * 0.06, 0.005), z = {};
+    var unit = niceStep(span + 3 * pad) / 2;
+    ['a', 'b', 'c'].forEach(function (k) { z[k] = Math.max(0, Math.floor((m[k] - pad) / unit) * unit); });
+    zoom = z; showZoom(); $('tern-zoom-msg').textContent = ''; draw();
   }
 
   // ---- drawing ----
@@ -162,24 +197,29 @@
     o.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + f1(HH) + '" width="' + W + '" height="' + f1(HH) + '" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">');
     if (forExport) o.push('<rect width="100%" height="100%" fill="' + T.bg + '"/>');
     // grid every 0.2, ticks on the three edges (a on the left, b on the bottom, c on the right)
-    for (var k = 1; k < 5; k++) {
-      var t = k / 5, L = [];
-      L.push([xy(t, 1 - t, 0), xy(t, 0, 1 - t)]);
-      L.push([xy(1 - t, t, 0), xy(0, t, 1 - t)]);
-      L.push([xy(1 - t, 0, t), xy(0, 1 - t, t)]);
-      L.forEach(function (l) { o.push('<line x1="' + f1(l[0][0]) + '" y1="' + f1(l[0][1]) + '" x2="' + f1(l[1][0]) + '" y2="' + f1(l[1][1]) + '" stroke="' + T.grid + '" stroke-width="1"/>'); });
-      var pa = xy(t, 1 - t, 0), pb = xy(0, t, 1 - t), pc = xy(1 - t, 0, t), lab = t.toFixed(1);
-      o.push('<text x="' + f1(pa[0] - 8) + '" y="' + f1(pa[1] + 4) + '" text-anchor="end" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
-      o.push('<text x="' + f1(pb[0]) + '" y="' + f1(pb[1] + 18) + '" text-anchor="middle" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
-      o.push('<text x="' + f1(pc[0] + 8) + '" y="' + f1(pc[1] + 4) + '" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
-    }
+    // grid in data units: a-lines ticked on the left edge, b on the bottom, c on the right (zoom-aware)
+    var Z = p.zoom, step = niceStep(Z.span), dp = step >= 0.1 - 1e-9 ? 1 : step >= 0.01 - 1e-9 ? 2 : 3;
+    ['a', 'b', 'c'].forEach(function (ax) {
+      var lo = Z[ax], k0 = Math.floor(lo / step + 1e-9) + 1;
+      for (var k = k0; k * step < lo + Z.span - 1e-9; k++) {
+        var v = k * step, t = (v - lo) / Z.span, l, pl, lab = v.toFixed(dp);
+        if (t <= 1e-6) continue;
+        if (ax === 'a') { l = [xy(t, 1 - t, 0), xy(t, 0, 1 - t)]; pl = l[0]; }
+        else if (ax === 'b') { l = [xy(1 - t, t, 0), xy(0, t, 1 - t)]; pl = l[1]; }
+        else { l = [xy(1 - t, 0, t), xy(0, 1 - t, t)]; pl = l[0]; }
+        o.push('<line x1="' + f1(l[0][0]) + '" y1="' + f1(l[0][1]) + '" x2="' + f1(l[1][0]) + '" y2="' + f1(l[1][1]) + '" stroke="' + T.grid + '" stroke-width="1"/>');
+        if (ax === 'a') o.push('<text x="' + f1(pl[0] - 8) + '" y="' + f1(pl[1] + 4) + '" text-anchor="end" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
+        else if (ax === 'b') o.push('<text x="' + f1(pl[0]) + '" y="' + f1(pl[1] + 18) + '" text-anchor="middle" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
+        else o.push('<text x="' + f1(pl[0] + 8) + '" y="' + f1(pl[1] + 4) + '" font-size="11" fill="' + T.muted + '">' + lab + '</text>');
+      }
+    });
     o.push('<polygon points="' + [VA, VB, VC].map(function (v) { return f1(v[0]) + ',' + f1(v[1]); }).join(' ') + '" fill="none" stroke="' + T.edge + '" stroke-width="1.5"/>');
     o.push('<text x="' + f1(VA[0]) + '" y="' + f1(VA[1] - 16) + '" text-anchor="middle" font-size="15" font-weight="600" fill="' + T.ink + '">' + esc(short(p.A)) + '</text>');
     o.push('<text x="' + f1(VB[0] - 10) + '" y="' + f1(VB[1] + 40) + '" text-anchor="middle" font-size="15" font-weight="600" fill="' + T.ink + '">' + esc(short(p.B)) + '</text>');
     o.push('<text x="' + f1(VC[0] + 10) + '" y="' + f1(VC[1] + 40) + '" text-anchor="middle" font-size="15" font-weight="600" fill="' + T.ink + '">' + esc(short(p.C)) + '</text>');
     p.pts.forEach(function (d, i) {
-      if (hidden[d.key]) return;
-      var q = xy(d.a, d.b, d.c);
+      if (hidden[d.key] || d.out) return;
+      var q = xy((d.a - Z.a) / Z.span, (d.b - Z.b) / Z.span, (d.c - Z.c) / Z.span);
       o.push('<circle data-i="' + i + '" cx="' + f1(q[0]) + '" cy="' + f1(q[1]) + '" r="5" fill="' + colourOf(d.key, theme, p.by) + '" fill-opacity="0.9" stroke="' + T.ring + '" stroke-width="1.5"/>');
     });
     leg.forEach(function (g) {
@@ -202,6 +242,7 @@
   var cur = null;
   function draw() {
     cur = pick();
+    ['a', 'b', 'c'].forEach(function (k) { $('tern-' + k + 'lab').textContent = short(cur[k.toUpperCase()]) + ' ≥'; });
     var items = legendItems(cur);
     $('tern-legend').innerHTML = items.length > 1 ? items.map(function (g) {
       return '<button type="button" class="tern-key' + (hidden[g.key] ? ' off' : '') + '" data-key="' + esc(g.key) + '">' +
@@ -211,9 +252,11 @@
       b.addEventListener('click', function () { hidden[b.dataset.key] = !hidden[b.dataset.key]; draw(); });
     });
     $('tern-plot').innerHTML = svg(cur, 'dark', false);
-    var shown = cur.pts.filter(function (d) { return !hidden[d.key]; }).length;
-    $('tern-note').textContent = shown + ' spot' + (shown === 1 ? '' : 's') + ' plotted. Each spot\'s three values are scaled to sum to 1.' +
+    var shownPts = cur.pts.filter(function (d) { return !hidden[d.key]; }), shown = shownPts.length;
+    var outside = shownPts.filter(function (d) { return d.out; }).length;
+    $('tern-note').textContent = (shown - outside) + ' spot' + (shown - outside === 1 ? '' : 's') + ' plotted. Each spot\'s three values are scaled to sum to 1.' +
       (cur.filtered ? ' ' + cur.filtered + ' hidden by the options above.' : '') +
+      (outside ? ' ' + outside + ' outside the zoomed range.' : '') +
       (cur.skipped ? ' ' + cur.skipped + ' without values for all three (non-apatite rows, blanks).' : '') +
       (cur.by === 'Sample ID' && groups.length > 8 ? ' Samples after the eighth are grey.' : '') +
       (cur.by === 'Mount' && chosen.some(function (m) { return mIndex(m) >= 8; }) ? ' Mounts after the eighth in the list are grey.' : '');
