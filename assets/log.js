@@ -349,14 +349,9 @@
   });
 
   // ---------- history list ----------
-  var more = document.getElementById('history-more'), hl = document.getElementById('history-list');
-  if (more && hl) {
-    more.addEventListener('click', function () {
-      hl.hidden = !hl.hidden;
-      more.textContent = hl.hidden ? 'Show' : 'Hide';
-      more.setAttribute('aria-expanded', String(!hl.hidden));
-    });
-    function openIf() { if (location.hash === '#history' && hl.hidden) more.click(); }   // links to #history open it
+  var hg = document.getElementById('history-group');
+  if (hg) {
+    function openIf() { if (location.hash === '#history') hg.open = true; }   // links to #history open the list
     window.addEventListener('hashchange', openIf); openIf();
   }
 })();
