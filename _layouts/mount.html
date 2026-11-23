@@ -163,7 +163,7 @@ layout: default
         <span class="hires-what"><a href="{{ hr.url }}" target="_blank" rel="noopener">{% if hr.label %}{{ hr.label }}{% else %}Hi-res: {{ hn }}{% endif %}</a>
           <small class="muted">{% if hr.label %}{{ hn }} · {% endif %}{{ hr.url | split: "/" | slice: 2 | first | split: ":" | first }}</small></span>
         <span class="file-acts">
-          <a class="btn small" href="{{ hr.url }}" target="_blank" rel="noopener">Open ↗</a>
+          <a class="btn small" href="{{ hr.url }}" target="_blank" rel="noopener" title="Download">⤓ Download</a>
           {% if repo != "" %}<button type="button" class="btn small" data-add-entry="hires" data-file="{{ hn }}">Edit</button>{% endif %}
         </span>
       </div></li>
@@ -173,7 +173,7 @@ layout: default
         <span class="hires-what"><a href="{{ l.url }}" target="_blank" rel="noopener">{% if l.label %}{{ l.label }}{% else %}Hi-res download{% endif %}</a>
           <small class="muted">{{ l.url | split: "/" | slice: 2 | first | split: ":" | first }}</small></span>
         <span class="file-acts">
-          <a class="btn small" href="{{ l.url }}" target="_blank" rel="noopener">Open ↗</a>
+          <a class="btn small" href="{{ l.url }}" target="_blank" rel="noopener" title="Download">⤓ Download</a>
           {% if repo != "" %}<button type="button" class="btn small file-rm" data-add-entry="hires" data-file="" data-url="{{ l.url | escape }}">Remove</button>{% endif %}
         </span>
       </div></li>
