@@ -303,13 +303,14 @@ layout: default
   {% if st %}
   <section class="card history" id="history">
     <div class="card-head">
-      <h2>History</h2>
+      {% assign tl = st.timeline | reverse %}
+      <h2>History <span class="muted small">{{ tl.size }}</span></h2>
       {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">+ Add</button>{% endif %}
+      {% if tl.size > 0 %}<button type="button" class="btn small" id="history-more" aria-expanded="false" aria-controls="history-list">Show</button>{% endif %}
     </div>
-    {% assign tl = st.timeline | reverse %}
-    <ol class="timeline">
+    <ol class="timeline" id="history-list" hidden>
       {% for t in tl %}
-      <li class="tl-{{ t.type }}"{% if forloop.index > 3 %} hidden data-more{% endif %}>
+      <li class="tl-{{ t.type }}">
         <time>{% if t.date.size > 7 %}{{ t.date | date: "%-d %b %Y" }}{% else %}{{ t.date }}{% endif %}</time>
         <span class="tl-text">{{ t.text }}{% if t.earthbank %}{% assign k = t.earthbank | append: "" %}{% if eb.samples[k] %} <span class="muted">({{ eb.samples[k].name }})</span>{% endif %}{% endif %}{% if t.link %} · <a href="{{ t.link }}" target="_blank" rel="noopener">link</a>{% endif %}</span>
         {% if t.by %}<span class="tl-by">{{ t.by }}</span>{% endif %}
@@ -317,7 +318,6 @@ layout: default
       </li>
       {% endfor %}
     </ol>
-    {% if tl.size > 3 %}<button type="button" class="link-btn small" id="history-more">Show all {{ tl.size }} entries</button>{% endif %}
   </section>
   {% endif %}
 

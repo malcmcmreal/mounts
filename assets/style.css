@@ -717,3 +717,4 @@ body.modal-open { overflow: hidden; }
 .file-acts { flex-wrap: wrap; justify-content: flex-end; }
 .preview pre { overflow-x: auto; max-width: 100%; }
 .preview, .file-group, .files li { min-width: 0; max-width: 100%; }
+.history:has(#history-list[hidden]) .card-head { margin-bottom: 0; }

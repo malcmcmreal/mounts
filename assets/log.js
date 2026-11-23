@@ -349,14 +349,14 @@
   });
 
   // ---------- history list ----------
-  var more = document.getElementById('history-more');
-  if (more) {
-    var label = more.textContent;
+  var more = document.getElementById('history-more'), hl = document.getElementById('history-list');
+  if (more && hl) {
     more.addEventListener('click', function () {
-      var rest = document.querySelectorAll('#history [data-more]');
-      var show = rest[0] && rest[0].hidden;
-      rest.forEach(function (li) { li.hidden = !show; });
-      more.textContent = show ? 'Show fewer' : label;
+      hl.hidden = !hl.hidden;
+      more.textContent = hl.hidden ? 'Show' : 'Hide';
+      more.setAttribute('aria-expanded', String(!hl.hidden));
     });
+    function openIf() { if (location.hash === '#history' && hl.hidden) more.click(); }   // links to #history open it
+    window.addEventListener('hashchange', openIf); openIf();
   }
 })();
