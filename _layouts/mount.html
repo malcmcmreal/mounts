@@ -60,7 +60,6 @@ layout: default
       </div>
       <dl class="facts">
         {% if cur.project %}<dt>Project</dt><dd><a href="{{ '/' | relative_url }}?group=project#{{ cur.project | slugify }}">{{ cur.project }}</a></dd>{% endif %}
-        <dt>Number of samples</dt><dd>{{ samples | size }}</dd>
         {% if cur.year %}<dt>Year made</dt><dd>{{ cur.year }}</dd>{% endif %}
         {% if cur.created_by %}<dt>Made by</dt><dd>{{ cur.created_by }}</dd>{% endif %}
         {% if cur.affiliation %}<dt>Affiliation</dt><dd>{{ cur.affiliation }}</dd>{% endif %}
@@ -80,6 +79,25 @@ layout: default
           {% if st.analyses.size > 3 %}<li class="muted"><a href="#history">{{ st.analyses.size | minus: 3 }} more in the history</a></li>{% endif %}
         </ul></dd>{% endif %}
       </dl>
+      <div class="photos mb-samples" id="samples">
+      <div class="card-head">
+        <h3>Samples <span class="muted small">{{ samples | size }}</span></h3>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">Edit &amp; link</button>{% endif %}
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Mineral split</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for s in samples %}
+        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}">{% if s.record %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}" title="Mineral split record">{{ s.id }}</a>{% else %}<span class="mono">{{ s.id }}</span>{% endif %}{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{% if s.vial %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}#vial-{{ s.vial | escape }}">{{ s.separates }}</a>{% else %}{{ s.separates }}{% endif %}</td>
+          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+      </div>
+
     </section>
 
   {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
@@ -226,25 +244,6 @@ layout: default
       {% else %}
       <p class="muted small">No grain coordinate files yet.</p>
       {% endif %}
-    </div>
-  </section>
-
-  <section class="card mb-samples" id="samples">
-    <div class="card-head">
-      <h2>Samples</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">Edit &amp; link</button>{% endif %}
-    </div>
-    <div class="table-scroll">
-    <table>
-      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Mineral split</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
-      <tbody>
-        {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}">{% if s.record %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}" title="Mineral split record">{{ s.id }}</a>{% else %}<span class="mono">{{ s.id }}</span>{% endif %}{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{% if s.vial %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}#vial-{{ s.vial | escape }}">{{ s.separates }}</a>{% else %}{{ s.separates }}{% endif %}</td>
-          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
     </div>
   </section>
 
