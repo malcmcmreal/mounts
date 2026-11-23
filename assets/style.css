@@ -711,3 +711,9 @@ th .sort.on::after { content: attr(data-dir); font-size: .7em; margin-left: .3em
 .tern-modal iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
 body.modal-open { overflow: hidden; }
 .tern-zoom input[type=number] { width: 4.6rem; }
+/* file rows: long names wrap and the buttons drop under the name on narrow screens */
+.file-line { flex-wrap: wrap; row-gap: .4rem; }
+.file-line > a, .file-line > .mono, .hires-what a { min-width: 0; overflow-wrap: anywhere; }
+.file-acts { flex-wrap: wrap; justify-content: flex-end; }
+.preview pre { overflow-x: auto; max-width: 100%; }
+.preview, .file-group, .files li { min-width: 0; max-width: 100%; }
