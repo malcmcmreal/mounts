@@ -137,55 +137,50 @@ layout: default
         </span>{% endif %}
       </div>
     {% if has_images %}
-    <div class="gallery gallery-small">
+    <div class="thumbs">
       {% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}
         {% assign ext = f.extname | downcase %}
         {% case ext %}{% when ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tif", ".tiff" %}
-        {% assign hr = st.hires[f.name] %}
         <figure>
           {% if ext == ".tif" or ext == ".tiff" %}
-          <a class="tiff-tile" href="{{ f.path | relative_url }}" download title="Download the TIFF"><span>TIFF</span><small>Browsers can't preview TIFF images. Tap to download.</small></a>
-          <figcaption>{{ f.name }}
+          <a class="thumb thumb-tiff" href="{{ f.path | relative_url }}" download title="TIFF can't be previewed in a browser. Download it."><span>TIFF</span></a>
           {% else %}
-          <a href="{{ f.path | relative_url }}" title="Open the preview full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
-          <figcaption>{{ f.name }} <span class="muted">· preview, tap to enlarge</span>
+          <a class="thumb" href="{{ f.path | relative_url }}" title="Open full size"><img src="{{ f.path | relative_url }}" alt="{{ f.name }}" loading="lazy"></a>
           {% endif %}
-            <a class="link-btn small" href="{{ f.path | relative_url }}" download>Download</a>
-            {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}</figcaption>
-          {% if hr %}
-          <a class="hires" href="{{ hr.url }}" target="_blank" rel="noopener">
-            <span class="hires-icon" aria-hidden="true">&#8681;</span>
-            <span><strong>Hi-res download</strong>
-              <small>{% if hr.label %}{{ hr.label }}{% else %}{{ hr.url | split: "/" | slice: 2 | first }}{% endif %}</small></span>
-          </a>
-          {% if repo != "" %}<button type="button" class="link-btn small hires-edit" data-add-entry="hires" data-file="{{ f.name }}">Update link</button>{% endif %}
-          {% elsif repo != "" %}
-          <button type="button" class="hires hires-add" data-add-entry="hires" data-file="{{ f.name }}">
-            <span class="hires-icon" aria-hidden="true">+</span>
-            <span><strong>Add hi-res download link</strong></span>
-          </button>
-          {% endif %}
+          <figcaption><span class="thumb-name" title="{{ f.name }}">{{ f.name }}</span>
+            <span class="thumb-acts"><a class="link-btn small" href="{{ f.path | relative_url }}" download>Download</a>{% if repo != "" %} <button type="button" class="link-btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}</span>
+          </figcaption>
         </figure>
         {% endcase %}
       {% endif %}{% endfor %}
     </div>
-    {% else %}
-    <p class="muted small">No photos yet.</p>
     {% endif %}
-    {% if st.links and st.links.size > 0 %}
-    <ul class="dl-links">
+    {% assign n_hires = 0 %}{% for h in st.hires %}{% assign n_hires = n_hires | plus: 1 %}{% endfor %}
+    {% if n_hires > 0 or st.links and st.links.size > 0 %}
+    <ul class="files hires-list">
+      {% for h in st.hires %}{% assign hn = h[0] %}{% assign hr = h[1] %}
+      <li><div class="file-line">
+        <span class="hires-what"><a href="{{ hr.url }}" target="_blank" rel="noopener">{% if hr.label %}{{ hr.label }}{% else %}Hi-res: {{ hn }}{% endif %}</a>
+          <small class="muted">{% if hr.label %}{{ hn }} · {% endif %}{{ hr.url | split: "/" | slice: 2 | first | split: ":" | first }}</small></span>
+        <span class="file-acts">
+          <a class="btn small" href="{{ hr.url }}" target="_blank" rel="noopener">Open ↗</a>
+          {% if repo != "" %}<button type="button" class="link-btn small" data-add-entry="hires" data-file="{{ hn }}">Edit</button>{% endif %}
+        </span>
+      </div></li>
+      {% endfor %}
       {% for l in st.links %}
-      <li>
-        <a class="hires" href="{{ l.url }}" target="_blank" rel="noopener">
-          <span class="hires-icon" aria-hidden="true">&#8681;</span>
-          <span><strong>{% if l.label %}{{ l.label }}{% else %}Hi-res download{% endif %}</strong>
-            <small>{{ l.url | split: "/" | slice: 2 | first | split: ":" | first }}</small></span>
-        </a>
-        {% if repo != "" %}<button type="button" class="link-btn small" data-add-entry="hires" data-file="" data-url="{{ l.url | escape }}">Remove</button>{% endif %}
-      </li>
+      <li><div class="file-line">
+        <span class="hires-what"><a href="{{ l.url }}" target="_blank" rel="noopener">{% if l.label %}{{ l.label }}{% else %}Hi-res download{% endif %}</a>
+          <small class="muted">{{ l.url | split: "/" | slice: 2 | first | split: ":" | first }}</small></span>
+        <span class="file-acts">
+          <a class="btn small" href="{{ l.url }}" target="_blank" rel="noopener">Open ↗</a>
+          {% if repo != "" %}<button type="button" class="link-btn small file-rm" data-add-entry="hires" data-file="" data-url="{{ l.url | escape }}">Remove</button>{% endif %}
+        </span>
+      </div></li>
       {% endfor %}
     </ul>
     {% endif %}
+    {% unless has_images or n_hires > 0 or st.links and st.links.size > 0 %}<p class="muted small">No photos or hi-res links yet.</p>{% endunless %}
     </div>
 
     {% assign grain_files = "" | split: "" %}{% assign grain_names = "" | split: "" %}
