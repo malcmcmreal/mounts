@@ -1,0 +1,39 @@
+---
+layout: default
+permalink: /ternary/
+title: Ternary plot
+---
+<p class="crumb"><a id="tern-back" href="{{ '/' | relative_url }}">&larr; Mount</a></p>
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Ternary plot</p>
+    <h1 id="tern-title">Ternary plot</h1>
+  </div>
+</div>
+
+<section class="card tern-card">
+  <div class="tern-controls">
+    <label>Top <select id="tern-a"></select></label>
+    <label>Bottom left <select id="tern-b"></select></label>
+    <label>Bottom right <select id="tern-c"></select></label>
+    <label>Colour by <select id="tern-colour"><option value="Sample ID">Sample ID</option><option value="">None</option></select></label>
+  </div>
+  <div class="tern-controls tern-checks">
+    <label><input type="checkbox" id="tern-std" checked> Include standards</label>
+    <label><input type="checkbox" id="tern-low" checked> Hide low-total spots</label>
+    <label><input type="checkbox" id="tern-fcl"> Hide F+Cl &gt; 2 spots</label>
+    <button type="button" class="btn small" id="tern-reset">Reset</button>
+  </div>
+  <div id="tern-legend" class="tern-legend"></div>
+  <div class="tern-wrap"><div id="tern-plot" class="tern-plot"><p class="muted">Loading…</p></div><div id="tern-tip" class="tern-tip" hidden></div></div>
+  <p id="tern-note" class="muted small"></p>
+  <div class="code-dl">
+    <button type="button" class="btn small" data-tern-dl="svg">SVG</button>
+    <button type="button" class="btn small" data-tern-dl="png">PNG</button>
+    <button type="button" class="btn small" id="tern-table-btn">Show data table</button>
+  </div>
+  <div id="tern-table" class="preview" hidden></div>
+</section>
+
+<script src="{{ '/assets/xlsx-read.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
+<script src="{{ '/assets/ternary.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
