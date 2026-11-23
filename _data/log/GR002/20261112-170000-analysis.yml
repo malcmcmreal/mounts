@@ -1,0 +1,6 @@
+date: "2026-11-12 17:00"
+by: "malcmcmreal"
+type: analysis
+technique: "EPMA"
+samples: "All samples in GR002"
+note: "411 analyses (quant files 0023_QNT + 0026_QNT, 12 Nov 2026), with bracketing standards. Oxide wt% and detection limits (.txt, .csv) are under Data and other files."
