@@ -69,7 +69,7 @@ layout: default
         {% if cur.minerals %}<dt>Minerals</dt><dd>{{ cur.minerals }}</dd>{% endif %}
         {% if cur.polish %}<dt>Polish</dt><dd>{{ cur.polish }}</dd>{% endif %}
         {% if cur.etch %}<dt>Etching</dt><dd>{{ cur.etch }}</dd>{% endif %}
-        {% if cur.coating %}<dt>Coating</dt><dd>{{ cur.coating }}</dd>{% endif %}
+        {% if cur.coating or cur.coating_removed %}<dt>Coating</dt><dd>{% if cur.coating_removed %}{{ cur.coating | default: "None" }} <span class="muted">({{ cur.coating_removed.was | downcase }} coat removed{% if cur.coating_removed.date != "" %} {{ cur.coating_removed.date | date: "%-d %b %Y" }}{% endif %})</span>{% else %}{{ cur.coating }}{% endif %}</dd>{% endif %}
         {% if cur.storage %}<dt>Stored at</dt><dd>{{ cur.storage }}</dd>{% endif %}
         {% if cur.irradiation %}<dt>Irradiation batch</dt><dd class="mono">{{ cur.irradiation }}</dd>{% endif %}
         {% if cur.irr_glass %}<dt>Standard glass</dt><dd>{{ cur.irr_glass }}</dd>{% endif %}
@@ -204,7 +204,7 @@ layout: default
       {% for g in groups %}{% assign n = 0 %}
       {% for f in grain_files %}{% assign ext = f.extname | downcase %}{% if ext == g or g == "other" and ext != ".dcd" and ext != ".csv" %}{% assign n = n | plus: 1 %}{% endif %}{% endfor %}
       {% if n > 0 %}
-      <details class="file-group" open data-group="{{ g }}">
+      <details class="file-group" data-group="{{ g }}">
         <summary>{% if g == "other" %}Other files{% else %}{{ g }} files{% endif %} <span class="muted">({{ n }})</span></summary>
       <ul class="files">
         {% for f in grain_files %}{% assign ext = f.extname | downcase %}{% if ext == g or g == "other" and ext != ".dcd" and ext != ".csv" %}

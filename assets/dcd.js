@@ -13,11 +13,11 @@
   var mountId = me.dataset.mount, existing = [];
   try { existing = JSON.parse(me.dataset.existing || '[]'); } catch (e) {}
   var NAME = /^(.*?\d+)([a-z]?)$/;
-  // Coordinate file groups (.dcd / .csv / other) remember being collapsed
+  // Coordinate file groups (.dcd / .csv / other) start collapsed; one you open stays open next time
   document.querySelectorAll('#grain-files details.file-group').forEach(function (d) {
-    var k = 'grain-group-closed:' + d.dataset.group;
-    try { if (localStorage.getItem(k)) d.open = false; } catch (e) {}
-    d.addEventListener('toggle', function () { try { d.open ? localStorage.removeItem(k) : localStorage.setItem(k, '1'); } catch (e) {} });
+    var k = 'grain-group-open:' + d.dataset.group;
+    try { if (localStorage.getItem(k)) d.open = true; } catch (e) {}
+    d.addEventListener('toggle', function () { try { d.open ? localStorage.setItem(k, '1') : localStorage.removeItem(k); } catch (e) {} });
   });   // GR001_G01b, GR006_Grain01b … → grain + sub-grain letter
 
   var dlg = document.createElement('dialog');

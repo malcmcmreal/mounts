@@ -30,6 +30,10 @@ def text(v):
     return "" if v is None else str(v).strip()
 
 
+def uncoated(v):
+    return text(v).lower() in ("", "none", "no", "na", "n/a", "uncoated", "removed", "-")
+
+
 def front_matter(path):
     with open(path, encoding="utf-8") as f:
         t = f.read()
@@ -479,6 +483,7 @@ def build():
 
         for e in load_entries(mid):
             t, sid = e.get("type"), text(e.get("sample"))
+            prev_coat = text(fields.get("coating"))
             if t == "sample":
                 s = find(sid)
                 if s is None:
@@ -541,6 +546,13 @@ def build():
                 for k, v in e["set"].items():
                     if k in DETAIL_FIELDS and text(v):
                         fields[k] = text(v)
+            # A coat taken off (e.g. Carbon -> None) is remembered, so the page can say "None (carbon removed …)"
+            new_coat = text(fields.get("coating"))
+            if new_coat != prev_coat:
+                if uncoated(new_coat) and prev_coat and not uncoated(prev_coat):
+                    fields["coating_removed"] = {"was": prev_coat, "date": text(e.get("date"))[:10], "by": text(e.get("by"))}
+                elif not uncoated(new_coat):
+                    fields.pop("coating_removed", None)
             item = {k: v for k, v in e.items() if not k.startswith("_") and k != "layout" and v not in (None, "")}
             item["text"] = describe(e)
             item["file"] = e["_file"]
