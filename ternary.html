@@ -2,7 +2,12 @@
 layout: default
 permalink: /ternary/
 title: Ternary plot
+tab_title: Ternary plot
+body_page: ternary
 ---
+<script>if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('tern-embed');</script>
+{% assign apfu_files = "" | split: "" %}{% for f in site.static_files %}{% if f.extname == ".xlsx" and f.name contains "_apfu" %}{% capture e %}{{ f.path | split: "/" | slice: 2 | first }}|{{ f.path | relative_url }}{% endcapture %}{% assign apfu_files = apfu_files | push: e %}{% endif %}{% endfor %}
+<script type="application/json" id="tern-files">{{ apfu_files | sort | jsonify }}</script>
 <p class="crumb"><a id="tern-back" href="{{ '/' | relative_url }}">&larr; Mount</a></p>
 <div class="page-head">
   <div>
@@ -12,11 +17,12 @@ title: Ternary plot
 </div>
 
 <section class="card tern-card">
+  <div class="tern-mounts"><span class="muted small">Mounts</span> <span id="tern-mounts"></span></div>
   <div class="tern-controls">
     <label>Top <select id="tern-a"></select></label>
     <label>Bottom left <select id="tern-b"></select></label>
     <label>Bottom right <select id="tern-c"></select></label>
-    <label>Colour by <select id="tern-colour"><option value="Sample ID">Sample ID</option><option value="">None</option></select></label>
+    <label>Colour by <select id="tern-colour"><option value="Sample ID">Sample ID</option><option value="Mount">Mount</option><option value="">None</option></select></label>
   </div>
   <div class="tern-controls tern-checks">
     <label><input type="checkbox" id="tern-std" checked> Include standards</label>

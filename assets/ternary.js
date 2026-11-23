@@ -3,6 +3,10 @@
 // scatter_ternary); the three values are normalised to sum to 1. Points are coloured by Sample ID.
 (function () {
   var q = new URLSearchParams(location.search), file = q.get('f') || '', mount = q.get('m') || '';
+  if (!/^\/[^:]*\.xlsx$/i.test(file)) file = '';   // only spreadsheets on this site
+  if (q.get('embed') === '1') document.addEventListener('keydown', function (e) {   // Esc closes the mount page's pop-up
+    if (e.key === 'Escape' && window.parent !== window) window.parent.postMessage('tern-close', location.origin);
+  });
   var $ = function (id) { return document.getElementById(id); };
   var PAL = {   // categorical palette, fixed order (validated: dark on the page, light for exports)
     dark: ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#0ca30c', '#9085e9', '#e66767'],
@@ -14,83 +18,128 @@
     light: { bg: '#ffffff', ink: '#1d1d1f', muted: '#6e6e73', grid: '#e3e3e6', edge: '#8e8e93', ring: '#ffffff' }
   };
   var DEF = ['Cl (apfu)', 'OH (apfu)', 'F (apfu)'];
-  var head = [], rows = [], groups = [], hidden = {}, pts = [];
+  var head = [], rows = [], groups = [], hidden = {}, cand = [], apfu = [];
+  var files = [], cache = {}, chosen = [];   // files: [{mount, url}], cache: url -> [{col: value}], chosen: mount IDs shown
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function short(c) { return c.replace(/\s*\((apfu|wt%)\)\s*$/, '').replace(/ wt%$/, ''); }
-  function col(name) { return head.indexOf(name); }
 
-  if (mount) { $('tern-back').href = $('tern-back').href.replace(/\/$/, '/') + encodeURIComponent(mount) + '/'; $('tern-back').innerHTML = '&larr; ' + esc(mount); }
+  try { files = JSON.parse($('tern-files').textContent).map(function (e) { var p = e.split('|'); return { mount: p[0], url: p[1] }; }); } catch (e) { files = []; }
   var fname = decodeURIComponent(file.split('/').pop() || '');
-  $('tern-title').textContent = fname || 'Ternary plot';
-  document.title = (fname ? fname + ' · ' : '') + 'Ternary plot';
-  if (!/^\/[^:]*\.xlsx$/i.test(file)) { $('tern-plot').innerHTML = '<p class="muted">No spreadsheet given. Open this from an apfu file on a mount page.</p>'; return; }
+  if (!mount) { var mm = /\/mounts\/([^/]+)\//.exec(file); mount = mm ? decodeURIComponent(mm[1]) : ''; }
+  if (file && !files.some(function (f) { return f.url === file; })) files.unshift({ mount: mount || fname, url: file });
+  if (mount) { $('tern-back').href = $('tern-back').href.replace(/\/$/, '/') + encodeURIComponent(mount) + '/'; $('tern-back').innerHTML = '&larr; ' + esc(mount); }
+  if (!files.length) { $('tern-plot').innerHTML = '<p class="muted">No apfu spreadsheets found.</p>'; return; }
+  if (!file) { file = files[0].url; mount = files[0].mount; }
+  chosen = [mount];
 
-  fetch(file).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(readXlsx).then(function (sheets) {
-    var sh = sheets.filter(function (s) { return s.name === 'apfu'; })[0] || sheets[0];
-    head = (sh.rows[0] || []).map(function (h) { return String(h || ''); });
-    rows = sh.rows.slice(1).filter(function (r) { return r && r.length; });
-    setup();
-  }).catch(function () { $('tern-plot').innerHTML = '<p class="muted">Could not read this spreadsheet.</p>'; });
-
-  function numeric(c) {
-    var i = col(c), n = 0;
-    rows.forEach(function (r) { if (r[i] !== '' && r[i] != null && isFinite(+r[i])) n++; });
-    return n > 0;
+  function title() {
+    var t = chosen.length === 1 ? (files.filter(function (f) { return f.mount === chosen[0]; })[0] || {}).url : '';
+    t = t ? decodeURIComponent(t.split('/').pop()) : chosen.join(', ');
+    $('tern-title').textContent = t;
+    document.title = t + ' · Ternary plot';
   }
-  function setup() {
-    var skip = { 'No.': 1 };
-    var cand = head.filter(function (c) { return c && !skip[c] && numeric(c); });
-    var apfu = cand.filter(function (c) { return /\(apfu\)$/.test(c); }), rest = cand.filter(function (c) { return apfu.indexOf(c) < 0; });
-    ['tern-a', 'tern-b', 'tern-c'].forEach(function (id, k) {
-      var s = $(id);
+  function load(f) {
+    if (cache[f.url]) return Promise.resolve(cache[f.url]);
+    return fetch(f.url).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(readXlsx).then(function (sheets) {
+      var sh = sheets.filter(function (s) { return s.name === 'apfu'; })[0] || sheets[0];
+      var h = (sh.rows[0] || []).map(function (x) { return String(x || ''); });
+      h.forEach(function (c) { if (c && head.indexOf(c) < 0) head.push(c); });
+      return (cache[f.url] = sh.rows.slice(1).filter(function (r) { return r && r.length; }).map(function (r) {
+        var o = { Mount: f.mount }; h.forEach(function (c, i) { if (c) o[c] = r[i] == null ? '' : r[i]; }); return o;
+      }));
+    });
+  }
+  function refresh() {
+    var fs = files.filter(function (f) { return chosen.indexOf(f.mount) >= 0; });
+    $('tern-note').textContent = 'Loading…';
+    return Promise.all(fs.map(load)).then(function (sets) {
+      rows = [].concat.apply([], sets);
+      var first = !cand.length;
+      setupColumns();
+      if (first) setupControls();
+      title(); draw();
+    }).catch(function () { $('tern-plot').innerHTML = '<p class="muted">Could not read a spreadsheet.</p>'; });
+  }
+  function mountChips() {
+    $('tern-mounts').innerHTML = files.map(function (f) {
+      return '<label class="tern-mchip' + (chosen.indexOf(f.mount) >= 0 ? ' on' : '') + '"><input type="checkbox" value="' + esc(f.mount) + '"' +
+        (chosen.indexOf(f.mount) >= 0 ? ' checked' : '') + '>' + esc(f.mount) + '</label>';
+    }).join(' ') + (files.length > 1 ? ' <button type="button" class="link-btn small" id="tern-all">All</button>' : '');
+    $('tern-mounts').querySelectorAll('input').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        if (cb.checked) { if (chosen.indexOf(cb.value) < 0) chosen.push(cb.value); }
+        else if (chosen.length > 1) chosen = chosen.filter(function (m) { return m !== cb.value; });
+        else { cb.checked = true; return; }   // keep at least one
+        chosen.sort(function (x, y) { return mIndex(x) - mIndex(y); });
+        mountChips(); refresh();
+      });
+    });
+    var all = $('tern-all');
+    if (all) all.addEventListener('click', function () {
+      chosen = chosen.length === files.length ? [mount] : files.map(function (f) { return f.mount; });
+      mountChips(); refresh();
+    });
+  }
+  function mIndex(m) { for (var i = 0; i < files.length; i++) if (files[i].mount === m) return i; return 999; }
+  mountChips(); refresh();
+
+  function numeric(c) { return rows.some(function (r) { return r[c] !== '' && r[c] != null && isFinite(+r[c]); }); }
+  function setupColumns() {
+    var keepA = $('tern-a').value, keepB = $('tern-b').value, keepC = $('tern-c').value;
+    cand = head.filter(function (c) { return c && c !== 'No.' && numeric(c); });
+    apfu = cand.filter(function (c) { return /\(apfu\)$/.test(c); });
+    var rest = cand.filter(function (c) { return apfu.indexOf(c) < 0; });
+    [['tern-a', keepA], ['tern-b', keepB], ['tern-c', keepC]].forEach(function (x, k) {
+      var s = $(x[0]);
       s.innerHTML = '<optgroup label="apfu">' + apfu.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('') + '</optgroup>' +
         (rest.length ? '<optgroup label="Other columns">' + rest.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('') + '</optgroup>' : '');
-      s.value = cand.indexOf(DEF[k]) >= 0 ? DEF[k] : cand[k] || '';
-      s.addEventListener('change', draw);
+      s.value = cand.indexOf(x[1]) >= 0 ? x[1] : cand.indexOf(DEF[k]) >= 0 ? DEF[k] : cand[k] || '';
     });
-    if (col('Sample ID') < 0) $('tern-colour').innerHTML = '<option value="">None</option>';
+    // Colour order: samples as first met (run order), then standards. It only ever grows, so adding a mount or
+    // filtering never repaints a sample that is already shown.
+    var samples = [], stds = [];
+    rows.forEach(function (r) {
+      var g = r['Sample ID'] || '';
+      if (!g || groups.indexOf(g) >= 0 || samples.indexOf(g) >= 0 || stds.indexOf(g) >= 0) return;
+      if (!apfu.some(function (c) { return r[c] !== '' && r[c] != null; })) return;   // non-apatite rows don't take a colour
+      (/\(standard\)$/.test(g) ? stds : samples).push(g);
+    });
+    groups = groups.filter(function (g) { return !/\(standard\)$/.test(g); }).concat(samples)
+      .concat(groups.filter(function (g) { return /\(standard\)$/.test(g); })).concat(stds);
+  }
+  function setupControls() {
+    ['tern-a', 'tern-b', 'tern-c'].forEach(function (id) { $(id).addEventListener('change', draw); });
+    if (head.indexOf('Sample ID') < 0) $('tern-colour').value = files.length > 1 ? 'Mount' : '';
     ['tern-colour', 'tern-std', 'tern-low', 'tern-fcl'].forEach(function (id) { $(id).addEventListener('change', function () { hidden = {}; draw(); }); });
     $('tern-reset').addEventListener('click', function () {
       ['tern-a', 'tern-b', 'tern-c'].forEach(function (id, k) { if (cand.indexOf(DEF[k]) >= 0) $(id).value = DEF[k]; });
-      $('tern-colour').value = col('Sample ID') >= 0 ? 'Sample ID' : '';
+      $('tern-colour').value = head.indexOf('Sample ID') >= 0 ? 'Sample ID' : '';
       $('tern-std').checked = true; $('tern-low').checked = true; $('tern-fcl').checked = false; hidden = {}; draw();
     });
-    // Colour order follows the file: samples in run order, then standards. Fixed, so filters never repaint a sample.
-    var si = col('Sample ID'), seen = {}, samples = [], stds = [];
-    var ai = apfu.map(col);   // rows with no apfu at all (non-apatite standards and grains) don't take a colour
-    rows.forEach(function (r) {
-      var g = si >= 0 ? r[si] || '' : '';
-      if (!g || seen[g] || !ai.some(function (i) { return r[i] !== '' && r[i] != null; })) return; seen[g] = 1;
-      (/\(standard\)$/.test(g) ? stds : samples).push(g);
-    });
-    groups = samples.concat(stds);
-    draw();
   }
 
   function pick() {
-    var A = $('tern-a').value, B = $('tern-b').value, C = $('tern-c').value;
-    var ia = col(A), ib = col(B), ic = col(C), si = col('Sample ID'), ci = col('Comment'), sp = col('Spot ID');
-    var useStd = $('tern-std').checked, noLow = $('tern-low').checked, noFcl = $('tern-fcl').checked, byS = $('tern-colour').value === 'Sample ID';
+    var A = $('tern-a').value, B = $('tern-b').value, C = $('tern-c').value, by = $('tern-colour').value;
+    var useStd = $('tern-std').checked, noLow = $('tern-low').checked, noFcl = $('tern-fcl').checked;
     var out = [], skipped = 0, filtered = 0;
     rows.forEach(function (r) {
-      var cm = ci >= 0 ? String(r[ci] || '') : '', g = si >= 0 ? r[si] || '' : '';
+      var cm = String(r.Comment || ''), g = r['Sample ID'] || '';
       if (/\(standard\)$/.test(g) && !useStd) { filtered++; return; }
       if (noLow && /^Low total/.test(cm)) { filtered++; return; }
       if (noFcl && /F\+Cl > 2/.test(cm)) { filtered++; return; }
-      var a = +r[ia], b = +r[ib], c = +r[ic];
-      if ([r[ia], r[ib], r[ic]].some(function (v) { return v === '' || v == null; }) || !isFinite(a + b + c)) { skipped++; return; }
-      a = Math.max(a, 0); b = Math.max(b, 0); c = Math.max(c, 0);
-      var s = a + b + c;
+      var va = r[A], vb = r[B], vc = r[C];
+      if ([va, vb, vc].some(function (v) { return v === '' || v == null; }) || !isFinite(+va + +vb + +vc)) { skipped++; return; }
+      var a = Math.max(+va, 0), b = Math.max(+vb, 0), c = Math.max(+vc, 0), s = a + b + c;
       if (s <= 0) { skipped++; return; }
-      var key = byS ? g || '(no sample ID)' : 'All spots';
-      out.push({ a: a / s, b: b / s, c: c / s, ra: r[ia], rb: r[ib], rc: r[ic], spot: sp >= 0 ? r[sp] : '', sample: g, comment: cm, key: key });
+      var key = by === 'Sample ID' ? g || '(no sample ID)' : by === 'Mount' ? r.Mount : 'All spots';
+      out.push({ a: a / s, b: b / s, c: c / s, ra: va, rb: vb, rc: vc, spot: r['Spot ID'] || '', sample: g, mount: r.Mount, comment: cm, key: key });
     });
-    return { pts: out, A: A, B: B, C: C, skipped: skipped, filtered: filtered, byS: byS };
+    return { pts: out, A: A, B: B, C: C, skipped: skipped, filtered: filtered, by: by };
   }
-  function colourOf(key, theme, byS) {
-    if (!byS) return PAL[theme][0];
-    var i = groups.indexOf(key);
+  function colourOf(key, theme, by) {
+    if (!by) return PAL[theme][0];
+    var i = by === 'Mount' ? mIndex(key) : groups.indexOf(key);
     return i >= 0 && i < 8 ? PAL[theme][i] : OTHER[theme];
   }
 
@@ -131,10 +180,10 @@
     p.pts.forEach(function (d, i) {
       if (hidden[d.key]) return;
       var q = xy(d.a, d.b, d.c);
-      o.push('<circle data-i="' + i + '" cx="' + f1(q[0]) + '" cy="' + f1(q[1]) + '" r="5" fill="' + colourOf(d.key, theme, p.byS) + '" fill-opacity="0.9" stroke="' + T.ring + '" stroke-width="1.5"/>');
+      o.push('<circle data-i="' + i + '" cx="' + f1(q[0]) + '" cy="' + f1(q[1]) + '" r="5" fill="' + colourOf(d.key, theme, p.by) + '" fill-opacity="0.9" stroke="' + T.ring + '" stroke-width="1.5"/>');
     });
     leg.forEach(function (g) {
-      o.push('<circle cx="' + f1(g.x + 5) + '" cy="' + f1(g.y - 4) + '" r="5" fill="' + colourOf(g.key, theme, p.byS) + '"/>');
+      o.push('<circle cx="' + f1(g.x + 5) + '" cy="' + f1(g.y - 4) + '" r="5" fill="' + colourOf(g.key, theme, p.by) + '"/>');
       o.push('<text x="' + f1(g.x + 14) + '" y="' + f1(g.y) + '" font-size="11" fill="' + T.ink + '">' + esc(g.key) + '</text>');
     });
     o.push('</svg>');
@@ -144,7 +193,7 @@
     var c = {};
     p.pts.forEach(function (d) { c[d.key] = (c[d.key] || 0) + 1; });
     var keys = Object.keys(c).sort(function (x, y) {
-      var i = groups.indexOf(x), j = groups.indexOf(y);
+      var i = p.by === 'Mount' ? mIndex(x) : groups.indexOf(x), j = p.by === 'Mount' ? mIndex(y) : groups.indexOf(y);
       return (i < 0 ? 999 : i) - (j < 0 ? 999 : j) || (x < y ? -1 : 1);
     });
     return keys.map(function (k) { return { key: k, n: c[k] }; });
@@ -156,7 +205,7 @@
     var items = legendItems(cur);
     $('tern-legend').innerHTML = items.length > 1 ? items.map(function (g) {
       return '<button type="button" class="tern-key' + (hidden[g.key] ? ' off' : '') + '" data-key="' + esc(g.key) + '">' +
-        '<span class="sw" style="background:' + colourOf(g.key, 'dark', cur.byS) + '"></span>' + esc(g.key) + ' <span class="muted">' + g.n + '</span></button>';
+        '<span class="sw" style="background:' + colourOf(g.key, 'dark', cur.by) + '"></span>' + esc(g.key) + ' <span class="muted">' + g.n + '</span></button>';
     }).join('') : '';
     $('tern-legend').querySelectorAll('.tern-key').forEach(function (b) {
       b.addEventListener('click', function () { hidden[b.dataset.key] = !hidden[b.dataset.key]; draw(); });
@@ -166,7 +215,8 @@
     $('tern-note').textContent = shown + ' spot' + (shown === 1 ? '' : 's') + ' plotted. Each spot\'s three values are scaled to sum to 1.' +
       (cur.filtered ? ' ' + cur.filtered + ' hidden by the options above.' : '') +
       (cur.skipped ? ' ' + cur.skipped + ' without values for all three (non-apatite rows, blanks).' : '') +
-      (groups.length > 8 && cur.byS ? ' Samples after the eighth are grey.' : '');
+      (cur.by === 'Sample ID' && groups.length > 8 ? ' Samples after the eighth are grey.' : '') +
+      (cur.by === 'Mount' && chosen.some(function (m) { return mIndex(m) >= 8; }) ? ' Mounts after the eighth in the list are grey.' : '');
     if (!$('tern-table').hidden) table();
   }
 
@@ -181,7 +231,7 @@
     });
     if (!best) { tip.hidden = true; return; }
     var d = cur.pts[+best.dataset.i];
-    tip.innerHTML = '<strong>' + esc(d.spot) + '</strong>' + (d.sample ? '<br>' + esc(d.sample) : '') +
+    tip.innerHTML = '<strong>' + esc(d.spot) + '</strong>' + (d.sample || chosen.length > 1 ? '<br>' + esc([chosen.length > 1 ? d.mount : '', d.sample].filter(Boolean).join(' · ')) : '') +
       '<br>' + esc(short(cur.A)) + ' ' + esc(d.ra) + ' · ' + esc(short(cur.B)) + ' ' + esc(d.rb) + ' · ' + esc(short(cur.C)) + ' ' + esc(d.rc) +
       (d.comment ? '<br><span class="muted">' + esc(d.comment) + '</span>' : '');
     tip.hidden = false;
@@ -195,9 +245,9 @@
   // data table view
   function table() {
     var t = $('tern-table'), p = cur;
-    t.innerHTML = '<div class="table-scroll"><table><thead><tr><th>Spot ID</th><th>Sample ID</th><th>' + esc(p.A) + '</th><th>' + esc(p.B) + '</th><th>' + esc(p.C) + '</th></tr></thead><tbody>' +
+    t.innerHTML = '<div class="table-scroll"><table><thead><tr><th>Mount</th><th>Spot ID</th><th>Sample ID</th><th>' + esc(p.A) + '</th><th>' + esc(p.B) + '</th><th>' + esc(p.C) + '</th></tr></thead><tbody>' +
       p.pts.filter(function (d) { return !hidden[d.key]; }).map(function (d) {
-        return '<tr><td>' + esc(d.spot) + '</td><td>' + esc(d.sample) + '</td><td>' + esc(d.ra) + '</td><td>' + esc(d.rb) + '</td><td>' + esc(d.rc) + '</td></tr>';
+        return '<tr><td>' + esc(d.mount) + '</td><td>' + esc(d.spot) + '</td><td>' + esc(d.sample) + '</td><td>' + esc(d.ra) + '</td><td>' + esc(d.rb) + '</td><td>' + esc(d.rc) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
   }
   $('tern-table-btn').addEventListener('click', function () {
@@ -210,7 +260,7 @@
   document.querySelectorAll('[data-tern-dl]').forEach(function (b) {
     b.addEventListener('click', function () {
       if (!cur) return;
-      var s = svg(cur, 'light', true), base = (fname.replace(/\.xlsx$/i, '') || 'ternary') + '_ternary_' + [cur.A, cur.B, cur.C].map(short).join('-');
+      var s = svg(cur, 'light', true), base = (chosen.length === 1 ? chosen[0] : chosen.length + '_mounts') + '_ternary_' + [cur.A, cur.B, cur.C].map(short).join('-');
       if (b.dataset.ternDl === 'svg') return save(new Blob([s], { type: 'image/svg+xml' }), base + '.svg');
       var img = new Image(), sc = 3;
       img.onload = function () {

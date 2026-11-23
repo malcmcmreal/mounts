@@ -113,3 +113,26 @@ document.addEventListener('click', function (e) {
   });
   check(); window.addEventListener('resize', check);
 })();
+
+// Ternary plot button: open the plot page in a centred pop-up over the mount page (Esc or ✕ closes it)
+document.querySelectorAll('a[data-ternary]').forEach(function (a) {
+  a.addEventListener('click', function (e) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;   // let ⌘/Ctrl-click open a tab
+    e.preventDefault();
+    var m = document.createElement('div');
+    m.className = 'tern-modal';
+    m.innerHTML = '<div class="tern-modal-box" role="dialog" aria-modal="true" aria-label="Ternary plot">' +
+      '<div class="tern-modal-bar"><strong>Ternary plot</strong>' +
+      '<a class="btn small" href="' + a.href + '" target="_blank" rel="noopener">Open in new tab ↗</a>' +
+      '<button type="button" class="btn small" data-close aria-label="Close">✕</button></div>' +
+      '<iframe src="' + a.href + '&embed=1" title="Ternary plot"></iframe></div>';
+    function close() { m.remove(); document.body.classList.remove('modal-open'); document.removeEventListener('keydown', key); window.removeEventListener('message', msg); a.focus(); }
+    function key(ev) { if (ev.key === 'Escape') close(); }
+    function msg(ev) { if (ev.origin === location.origin && ev.data === 'tern-close') close(); }
+    window.addEventListener('message', msg);
+    m.addEventListener('click', function (ev) { if (ev.target === m || ev.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', key);
+    document.body.appendChild(m); document.body.classList.add('modal-open');
+    m.querySelector('[data-close]').focus();
+  });
+});

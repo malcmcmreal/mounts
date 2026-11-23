@@ -285,7 +285,7 @@ layout: default
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
             {% if ext == ".xlsx" and f.name contains "_apfu" %}
-            <a class="btn small" href="{{ '/ternary/' | relative_url }}?f={{ f.path | relative_url | url_encode }}&m={{ page.mount_id | url_encode }}" target="_blank" rel="noopener">Ternary plot</a>
+            <a class="btn small" data-ternary href="{{ '/ternary/' | relative_url }}?f={{ f.path | relative_url | url_encode }}&m={{ page.mount_id | url_encode }}" target="_blank" rel="noopener">Ternary plot</a>
             {% endif %}
             <a class="btn small" href="{{ f.path | relative_url }}" download>Download</a>
             {% if repo != "" %}<button type="button" class="btn small file-rm" data-remove-file="{{ f.path | remove_first: '/' }}">Delete</button>{% endif %}

@@ -25,7 +25,7 @@
 
   var btn;
   function badge() {
-    if (document.body.dataset.page === 'pull') return;
+    if (document.body.dataset.page === 'pull' || document.body.dataset.page === 'ternary') return;
     if (!btn) {
       btn = document.createElement('a');
       btn.className = 'pull-badge';
