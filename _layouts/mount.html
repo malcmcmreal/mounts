@@ -286,7 +286,7 @@ layout: default
           <div class="file-line">
             <a href="{{ f.path | relative_url }}" download class="mono">{{ f.name }}</a>
             <span class="file-acts">
-            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" %}
+            {% if ext == ".csv" or ext == ".txt" or ext == ".tsv" or ext == ".xlsx" %}
             <button type="button" class="btn small" data-preview="{{ f.path | relative_url }}" data-ext="{{ ext }}">Preview</button>
             {% endif %}
             <a class="btn small" href="{{ f.path | relative_url }}" download>Download</a>

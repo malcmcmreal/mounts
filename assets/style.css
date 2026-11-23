@@ -75,9 +75,12 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color:
 .files li:last-child { border-bottom: 0; }
 .file-line { display: flex; align-items: center; gap: .75rem; justify-content: space-between; }
 .preview { margin-top: .6rem; }
+.preview .sheet-tabs { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.preview .sheet-tabs .btn.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .preview pre { background: var(--bg); padding: .75rem; border-radius: 6px; overflow: auto; max-height: 400px; font-size: .85rem; margin: 0; }
 .preview .table-scroll { max-height: 420px; overflow: auto; }
 .preview table { font-size: .82rem; font-family: var(--mono); }
+.preview td { white-space: nowrap; }
 .preview th { text-transform: none; letter-spacing: 0; position: sticky; top: 0; background: var(--card); }
 
 .notes > :last-child { margin-bottom: 0; }
