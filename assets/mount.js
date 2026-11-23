@@ -62,3 +62,21 @@ document.addEventListener('click', function (e) {
     if (!m.contains(e.target) || e.target.closest('.menu-list')) m.open = false;
   });
 });
+
+// Notes card: clip long notes with a fade and a "Show all notes" toggle.
+(function () {
+  var clip = document.getElementById('notes-clip'), btn = document.getElementById('notes-more');
+  if (!clip || !btn) return;
+  function check() {
+    if (clip.classList.contains('open')) return;
+    var over = clip.scrollHeight > clip.clientHeight + 4;
+    clip.classList.toggle('clipped', over); btn.hidden = !over;
+  }
+  btn.addEventListener('click', function () {
+    var open = clip.classList.toggle('open');
+    btn.textContent = open ? 'Show less' : '… Show all notes';
+    btn.setAttribute('aria-expanded', open);
+    if (!open) { check(); clip.closest('.card').scrollIntoView({ block: 'nearest' }); }
+  });
+  check(); window.addEventListener('resize', check);
+})();

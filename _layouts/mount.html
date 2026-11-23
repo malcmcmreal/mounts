@@ -49,8 +49,11 @@ layout: default
     {% endif %}
   </div>
 
-  <div class="grid">
-    <section class="card">
+
+
+
+  <div class="mount-body">
+    <section class="card mb-details">
       <div class="card-head">
         <h2>Mount details</h2>
         {% if repo != "" %}<button type="button" class="btn small" data-add-entry="details">Add &amp; edit</button>{% endif %}
@@ -78,52 +81,6 @@ layout: default
         </ul></dd>{% endif %}
       </dl>
     </section>
-
-    <aside class="card qr-card">
-      <h2>QR code</h2>
-      <div id="qr" class="qr"></div>
-      <p class="mono small break">{{ qr_text }}</p>
-      <button type="button" class="btn small" id="qr-download">Download QR (SVG)</button>
-      <p class="small"><a href="#codes">Other code types &darr;</a></p>
-    </aside>
-  </div>
-
-  <section class="card">
-    <div class="card-head">
-      <h2>Samples</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">Edit &amp; link</button>{% endif %}
-    </div>
-    <div class="table-scroll">
-    <table>
-      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Mineral split</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
-      <tbody>
-        {% for s in samples %}
-        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}">{% if s.record %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}" title="Mineral split record">{{ s.id }}</a>{% else %}<span class="mono">{{ s.id }}</span>{% endif %}{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{% if s.vial %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}#vial-{{ s.vial | escape }}">{{ s.separates }}</a>{% else %}{{ s.separates }}{% endif %}</td>
-          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
-  </section>
-
-  {% assign notes = content | strip %}
-  {% if notes != "" or st.notes.size > 0 or repo != "" %}
-  <section class="card notes">
-    <div class="card-head">
-      <h2>Notes</h2>
-      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="note">+ Add</button>{% endif %}
-    </div>
-    {% if notes != "" %}<div class="notes-body">{{ content }}</div>{% endif %}
-    {% if st.notes.size > 0 %}
-    <ul class="note-list">
-      {% for n in st.notes %}<li><p class="pre">{{ n.note }}</p>
-        <span class="muted small">{{ n.date | date: "%-d %b %Y" }}{% if n.by %} · {{ n.by }}{% endif %}</span></li>{% endfor %}
-    </ul>
-    {% endif %}
-    {% if notes == "" and st.notes.size == 0 %}<p class="muted small">No notes yet.</p>{% endif %}
-  </section>
-  {% endif %}
 
   {% assign folder_files = "" | split: "" %}{% for f in site.static_files %}{% capture fp %}{{ folder }}{{ f.name }}{% endcapture %}{% if f.path == fp %}{% assign folder_files = folder_files | push: f.name %}{% endif %}{% endfor %}
   {% capture up_attrs %}href="https://github.com/{{ repo }}/upload/{{ branch }}{{ folder }}" data-folder="{{ folder | remove_first: '/' }}" data-mount="{{ page.mount_id }}" data-existing='{{ folder_files | jsonify }}'{% endcapture %}
@@ -277,6 +234,44 @@ layout: default
     </div>
   </section>
 
+  <section class="card mb-samples" id="samples">
+    <div class="card-head">
+      <h2>Samples</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="sample">Edit &amp; link</button>{% endif %}
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Sample ID</th><th>Position in mount</th><th>Notes</th><th>Mineral split</th>{% if has_eb %}<th>EarthBank</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for s in samples %}
+        <tr><td>{{ forloop.index }}</td><td data-sample="{{ s.id | escape }}">{% if s.record %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}" title="Mineral split record">{{ s.id }}</a>{% else %}<span class="mono">{{ s.id }}</span>{% endif %}{% if s.was %} <span class="muted small" title="Earlier ID">(was {{ s.was | join: ", " }})</span>{% endif %}</td><td>{{ s.position }}</td><td>{{ s.notes }}</td><td class="separates">{% if s.vial %}<a class="mono" href="{{ '/s/' | append: s.record | append: '/' | relative_url }}#vial-{{ s.vial | escape }}">{{ s.separates }}</a>{% else %}{{ s.separates }}{% endif %}</td>
+          {% if has_eb %}<td>{% if s.earthbank %}{% assign key = s.earthbank | append: "" %}{% assign e = eb.samples[key] %}<a href="{{ site.earthbank_web }}/show/sample/{{ key }}" class="mono" target="_blank" rel="noopener">{{ key }}</a>{% if e %} · <a href="#eb-{{ key }}">details</a>{% endif %}{% endif %}</td>{% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  {% assign notes = content | strip %}
+  <section class="card notes mb-notes" id="notes">
+    <div class="card-head">
+      <h2>Notes</h2>
+      {% if repo != "" %}<button type="button" class="btn small" data-add-entry="note">+ Add</button>{% endif %}
+    </div>
+    <div class="notes-clip" id="notes-clip">
+    {% if notes != "" %}<div class="notes-body">{{ content }}</div>{% endif %}
+    {% if st.notes.size > 0 %}
+    <ul class="note-list">
+      {% for n in st.notes %}<li><p class="pre">{{ n.note }}</p>
+        <span class="muted small">{{ n.date | date: "%-d %b %Y" }}{% if n.by %} · {{ n.by }}{% endif %}</span></li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if notes == "" and st.notes.size == 0 %}<p class="muted small">No notes yet.</p>{% endif %}
+    </div>
+    <button type="button" class="link-btn small notes-more" id="notes-more" hidden aria-expanded="false" aria-controls="notes-clip">… Show all notes</button>
+  </section>
+
   <section class="card" id="data-files">
     <div class="card-head">
       <h2>Data and other files</h2>
@@ -422,6 +417,7 @@ layout: default
     <p class="muted small">Address: <span class="mono break">{{ qr_text }}</span></p>
     <div class="codes"></div>
   </section>
+  </div>
   <script type="application/json" id="sample-order">{{ samples | map: "id" | jsonify }}</script>
 </article>
 

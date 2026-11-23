@@ -646,3 +646,20 @@ th .sort.on { color: #ffb877; }
 th .sort.on::after { content: attr(data-dir); font-size: .7em; margin-left: .3em; }
 .pull-actions { margin-top: .2rem; }
 @media print { th .sort.on::after { content: none; } th .sort.on { color: #000 !important; } }
+
+/* Mount page: one column on a phone (details, layout, samples, notes, files, history,
+   EarthBank, codes); on wider screens the notes sit beside the details. */
+.mount-body { display: flex; flex-direction: column; gap: 1rem; }
+.mount-body > .card { margin: 0; min-width: 0; }
+@media (min-width: 860px) {
+  .mount-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .mount-body > .card { grid-column: 1 / -1; }
+  .mount-body > .mb-details { grid-column: 1; grid-row: 1; }
+  .mount-body > .mb-notes { grid-column: 2; grid-row: 1; align-self: stretch; display: flex; flex-direction: column; }
+  .mb-notes .notes-clip { max-height: 15rem; }
+}
+.notes-clip { position: relative; overflow: hidden; max-height: 12rem; }
+.notes-clip.open { max-height: none !important; }
+.notes-clip.clipped:not(.open)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.5rem; background: linear-gradient(transparent, var(--card)); pointer-events: none; }
+.notes-more { margin-top: .4rem; align-self: flex-start; }
+.note-list { margin: 0; }
