@@ -2,5 +2,6 @@ date: "2026-11-16 17:00"
 by: "malcmcmreal"
 type: analysis
 technique: "EPMA"
+instrument: "JEOL JXA-8530F Plus"
 samples: "All samples in GR006"
 note: "270 analyses (quant files 0026_QNT + 0051_QNT, 12–16 Nov 2026), with bracketing standards. Oxide wt% and detection limits (.txt, .csv) are under Data and other files."
